@@ -1,0 +1,242 @@
+.profile-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f0fdf4;
+}
+
+.profile-content {
+    flex: 1;
+    margin-left: 240px;
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+}
+
+.profile-content.sidebar-collapsed {
+    margin-left: 60px;
+}
+
+.profile-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.profile-header-card {
+    background: white;
+    border-radius: 20px;
+    overflow: visible;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.profile-cover {
+    height: 200px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #10b981;
+    position: absolute;
+    /* top: 140px; */
+    left: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 4px solid white;
+    transform: translateY(100%);
+}
+
+.profile-info {
+    padding: 4rem 2rem 2rem;
+    margin-top: 2rem;
+}
+
+.profile-info h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 1.8rem;
+}
+
+.member-since {
+    color: #64748b;
+    margin: 0.5rem 0 0;
+}
+
+.profile-details-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.profile-details-card h3 {
+    margin: 0 0 2rem;
+    color: #0f172a;
+    font-size: 1.4rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: background-color 0.2s;
+}
+
+.detail-item:hover {
+    background-color: #f8fafc;
+}
+
+.detail-icon {
+    width: 40px;
+    height: 40px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #10b981;
+    flex-shrink: 0;
+}
+
+.detail-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.detail-content label {
+    width: 140px;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.display-value {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.display-value span {
+    color: #0f172a;
+    font-weight: 500;
+}
+
+.edit-button {
+    background: none;
+    border: none;
+    color: #10b981;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.edit-button:hover {
+    background: #f0fdf4;
+}
+
+.edit-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.edit-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.edit-input:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.toggle-password {
+    background: none;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.action-btn.save {
+    background: #10b981;
+    color: white;
+}
+
+.action-btn.save:hover {
+    background: #059669;
+}
+
+.action-btn.cancel {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.action-btn.cancel:hover {
+    background: #e2e8f0;
+}
+
+@media (max-width: 768px) {
+    .profile-content {
+        margin-left: 60px;
+        padding: 1rem;
+    }
+
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .display-value {
+        width: 100%;
+    }
+
+    .edit-controls {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .action-buttons {
+        width: 100%;
+        justify-content: flex-end;
+    }
+} 

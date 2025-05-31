@@ -1,0 +1,282 @@
+/* General Styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(to right, #ffffff, #f3f4f6);
+}
+
+.dashboard-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2rem;
+  transition: margin-left 0.3s ease;
+}
+
+.dashboard-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+
+/* Orders Section */
+.orders-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Page Title */
+.orders-heading {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 1.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Orders Grid */
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* Order Card */
+.order-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.8rem;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  border-left: 6px solid #4caf50;
+  position: relative;
+}
+
+.order-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Product Name */
+.product-name {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #34495e;
+  margin-bottom: 0.8rem;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1.2rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-accepted {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+}
+
+.action-button {
+  flex: 1;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  transform: scale(1.05);
+}
+
+.accept-button {
+  background: linear-gradient(to right, #4caf50, #45a049);
+  color: white;
+}
+
+.reject-button {
+  background: linear-gradient(to right, #e74c3c, #c0392b);
+  color: white;
+}
+
+/* Table Styles */
+.table-container {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 1.2rem;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.orders-table th {
+  background: #f3f4f6;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.orders-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.orders-table td .action-buttons {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.orders-table td .action-button {
+  padding: 0.5rem 1.2rem;
+  font-size: 0.875rem;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #7d8c9b;
+  font-size: 1.1rem;
+}
+
+/* Error State */
+.error-state {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-content {
+    margin-left: 80px;
+    padding: 1.5rem;
+  }
+
+  .orders-container {
+    padding: 1.5rem;
+  }
+
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-container {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .orders-table {
+    min-width: 100%;
+  }
+}
+/* Animation for orders */
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply animation when orders appear */
+.order-row.animate {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInSlide 0.5s ease-out forwards;
+}
+
+/* Staggered delay for smooth effect */
+.order-row:nth-child(1) { animation-delay: 0.1s; }
+.order-row:nth-child(2) { animation-delay: 0.2s; }
+.order-row:nth-child(3) { animation-delay: 0.3s; }
+
+/* Style for action buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 8px 12px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.accept-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.reject-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.accept-button:hover {
+  background-color: #218838;
+}
+
+.reject-button:hover {
+  background-color: #c82333;
+}

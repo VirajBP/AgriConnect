@@ -1,0 +1,167 @@
+/* General Styles */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  background: linear-gradient(to right, #ffffff, #f3f4f6);
+}
+
+.dashboard-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2rem;
+  transition: margin-left 0.3s ease;
+}
+
+.dashboard-content.sidebar-collapsed {
+  margin-left: 80px;
+}
+
+/* Orders Section */
+.orders-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Page Title */
+.orders-heading {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  text-align: center;
+  margin-bottom: 1.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Table Styles */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.orders-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #334155;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+
+.orders-table tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Animation */
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.order-row.animate {
+  opacity: 0;
+  animation: fadeInSlide 0.5s ease-out forwards;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-content {
+    margin-left: 80px;
+    padding: 1.5rem;
+  }
+
+  .orders-container {
+    padding: 1.5rem;
+  }
+
+  .table-container {
+    margin: 0 -1.5rem;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .orders-table {
+    font-size: 0.875rem;
+  }
+
+  .orders-table th,
+  .orders-table td {
+    padding: 0.75rem;
+  }
+
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+} 

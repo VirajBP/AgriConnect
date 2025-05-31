@@ -1,0 +1,165 @@
+/* General Profile Layout */
+.farmer-profile {
+    display: flex;
+    min-height: 100vh;
+    background: #f4f7f6; /* Light background */
+}
+
+.profile-content {
+    flex: 1;
+    margin-left: 260px; /* Space for sidebar */
+    padding: 30px; /* Increased padding */
+    transition: margin-left 0.3s ease;
+}
+
+.profile-content.sidebar-collapsed {
+    margin-left: 80px; /* Space for collapsed sidebar */
+}
+
+/* Profile Header Section */
+.profile-header-section {
+    background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%); /* Green gradient */
+    color: white;
+    padding: 40px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.8);
+    border: 3px solid rgba(255, 255, 255, 0.5);
+    position: relative; /* Above pseudo-element */
+    z-index: 2;
+}
+
+.profile-info-header h2 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+    color: white; /* Ensure text is white */
+}
+
+.profile-info-header p {
+    margin-top: 5px;
+    font-size: 1rem;
+    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.9); /* Ensure text is white */
+}
+
+/* Personal Information Section */
+.personal-info-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.personal-info-section h2 {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-details {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.info-icon {
+    font-size: 1.5rem;
+    color: #4CAF50;
+}
+
+.info-text p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.info-text p strong {
+    font-weight: 600;
+    color: #333;
+}
+
+.edit-button {
+    background-color: #2196F3; /* Blue */
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.edit-button:hover {
+    background-color: #1976D2; /* Darker blue */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .profile-content {
+        margin-left: 0; /* Remove sidebar margin on small screens */
+        padding: 20px;
+    }
+
+    .profile-header-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .profile-info-header h2 {
+        font-size: 1.8rem;
+    }
+
+    .profile-info-header p {
+        font-size: 0.9rem;
+    }
+
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .info-details {
+        align-items: flex-start;
+    }
+
+    .edit-button {
+        width: 100%;
+        text-align: center;
+    }
+} 

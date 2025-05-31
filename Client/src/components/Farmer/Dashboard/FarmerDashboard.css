@@ -1,0 +1,310 @@
+/* General Dashboard Layout */
+.farmer-dashboard {
+    display: flex;
+    min-height: 100vh;
+    background: #eef2f7; /* A slightly cooler, clean background */
+}
+
+.dashboard-content {
+    flex: 1;
+    margin-left: 260px; /* Space for sidebar */
+    padding: 30px; /* Increased padding */
+    transition: margin-left 0.3s ease;
+}
+
+.dashboard-content.sidebar-collapsed {
+    margin-left: 80px; /* Space for collapsed sidebar */
+}
+
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Professional green gradient */
+    color: white;
+    padding: 40px;
+    border-radius: 12px; /* Slightly less rounded */
+    margin-bottom: 30px;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3); /* Stronger, green-tinted shadow */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    /* Remove ::before for a cleaner look, or add a subtle pattern if desired */
+}
+
+.dashboard-header h1, .dashboard-header p {
+    position: relative;
+    z-index: 2;
+    color: #ffffff; /* Ensure text is pure white */
+}
+
+.dashboard-header h1 {
+    margin: 0;
+    font-size: 2.8rem; /* Slightly larger heading */
+    font-weight: 700;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2); /* Slightly stronger text shadow */
+}
+
+.dashboard-header p {
+    margin-top: 8px; /* More space below heading */
+    font-size: 1.1rem;
+    opacity: 0.95;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Adjust minmax for more flexibility */
+    gap: 20px; /* Slightly reduced gap for compactness */
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px; /* Consistent rounding */
+    padding: 20px; /* Slightly reduced padding */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* Refined shadow */
+    display: flex;
+    align-items: center;
+    gap: 15px; /* Reduced gap inside card */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 5px solid #10b981; /* Accent border */
+}
+
+.stat-card:hover {
+    transform: translateY(-3px); /* Subtle lift */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); /* Enhanced hover shadow */
+}
+
+.stat-card .stat-icon {
+    font-size: 2rem; /* Slightly smaller icon */
+    color: #10b981; /* Primary green */
+}
+
+.stat-card.primary .stat-icon { color: #3b82f6; /* Blue */ }
+.stat-card.success .stat-icon { color: #10b981; /* Green */ }
+.stat-card.warning .stat-icon { color: #f59e0b; /* Amber */ }
+.stat-card.danger .stat-icon { color: #ef4444; /* Red */ }
+
+
+.stat-card .stat-info h3 {
+    margin: 0 0 4px 0; /* Adjusted margin */
+    font-size: 1.6rem; /* Slightly smaller stat number */
+    color: #1f2937; /* Darker text for contrast */
+}
+
+.stat-card .stat-info .stat-label {
+    font-size: 0.9rem; /* Slightly smaller label */
+    color: #4b5563; /* Muted text color */
+    text-transform: uppercase;
+    letter-spacing: 0.75px; /* Increased letter spacing */
+    font-weight: 500; /* Medium font weight */
+}
+
+.stat-card .stat-info .stat-change {
+    font-size: 0.85rem; /* Smaller change text */
+    color: #6b7280; /* Muted color */
+    margin-top: 4px;
+    display: block;
+}
+
+.stat-card .stat-info .stat-change.positive { color: #10b981; }
+.stat-card .stat-info .stat-change.negative { color: #ef4444; }
+
+/* Dashboard Main Content Area */
+.dashboard-main {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* Prioritize charts/lists */
+    gap: 25px; /* Adjusted gap */
+}
+
+@media (max-width: 992px) {
+    .dashboard-main {
+        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    }
+}
+
+/* Section Styling (Charts, Lists) */
+.monthly-revenue, .popular-products, .recent-activity, .todays-orders, .inventory-section {
+    background: white;
+    border-radius: 10px; /* Consistent rounding */
+    padding: 20px; /* Adjusted padding */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* Refined shadow */
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px; /* Adjusted margin */
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.4rem; /* Slightly smaller heading */
+    color: #1f2937; /* Darker text */
+    font-weight: 600;
+}
+
+/* Chart Container */
+.chart-container {
+    height: 300px;
+    position: relative;
+    padding-top: 15px; /* Space for chart title/legend */
+}
+
+/* Activity List (Example for Recent Activity/Today's Orders) */
+.activity-list .activity-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.activity-list .activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-list .activity-icon {
+    font-size: 1.6rem; /* Slightly smaller icon */
+    color: #10b981;
+}
+
+.activity-list .activity-details {
+    flex-grow: 1;
+}
+
+.activity-list .activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.activity-list .activity-header h4 {
+    margin: 0;
+    font-size: 1rem; /* Slightly smaller heading */
+    color: #333;
+}
+
+.activity-list .activity-meta {
+    font-size: 0.85rem; /* Smaller meta text */
+    color: #6b7280;
+}
+
+.activity-list .status-badge {
+    padding: 3px 7px; /* Adjusted padding */
+    border-radius: 10px; /* Consistent rounding */
+    font-size: 0.75rem; /* Smaller font size */
+    font-weight: 600;
+}
+
+.activity-list .status-badge.status-pending { background: #fef3c7; color: #d97706; }
+.activity-list .status-badge.status-confirmed { background: #d1fae5; color: #059669; }
+.activity-list .status-badge.status-completed { background: #bfdbfe; color: #2563eb; }
+.activity-list .status-badge.status-cancelled, .activity-list .status-badge.status-rejected { background: #fee2e2; color: #dc2626; }
+
+/* Inventory Table Styling (assuming similar structure to orders table) */
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.inventory-table th,
+.inventory-table td {
+    text-align: left;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.inventory-table th {
+    font-size: 0.9rem;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.inventory-table td {
+    font-size: 1rem;
+    color: #333;
+}
+
+.inventory-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .dashboard-content {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    .dashboard-header {
+        padding: 30px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2rem;
+    }
+
+    .dashboard-header p {
+        font-size: 1rem;
+    }
+
+    .stats-grid {
+        gap: 15px;
+    }
+
+    .stat-card {
+        padding: 20px;
+    }
+
+    .stat-card .stat-icon {
+        font-size: 2rem;
+    }
+
+    .stat-card .stat-info h3 {
+        font-size: 1.5rem;
+    }
+
+    .stat-card .stat-info .stat-label {
+        font-size: 0.9rem;
+    }
+
+    .dashboard-main {
+        gap: 20px;
+    }
+
+    .monthly-revenue, .popular-products, .recent-activity, .todays-orders, .inventory-section {
+        padding: 20px;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .chart-container {
+        height: 250px;
+    }
+
+    .activity-list .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .activity-list .activity-header {
+        width: 100%;
+    }
+
+    .inventory-table th,
+    .inventory-table td {
+        padding: 10px 0;
+    }
+} 
