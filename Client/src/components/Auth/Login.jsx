@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+// import axios from '../../utils/axios';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import './Login.css';
@@ -86,8 +87,8 @@ const Login = () => {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('userType', userType);
                 
-                // Redirect based on user type
-                navigate(`/${userType}/dashboard`);
+                // Force a full page reload after setting localStorage
+                window.location.href = `/${userType}/dashboard`;
             }
         } catch (err) {
             console.error('Login error:', err.response || err);

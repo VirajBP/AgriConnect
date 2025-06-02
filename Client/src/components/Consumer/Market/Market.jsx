@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../../../utils/axios';
 import { 
     Box, 
     Container, 
@@ -30,15 +30,15 @@ import {
     TableCell,
     TableContainer,
     TableRow,
-    Paper
+    Paper,
+    Rating,
+    Snackbar,
+    Alert
 } from '@mui/material';
-import { Search as SearchIcon, FilterList as FilterIcon } from '@mui/icons-material';
+import { Search as SearchIcon, FilterList as FilterIcon, ShoppingCart as ShoppingCartIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Star as StarIcon, LocationOn as LocationIcon, Phone as PhoneIcon, Email as EmailIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Sidebar/Sidebar';
 import './Market.css';
-
-// Define API URL from environment variable
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Define product images mapping
 const productImages = {
@@ -63,7 +63,8 @@ const Market = () => {
     const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [recentListings, setRecentListings] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [filters, setFilters] = useState({
         minPrice: '',
         maxPrice: '',
@@ -76,112 +77,88 @@ const Market = () => {
     });
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [openDialog, setOpenDialog] = useState(false);
+    const [quantity, setQuantity] = useState(1);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success'
+    });
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     useEffect(() => {
-        if (marketType) {
-            // Initialize with dummy data for now
-            const dummyProducts = {
-                crops: [
-                    {
-                        id: 1,
-                        productName: 'Wheat',
-                        productVariety: 'Premium Quality',
-                        price: 2500,
-                        farmer: { name: 'John Doe', location: 'Punjab' },
-                        organicCertified: true,
-                        quality: 'Premium'
-                    },
-                    {
-                        id: 2,
-                        productName: 'Rice',
-                        productVariety: 'Basmati',
-                        price: 3500,
-                        farmer: { name: 'Jane Smith', location: 'Haryana' },
-                        organicCertified: true,
-                        quality: 'Premium'
-                    },
-                    {
-                        id: 3,
-                        productName: 'Corn',
-                        productVariety: 'Sweet Corn',
-                        price: 1800,
-                        farmer: { name: 'Mike Brown', location: 'UP' },
-                        organicCertified: false,
-                        quality: 'Standard'
-                    },
-                    {
-                        id: 4,
-                        productName: 'Cotton',
-                        productVariety: 'Long Staple',
-                        price: 4500,
-                        farmer: { name: 'Sarah Wilson', location: 'Gujarat' },
-                        organicCertified: true,
-                        quality: 'Premium'
-                    },
-                    {
-                        id: 5,
-                        productName: 'Sugarcane',
-                        productVariety: 'Fresh',
-                        price: 2000,
-                        farmer: { name: 'Robert Lee', location: 'Maharashtra' },
-                        organicCertified: false,
-                        quality: 'Standard'
+        const fetchProducts = async () => {
+            try {
+                // Always fetch from the main consumer market endpoint
+                const response = await axios.get('/consumer/market/products');
+                if (response.data.success) {
+                    setProducts(response.data.data);
+                    // Apply initial filtering based on marketType if already selected
+                    if (marketType) {
+                        setFilteredProducts(response.data.data.filter(product => product.marketType === marketType));
+                    } else {
+                         setFilteredProducts(response.data.data); // Show all if no type selected yet
                     }
-                ],
-                agriWaste: [
-                    {
-                        id: 6,
-                        productName: 'Rice Husk',
-                        productVariety: 'Processed',
-                        price: 800,
-                        farmer: { name: 'David Clark', location: 'Bihar' },
-                        moisture: '12%',
-                        transportAvailable: true
-                    },
-                    {
-                        id: 7,
-                        productName: 'Wheat Straw',
-                        productVariety: 'Baled',
-                        price: 600,
-                        farmer: { name: 'Emma Davis', location: 'MP' },
-                        moisture: '10%',
-                        transportAvailable: true
-                    },
-                    {
-                        id: 8,
-                        productName: 'Sugarcane Bagasse',
-                        productVariety: 'Fresh',
-                        price: 700,
-                        farmer: { name: 'Tom Wilson', location: 'UP' },
-                        moisture: '15%',
-                        transportAvailable: false
-                    }
-                ]
-            };
-            
-            setProducts(dummyProducts[marketType]);
-            setFilteredProducts(dummyProducts[marketType]);
-            setRecentListings(dummyProducts[marketType].slice(0, 3));
-        }
-    }, [marketType]);
+                } else {
+                    console.error('Error fetching products:', response.data.message || 'Failed to fetch products');
+                    setError(response.data.message || 'Failed to fetch products');
+                }
+            } catch (err) {
+                console.error('Error fetching products:', err);
+                setError(err.response?.data?.message || 'Error fetching products');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Fetch products when component mounts or marketType changes (for frontend filtering)
+        fetchProducts();
+    }, [marketType]); // Added marketType dependency
 
     useEffect(() => {
-        handleSearch();
-    }, [searchQuery, filters]);
+        // This useEffect is for applying search/filter changes after initial fetch
+        const applyFilters = () => {
+            let currentProducts = marketType 
+                ? products.filter(product => product.marketType === marketType) 
+                : products; // Start with all if no market type selected
 
-    const handleMarketSelect = async (type) => {
+            const filtered = currentProducts.filter(product => {
+                const matchesSearch = !searchQuery || (
+                    product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.productVariety.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.farmer.location.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+
+                const matchesPrice = 
+                    (!filters.minPrice || product.price >= Number(filters.minPrice)) &&
+                    (!filters.maxPrice || product.price <= Number(filters.maxPrice));
+
+                const matchesLocation = 
+                    !filters.location || 
+                    product.farmer.city.toLowerCase() === filters.location.toLowerCase();
+
+                let matchesTypeSpecific = true;
+                if (marketType === 'crops') {
+                    matchesTypeSpecific = 
+                        (!filters.organicOnly || product.organicCertified) &&
+                        (!filters.quality || product.quality === filters.quality);
+                } else {
+                    matchesTypeSpecific = 
+                        (!filters.moisture || product.moisture === filters.moisture) &&
+                        (!filters.transportRequired || product.transportAvailable);
+                }
+
+                return matchesSearch && matchesPrice && matchesLocation && matchesTypeSpecific;
+            });
+
+            setFilteredProducts(filtered);
+        };
+
+        applyFilters();
+    }, [products, marketType, searchQuery, filters]);
+
+    const handleMarketSelect = (type) => {
         setMarketType(type);
-        try {
-            setLoading(true);
-            const response = await axios.get(`${API_URL}/products/${type}`);
-            setProducts(response.data.data);
-            setFilteredProducts(response.data.data);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            // Fallback to dummy data handled in the first useEffect
-        } finally {
-            setLoading(false);
-        }
+        // The useEffect with marketType dependency will handle fetching/filtering
     };
 
     const handleSearch = () => {
@@ -198,7 +175,7 @@ const Market = () => {
 
             const matchesLocation = 
                 !filters.location || 
-                product.farmer.location.toLowerCase().includes(filters.location.toLowerCase());
+                product.farmer.city.toLowerCase() === filters.location.toLowerCase();
 
             let matchesTypeSpecific = true;
             if (marketType === 'crops') {
@@ -227,11 +204,54 @@ const Market = () => {
     const handleViewDetails = (product) => {
         setSelectedProduct(product);
         setOpenDialog(true);
+        setQuantity(1);
     };
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setSelectedProduct(null);
+    };
+
+    const handleQuantityChange = (event) => {
+        const value = parseInt(event.target.value);
+        if (value > 0 && value <= selectedProduct.availableQuantity) {
+            setQuantity(value);
+        }
+    };
+
+    const handleAddToCart = async () => {
+        try {
+            const response = await axios.post('/consumer/cart/add', {
+                productId: selectedProduct._id,
+                quantity: quantity
+            });
+
+            if (response.data.success) {
+                setSnackbar({
+                    open: true,
+                    message: 'Product added to cart successfully',
+                    severity: 'success'
+                });
+                handleCloseDialog();
+            } else {
+                setSnackbar({
+                    open: true,
+                    message: response.data.message || 'Failed to add product to cart',
+                    severity: 'error'
+                });
+            }
+        } catch (error) {
+            console.error('Error adding to cart:', error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || 'Error adding to cart',
+                severity: 'error'
+            });
+        }
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
     };
 
     const getProductImage = (product) => {
@@ -243,8 +263,8 @@ const Market = () => {
     };
 
     if (!marketType) {
-    return (
-        <div className="market-page">
+        return (
+            <div className="market-page">
                 <Sidebar />
                 <Container className="market-selection-container">
                     <Grid container spacing={4} justifyContent="center">
@@ -290,258 +310,262 @@ const Market = () => {
                         </Grid>
                     </Grid>
                 </Container>
-                            </div>
+            </div>
+        );
+    }
+
+    if (loading) {
+        return (
+            <div className="market-container">
+                <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
+                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                        <CircularProgress />
+                    </Box>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="market-container">
+                <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
+                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                    <Typography color="error" variant="h6" sx={{ textAlign: 'center', mt: 4 }}>
+                        {error}
+                    </Typography>
+                    <Typography variant="body1" color="textSecondary" sx={{ textAlign: 'center', mt: 2 }}>
+                        Please try again later or contact support if the problem persists.
+                    </Typography>
+                </div>
+            </div>
         );
     }
 
     return (
         <div className="market-container">
-            <Sidebar />
-            <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+            <Sidebar 
+                userType="consumer" 
+                onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+            />
+            <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <Typography variant="h4" className="market-heading" gutterBottom>
+                    Market
+                </Typography>
+
+                {/* Search and Filter Section */}
                 <Box sx={{ mb: 4 }}>
-                    <Typography variant="h4" gutterBottom>
-                        Farmer's Market
-                    </Typography>
-                    <TextField
-                        fullWidth
-                        variant="outlined"
-                        placeholder="Search products, varieties, or locations..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon />
-                                </InputAdornment>
-                            ),
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton onClick={() => {}}>
-                                        <FilterIcon />
-                                    </IconButton>
-                                </InputAdornment>
-                            )
-                        }}
-                        sx={{ mb: 3 }}
-                    />
-                    
-                    {loading ? (
-                        <Box display="flex" justifyContent="center" my={4}>
-                            <CircularProgress />
-                        </Box>
-                    ) : (
-                        <Grid container spacing={3}>
-                            {filteredProducts.map((product) => (
-                                <Grid item xs={12} sm={6} md={4} key={product.id}>
-                                    <Card 
-                                        elevation={2}
-                                        sx={{ 
-                                            height: '100%',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            transition: '0.3s',
-                                            '&:hover': {
-                                                transform: 'translateY(-4px)',
-                                                boxShadow: 4
-                                            }
-                                        }}
-                                    >
-                                        <CardMedia
-                                            component="img"
-                                            height="200"
-                                            image={getProductImage(product)}
-                                            alt={product.productName}
-                                        />
-                                        <CardContent sx={{ flexGrow: 1 }}>
-                                            <Typography gutterBottom variant="h6" component="h2">
-                                                {product.productName}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary" gutterBottom>
-                                                {product.productVariety}
-                                            </Typography>
-                                            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                                                <Typography variant="h6" color="primary">
-                                                    ₹{product.price}/kg
-                                                </Typography>
-                                                <Chip 
-                                                    label={product.farmer.location}
-                                                    size="small"
-                                                    color="secondary"
-                                                />
-                                            </Box>
-                                            {marketType === 'crops' && product.organicCertified && (
-                                                <Chip 
-                                                    label="Organic Certified"
-                                                    size="small"
-                                                    color="success"
-                                                    sx={{ mr: 1 }}
-                                                />
-                                            )}
-                                        </CardContent>
-                                        <CardActions>
-                                            <Button 
-                                                size="small" 
-                                                color="primary"
-                                                onClick={() => handleViewDetails(product)}
-                                                fullWidth
-                                            >
-                                                View Details
-                                            </Button>
-                                        </CardActions>
-                                    </Card>
-                                </Grid>
-                            ))}
+                    <Grid container spacing={2}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Search products..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <SearchIcon />
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
                         </Grid>
-                    )}
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                fullWidth
+                                variant="outlined"
+                                placeholder="Filter by city..."
+                                value={filters.location}
+                                onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <LocationIcon />
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
+                        </Grid>
+                    </Grid>
                 </Box>
 
-                {/* Product Details Dialog */}
-                <Dialog 
-                    open={openDialog} 
-                    onClose={handleCloseDialog}
-                    maxWidth="md"
-                    fullWidth
-                >
+                {filteredProducts.length === 0 ? (
+                    <Box sx={{ textAlign: 'center', mt: 4 }}>
+                        <Typography variant="h6" color="textSecondary" gutterBottom>
+                            No products available in your city
+                        </Typography>
+                        <Typography variant="body1" color="textSecondary">
+                            Check back later for new products from local farmers
+                        </Typography>
+                    </Box>
+                ) : (
+                    <Grid container spacing={3}>
+                        {filteredProducts.map(product => (
+                            <Grid item xs={12} sm={6} md={4} lg={3} key={product._id}>
+                                <Card className="product-card">
+                                    <CardMedia
+                                        component="img"
+                                        height="200"
+                                        image={product.imageUrl || '/placeholder-product.jpg'}
+                                        alt={product.productName}
+                                        className="product-image"
+                                    />
+                                    <CardContent>
+                                        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                                            <Typography variant="h6" component="div" className="product-name">
+                                                {product.productName}
+                                            </Typography>
+                                            <Chip
+                                                label={`₹${product.price}/${product.unit}`}
+                                                color="primary"
+                                                size="small"
+                                            />
+                                        </Box>
+                                        <Typography variant="body2" color="text.secondary" className="product-variety">
+                                            {product.variety}
+                                        </Typography>
+                                        <Box mt={1}>
+                                            <Typography variant="body2" color="text.secondary" display="flex" alignItems="center">
+                                                <LocationIcon fontSize="small" sx={{ mr: 0.5 }} />
+                                                {product.farmer.city}
+                                            </Typography>
+                                        </Box>
+                                        <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                                            <Typography variant="body2" color="text.secondary">
+                                                Available: {product.availableQuantity} {product.unit}
+                                            </Typography>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                startIcon={<ShoppingCartIcon />}
+                                                onClick={() => handleViewDetails(product)}
+                                                disabled={product.availableQuantity <= 0}
+                                            >
+                                                Add to Cart
+                                            </Button>
+                                        </Box>
+                                    </CardContent>
+                                </Card>
+                            </Grid>
+                        ))}
+                    </Grid>
+                )}
+
+                <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
                     {selectedProduct && (
                         <>
-                            <DialogTitle>
-                                <Typography variant="h5" component="div">
-                                    {selectedProduct.productName} - {selectedProduct.productVariety}
-                                </Typography>
-                            </DialogTitle>
-                            <DialogContent dividers>
+                            <DialogTitle>Product Details</DialogTitle>
+                            <DialogContent>
                                 <Grid container spacing={3}>
-                                    {/* Product Image */}
                                     <Grid item xs={12} md={6}>
-                                        <CardMedia
-                                            component="img"
-                                            image={getProductImage(selectedProduct)}
+                                        <img
+                                            src={selectedProduct.imageUrl || '/placeholder-product.jpg'}
                                             alt={selectedProduct.productName}
-                                            sx={{ 
-                                                borderRadius: 1,
-                                                height: 300,
-                                                objectFit: 'cover'
-                                            }}
+                                            className="product-detail-image"
                                         />
                                     </Grid>
-
-                                    {/* Product Details */}
                                     <Grid item xs={12} md={6}>
-                                        <TableContainer component={Paper} variant="outlined">
-                                            <Table>
-                                                <TableBody>
-                                                    <TableRow>
-                                                        <TableCell component="th" scope="row">Price</TableCell>
-                                                        <TableCell align="right">
-                                                            <Typography variant="h6" color="primary">
-                                                                ₹{selectedProduct.price}/kg
-                                                            </Typography>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                    <TableRow>
-                                                        <TableCell component="th" scope="row">Variety</TableCell>
-                                                        <TableCell align="right">{selectedProduct.productVariety}</TableCell>
-                                                    </TableRow>
-                                                    <TableRow>
-                                                        <TableCell component="th" scope="row">Farmer Name</TableCell>
-                                                        <TableCell align="right">{selectedProduct.farmer.name}</TableCell>
-                                                    </TableRow>
-                                                    <TableRow>
-                                                        <TableCell component="th" scope="row">Location</TableCell>
-                                                        <TableCell align="right">
-                                                            <Chip 
-                                                                label={selectedProduct.farmer.location}
-                                                                size="small"
-                                                                color="secondary"
-                                                            />
-                                                        </TableCell>
-                                                    </TableRow>
-                                                    {marketType === 'crops' && (
-                                                        <>
-                                                            <TableRow>
-                                                                <TableCell component="th" scope="row">Quality</TableCell>
-                                                                <TableCell align="right">{selectedProduct.quality}</TableCell>
-                                                            </TableRow>
-                                                            <TableRow>
-                                                                <TableCell component="th" scope="row">Organic Certification</TableCell>
-                                                                <TableCell align="right">
-                                                                    {selectedProduct.organicCertified ? (
-                                                                        <Chip 
-                                                                            label="Certified Organic"
-                                                                            size="small"
-                                                                            color="success"
-                                                                        />
-                                                                    ) : (
-                                                                        <Chip 
-                                                                            label="Conventional"
-                                                                            size="small"
-                                                                            color="default"
-                                                                        />
-                                                                    )}
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        </>
-                                                    )}
-                                                    {marketType === 'agriWaste' && (
-                                                        <>
-                                                            <TableRow>
-                                                                <TableCell component="th" scope="row">Moisture Content</TableCell>
-                                                                <TableCell align="right">{selectedProduct.moisture}</TableCell>
-                                                            </TableRow>
-                                                            <TableRow>
-                                                                <TableCell component="th" scope="row">Transport Available</TableCell>
-                                                                <TableCell align="right">
-                                                                    <Chip 
-                                                                        label={selectedProduct.transportAvailable ? "Available" : "Not Available"}
-                                                                        size="small"
-                                                                        color={selectedProduct.transportAvailable ? "success" : "error"}
-                                                                    />
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        </>
-                                                    )}
-                                                </TableBody>
-                                            </Table>
-                                        </TableContainer>
+                                        <Typography variant="h5" gutterBottom>
+                                            {selectedProduct.productName}
+                                        </Typography>
+                                        <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                                            {selectedProduct.variety}
+                                        </Typography>
+                                        <Box display="flex" alignItems="center" mb={2}>
+                                            <Rating
+                                                value={selectedProduct.rating || 0}
+                                                readOnly
+                                                icon={<StarIcon fontSize="inherit" />}
+                                            />
+                                            <Typography variant="body2" color="text.secondary" ml={1}>
+                                                ({selectedProduct.reviewCount || 0} reviews)
+                                            </Typography>
+                                        </Box>
+                                        <Typography variant="h6" color="primary" gutterBottom>
+                                            ₹{selectedProduct.price}/{selectedProduct.unit}
+                                        </Typography>
+                                        <Typography variant="body1" paragraph>
+                                            {selectedProduct.description}
+                                        </Typography>
+                                        <Box mb={2}>
+                                            <Typography variant="subtitle2" gutterBottom>
+                                                Available Quantity
+                                            </Typography>
+                                            <Typography variant="body1">
+                                                {selectedProduct.availableQuantity} {selectedProduct.unit}
+                                            </Typography>
+                                        </Box>
+                                        <Box mb={2}>
+                                            <Typography variant="subtitle2" gutterBottom>
+                                                Farmer Information
+                                            </Typography>
+                                            <Box display="flex" alignItems="center" mb={1}>
+                                                <LocationIcon fontSize="small" color="action" />
+                                                <Typography variant="body2" ml={1}>
+                                                    {selectedProduct.farmer.location}
+                                                </Typography>
+                                            </Box>
+                                            <Box display="flex" alignItems="center" mb={1}>
+                                                <PhoneIcon fontSize="small" color="action" />
+                                                <Typography variant="body2" ml={1}>
+                                                    {selectedProduct.farmer.phone}
+                                                </Typography>
+                                            </Box>
+                                            <Box display="flex" alignItems="center">
+                                                <EmailIcon fontSize="small" color="action" />
+                                                <Typography variant="body2" ml={1}>
+                                                    {selectedProduct.farmer.email}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                        <Box display="flex" alignItems="center" gap={2}>
+                                            <TextField
+                                                type="number"
+                                                label="Quantity"
+                                                value={quantity}
+                                                onChange={handleQuantityChange}
+                                                inputProps={{ min: 1, max: selectedProduct.availableQuantity }}
+                                                size="small"
+                                                sx={{ width: '100px' }}
+                                            />
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                startIcon={<ShoppingCartIcon />}
+                                                onClick={handleAddToCart}
+                                                fullWidth
+                                            >
+                                                Add to Cart
+                                            </Button>
+                                        </Box>
                                     </Grid>
                                 </Grid>
-
-                                {/* Additional Information */}
-                                <Box mt={3}>
-                                    <Typography variant="h6" gutterBottom>
-                                        Additional Information
-                                    </Typography>
-                                    <Typography variant="body2" color="text.secondary" paragraph>
-                                        {marketType === 'crops' ? (
-                                            <>
-                                                This {selectedProduct.productName.toLowerCase()} is of {selectedProduct.quality.toLowerCase()} quality, 
-                                                sourced directly from our trusted farmer in {selectedProduct.farmer.location}. 
-                                                {selectedProduct.organicCertified && " The product is certified organic, grown without synthetic pesticides or fertilizers."}
-                                            </>
-                                        ) : (
-                                            <>
-                                                This {selectedProduct.productName.toLowerCase()} is {selectedProduct.productVariety.toLowerCase()}, 
-                                                available from {selectedProduct.farmer.location} with a moisture content of {selectedProduct.moisture}. 
-                                                {selectedProduct.transportAvailable && " Transportation service is available for this product."}
-                                            </>
-                                        )}
-                                    </Typography>
-                                </Box>
                             </DialogContent>
                             <DialogActions>
                                 <Button onClick={handleCloseDialog}>Close</Button>
-                                <Button 
-                                    variant="contained" 
-                                    color="primary"
-                                    onClick={() => navigate(`/market/product/${selectedProduct.id}`)}
-                                >
-                                    Place Order
-                                </Button>
                             </DialogActions>
                         </>
                     )}
                 </Dialog>
-            </Container>
+
+                <Snackbar
+                    open={snackbar.open}
+                    autoHideDuration={6000}
+                    onClose={handleCloseSnackbar}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                >
+                    <Alert
+                        onClose={handleCloseSnackbar}
+                        severity={snackbar.severity}
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbar.message}
+                    </Alert>
+                </Snackbar>
+            </div>
         </div>
     );
 };

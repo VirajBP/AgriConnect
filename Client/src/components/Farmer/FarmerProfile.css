@@ -1,156 +1,254 @@
-.profile-container {
+.farmer-profile {
     display: flex;
     min-height: 100vh;
-    background-color: #f0fdf4;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 .profile-content {
     flex: 1;
-    margin-left: 240px;
-    padding: 2rem;
+    padding: 0;
+    margin-left: 250px;
     transition: margin-left 0.3s ease;
 }
 
 .profile-content.sidebar-collapsed {
-    margin-left: 60px;
+    margin-left: 80px;
 }
 
-.profile-wrapper {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.profile-header-card {
-    background: white;
-    border-radius: 20px;
-    overflow: visible;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    margin-bottom: 2rem;
+/* Profile Header */
+.profile-header {
     position: relative;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-color-dark) 100%);
+    padding: 2rem 2rem 4rem;
+    color: white;
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
 .profile-cover {
-    height: 200px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    position: relative;
+    margin-bottom: 1rem;
 }
 
 .profile-avatar {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
     background: white;
-    border-radius: 20px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
-    color: #10b981;
-    position: absolute;
-    /* top: 140px; */
-    left: 2rem;
+    margin: 0 auto;
+    font-size: 2.5rem;
+    color: var(--primary-color);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border: 4px solid white;
-    transform: translateY(100%);
 }
 
-.profile-info {
-    padding: 4rem 2rem 2rem;
-    margin-top: 2rem;
-}
-
-.profile-info h2 {
+.profile-info h1 {
     margin: 0;
-    color: #0f172a;
-    font-size: 1.8rem;
+    font-size: 2rem;
+    font-weight: 600;
 }
 
-.member-since {
-    color: #64748b;
+.profile-role {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.profile-join-date {
     margin: 0.5rem 0 0;
-}
-
-.profile-details-card {
-    background: white;
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-}
-
-.profile-details-card h3 {
-    margin: 0 0 2rem;
-    color: #0f172a;
-    font-size: 1.4rem;
-}
-
-.detail-item {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1.5rem;
-    border-radius: 12px;
-    transition: background-color 0.2s;
-}
-
-.detail-item:hover {
-    background-color: #f8fafc;
-}
-
-.detail-icon {
-    width: 40px;
-    height: 40px;
-    background: #f1f5f9;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #10b981;
-    flex-shrink: 0;
-}
-
-.detail-content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.detail-content label {
-    width: 140px;
-    color: #64748b;
     font-size: 0.9rem;
-    margin: 0;
-    flex-shrink: 0;
+    opacity: 0.8;
 }
 
-.display-value {
-    flex: 1;
+/* Profile Main Content */
+.profile-main {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.profile-section {
+    background-color: var(--card-background);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-section-dark{
+    background-color: black;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+/* Theme Section */
+.theme-section {
+    background: linear-gradient(135deg, var(--card-background) 0%, var(--primary-color-light) 100%);
+}
+.theme-section-dark{
+    background: linear-gradient(135deg, black 0%, var(--primary-color-light) 100%);
+}
+
+.theme-toggle {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--card-background);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.theme-toggle-dark {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: rgba(34, 34, 34, 0.816);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.theme-info {
+    display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.display-value span {
-    color: #0f172a;
-    font-weight: 500;
+.theme-icon {
+    width: 48px;
+    height: 48px;
+    background-color: var(--primary-color-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary-color);
 }
 
-.edit-button {
+.theme-text h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.theme-text p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+}
+
+.theme-switch-btn {
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-switch-btn:hover {
+    background-color: var(--primary-color-dark);
+    transform: translateY(-2px);
+}
+
+/* Profile Fields */
+.profile-fields {
+    display: grid;
+    gap: 1rem;
+}
+
+.profile-field {
+    background-color: var(--card-background);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.profile-field-dark {
+    background-color: rgba(34, 34, 34, 0.816);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.profile-field:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-field-dark:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.field-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.field-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-color-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+}
+
+.field-header label {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.field-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.field-display span {
+    color: var(--text-secondary);
+}
+
+.edit-btn {
     background: none;
     border: none;
-    color: #10b981;
-    font-size: 0.9rem;
+    color: var(--primary-color);
     cursor: pointer;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem;
     border-radius: 8px;
-    transition: all 0.2s;
-    white-space: nowrap;
+    transition: all 0.3s ease;
 }
 
-.edit-button:hover {
-    background: #f0fdf4;
+.edit-btn:hover {
+    background-color: var(--primary-color-light);
 }
 
-.edit-controls {
+.field-edit {
     display: flex;
     gap: 1rem;
     align-items: center;
@@ -159,27 +257,29 @@
 .edit-input {
     flex: 1;
     padding: 0.75rem 1rem;
-    border: 1px solid #e2e8f0;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
-    font-size: 0.95rem;
-    outline: none;
-    transition: all 0.2s;
+    background-color: var(--input-background);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: all 0.3s ease;
 }
 
 .edit-input:focus {
-    border-color: #10b981;
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-color-light);
 }
 
 .toggle-password {
     background: none;
     border: none;
-    color: #64748b;
+    color: var(--text-secondary);
     cursor: pointer;
     padding: 0.5rem;
 }
 
-.action-buttons {
+.edit-actions {
     display: flex;
     gap: 0.5rem;
 }
@@ -193,50 +293,87 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
 }
 
 .action-btn.save {
-    background: #10b981;
+    background-color: var(--success-color);
     color: white;
 }
 
 .action-btn.save:hover {
-    background: #059669;
+    background-color: var(--success-color-dark);
 }
 
 .action-btn.cancel {
-    background: #f1f5f9;
-    color: #64748b;
+    background-color: var(--error-color);
+    color: white;
 }
 
 .action-btn.cancel:hover {
-    background: #e2e8f0;
+    background-color: var(--error-color-dark);
 }
 
+/* Loading and Error States */
+.profile-loading,
+.profile-error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.profile-error p {
+    color: var(--error-color);
+    font-size: 1.1rem;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .profile-content {
         margin-left: 60px;
-        padding: 1rem;
+        padding: 0;
     }
 
-    .detail-item {
+    .profile-main {
+        padding: 0 1rem;
+    }
+
+    .theme-toggle {
         flex-direction: column;
-        align-items: flex-start;
         gap: 1rem;
+        text-align: center;
     }
 
-    .display-value {
-        width: 100%;
-    }
-
-    .edit-controls {
-        width: 100%;
+    .field-edit {
         flex-direction: column;
     }
 
-    .action-buttons {
+    .edit-actions {
         width: 100%;
         justify-content: flex-end;
     }
+}
+
+/* Dark mode specific styles */
+[data-theme='dark'] .farmer-profile {
+    --background-color: #1a1a1a;
+    --card-background: #2d2d2d;
+    --text-color: #ffffff;
+    --text-secondary: #a0a0a0;
+    --border-color: #404040;
+    --input-background: #3d3d3d;
+    --primary-color-light: rgba(76, 175, 80, 0.1);
+}
+
+/* Light mode specific styles */
+[data-theme='light'] .farmer-profile {
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --text-secondary: #666666;
+    --border-color: #e0e0e0;
+    --input-background: #ffffff;
+    --primary-color-light: rgba(76, 175, 80, 0.1);
 } 

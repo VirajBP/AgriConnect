@@ -243,4 +243,182 @@
     padding: 1rem;
     border-radius: 5px;
     margin-bottom: 1rem;
+}
+
+.inventory-section {
+    background-color: var(--card-background);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.inventory-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1rem;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    backdrop-filter: blur(6px);
+    background: rgba(255,255,255,0.7);
+    padding: 0.5rem 0;
+}
+
+.inventory-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    background: transparent;
+}
+
+.inventory-table th, .inventory-table td {
+    padding: 1.1rem 1.5rem;
+    text-align: left;
+    font-size: 1.05rem;
+    border-bottom: 1px solid #e0e0e0;
+    background: transparent;
+}
+
+.inventory-table th {
+    background: rgba(76, 175, 80, 0.10);
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.inventory-table tr {
+    transition: background 0.2s;
+}
+
+.inventory-table tbody tr:hover {
+    background: rgba(33, 150, 243, 0.10);
+}
+
+.inventory-table td {
+    position: relative;
+}
+
+.inventory-table tbody tr {
+    border-left: 5px solid #4caf50;
+}
+
+/* Dark mode for inventory table */
+.dark .inventory-table-container {
+    background: rgba(30,30,30,0.85);
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.25);
+    backdrop-filter: blur(8px);
+}
+
+.dark .inventory-table th {
+    background: rgba(76, 175, 80, 0.15);
+    color: #fff;
+}
+
+.dark .inventory-table td {
+    color: #fff;
+}
+
+.dark .inventory-table tbody tr {
+    border-left: 5px solid #2196f3;
+}
+
+.dark .inventory-table tbody tr:hover {
+    background: rgba(33, 150, 243, 0.18);
+}
+
+/* End inventory table modern look */
+
+/* Update the pending orders section */
+.pending-orders .activity-item {
+    background-color: var(--card-background);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--warning-color);
+}
+
+.pending-orders .status-badge {
+    background-color: var(--warning-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+/* Dark mode styles */
+.dark .dashboard-content {
+    background-color: #121212;
+    color: #fff;
+}
+
+.dark .stat-card {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+    border: 1px solid #333;
+}
+
+.dark .stat-card .stat-info h3 {
+    color: #fff !important;
+}
+
+.dark .stat-card .stat-label {
+    color: #b0b0b0 !important;
+}
+
+.dark .inventory-section {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.dark .inventory-table {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+}
+
+.dark .inventory-table th {
+    background-color: #2c2c2c !important;
+    color: #fff !important;
+    border-color: #333;
+}
+
+.dark .inventory-table td {
+    color: #fff !important;
+    border-color: #333;
+}
+
+.dark .section-header h2 {
+    color: #fff !important;
+}
+
+.dark .activity-item {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.dark .activity-header h4 {
+    color: #fff !important;
+}
+
+.dark .activity-meta {
+    color: #b0b0b0 !important;
+}
+
+.dark .status-badge {
+    background-color: #2c2c2c;
+    color: #fff !important;
+}
+
+.dark .status-badge.status-pending {
+    background-color: #f39c12;
+    color: #fff !important;
+}
+
+.dark .chart-container {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.dark .no-orders {
+    color: #b0b0b0;
 } 

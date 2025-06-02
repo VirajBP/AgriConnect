@@ -4,6 +4,7 @@ const Farmer = require('../Model/Farmer');
 const Consumer = require('../Model/Consumer');
 const FarmerDashboard = require('../Model/FarmerDashboard');
 const ConsumerDashboard = require('../Model/ConsumerDashboard');
+const { syncFarmerProducts } = require('../Utils/farmerUtils');
 
 // Helper function to generate token
 const generateToken = (user, type) => {
@@ -326,115 +327,88 @@ exports.register = async (req, res, next) => {
     }
 };
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
     try {
+        console.log('Login attempt received:', { method: req.method, path: req.path, body: req.body });
+
         const userType = req.path.includes('farmer') ? 'farmer' : 'consumer';
+        const { phoneNumber, email, password } = req.body;
+
+        // Validate required fields based on user type
+        if (userType === 'farmer') {
+            if (!phoneNumber || !password) {
+                console.log('Farmer login validation failed: Missing phone or password');
+                return res.status(400).json({ success: false, message: 'Please enter both phone number and password' });
+            }
+        } else if (userType === 'consumer') { // Explicitly check for consumer
+             if (!email || !password) {
+                console.log('Consumer login validation failed: Missing email or password');
+                return res.status(400).json({ success: false, message: 'Please enter both email and password' });
+            }
+        } else { // Handle unexpected userType
+             console.log('Login failed: Invalid user type derived from path', req.path);
+             return res.status(400).json({ success: false, message: 'Invalid user type' });
+        }
+
+        let user = null;
+        let Model = null;
+        let query = {};
 
         if (userType === 'farmer') {
-            const { phoneNumber, password } = req.body;
-
-            // Validate required fields
-            if (!phoneNumber || !password) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please provide phone number and password'
-                });
-            }
-
-            // Find farmer
-            const farmer = await Farmer.findOne({ phoneNumber });
-            if (!farmer) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Invalid credentials'
-                });
-            }
-
-            // Verify password
-            const isMatch = await bcrypt.compare(password, farmer.password);
-            if (!isMatch) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Invalid credentials'
-                });
-            }
-
-            // Check if dashboard exists, if not create one
-            let dashboard = await FarmerDashboard.findOne({ farmerId: farmer._id });
-            if (!dashboard) {
-                console.log('Creating dashboard for farmer:', farmer._id);
-                dashboard = await createFarmerDashboard(farmer._id);
-            }
-
-            // Generate token
-            const token = generateToken(farmer, 'farmer');
-
-            // Send response
-            res.json({
-                success: true,
-                token,
-                user: {
-                    id: farmer._id,
-                    name: farmer.name,
-                    phoneNumber: farmer.phoneNumber,
-                    location: farmer.location,
-                    type: 'farmer'
-                }
-            });
-
-        } else {
-            const { email, password } = req.body;
-
-            // Validate required fields
-            if (!email || !password) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Please provide email and password'
-                });
-            }
-
-            // Find consumer
-            const consumer = await Consumer.findOne({ email });
-            if (!consumer) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Invalid credentials'
-                });
-            }
-
-            // Verify password
-            const isMatch = await bcrypt.compare(password, consumer.password);
-            if (!isMatch) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Invalid credentials'
-                });
-            }
-
-            // Generate token
-            const token = generateToken(consumer, 'consumer');
-
-            // Send response
-            res.json({
-                success: true,
-                token,
-                user: {
-                    id: consumer._id,
-                    name: consumer.name,
-                    email: consumer.email,
-                    location: consumer.location,
-                    phoneNumber: consumer.phoneNumber,
-                    type: 'consumer'
-                }
-            });
+            Model = Farmer;
+            query = { phoneNumber: phoneNumber };
+        } else { // Assuming valid userType is either farmer or consumer after validation
+            Model = Consumer;
+             query = { email: email };
         }
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error during login',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+
+        console.log(`Attempting to find ${userType}:`, query);
+        user = await Model.findOne(query);
+
+        if (!user) {
+            console.log(`${userType} not found:`, query);
+            return res.status(400).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        console.log(`${userType} found:`, user._id);
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            console.log('Password mismatch for user:', user._id);
+            return res.status(400).json({ success: false, message: 'Invalid credentials' });
+        }
+
+        console.log('Password matched for user:', user._id);
+
+        // Generate token
+        const token = generateToken(user, userType);
+        console.log('Token generated for user:', user._id);
+
+        // If farmer, sync products and dashboard stats upon successful login
+        if (userType === 'farmer') {
+            console.log('Syncing farmer products for user:', user._id);
+            await syncFarmerProducts(user._id);
+            console.log('Farmer products synced successfully for user:', user._id);
+        }
+
+        console.log(`Login successful for ${userType}:`, user._id, 'Responding with token and user data.');
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                phoneNumber: user.phoneNumber,
+                location: user.location,
+                type: userType,
+                ...(userType === 'consumer' && { email: user.email })
+            }
         });
+
+    } catch (error) {
+        console.error('Login error in catch block:', error);
+        res.status(500).json({ success: false, message: 'Server error during login' });
     }
 };
 

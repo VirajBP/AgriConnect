@@ -12,139 +12,29 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Rating
+  Rating,
+  CircularProgress
 } from '@mui/material';
 import { 
   Visibility as VisibilityIcon,
   Cancel as CancelIcon,
   Star as StarIcon
 } from '@mui/icons-material';
-import axios from 'axios';
+import axios from '../../../utils/axios';
 
 export default function ConsumerOrders() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [orders, setOrders] = useState([
-    { 
-      id: 1, 
-      name: "Wheat", 
-      variety: "Premium Quality",
-      status: "Pending",
-      quantity: "50 kg",
-      price: "₹2000",
-      farmerName: "Rajesh Kumar",
-      farmerLocation: "Punjab",
-      orderDate: "2024-03-20",
-      expectedDelivery: "2024-03-25",
-      organicCertified: true,
-      quality: "Premium"
-    },
-    { 
-      id: 2, 
-      name: "Rice", 
-      variety: "Basmati",
-      status: "Completed",
-      quantity: "30 kg",
-      price: "₹1800",
-      farmerName: "Suresh Verma",
-      farmerLocation: "Haryana",
-      orderDate: "2024-03-15",
-      deliveryDate: "2024-03-18",
-      rating: 5,
-      review: "Excellent quality rice, very satisfied with the purchase!"
-    },
-    { 
-      id: 3, 
-      name: "Corn", 
-      variety: "Sweet Corn",
-      status: "Rejected",
-      quantity: "25 kg",
-      price: "₹1200",
-      farmerName: "Amit Sharma",
-      farmerLocation: "UP",
-      orderDate: "2024-03-10",
-      reason: "Quality not as expected"
-    },
-    { 
-      id: 4, 
-      name: "Cotton", 
-      variety: "Long Staple",
-      status: "Processing",
-      quantity: "100 kg",
-      price: "₹4500",
-      farmerName: "Priya Patel",
-      farmerLocation: "Gujarat",
-      orderDate: "2024-03-22",
-      expectedDelivery: "2024-03-28",
-      organicCertified: true
-    },
-    { 
-      id: 5, 
-      name: "Sugarcane", 
-      variety: "Fresh",
-      status: "Completed",
-      quantity: "200 kg",
-      price: "₹3000",
-      farmerName: "Ramesh Yadav",
-      farmerLocation: "Maharashtra",
-      orderDate: "2024-03-12",
-      deliveryDate: "2024-03-16",
-      rating: 4,
-      review: "Good quality, prompt delivery"
-    },
-    { 
-      id: 6, 
-      name: "Rice Husk", 
-      variety: "Processed",
-      status: "Completed",
-      quantity: "500 kg",
-      price: "₹4000",
-      farmerName: "David Clark",
-      farmerLocation: "Bihar",
-      orderDate: "2024-03-08",
-      deliveryDate: "2024-03-11",
-      rating: 5,
-      review: "Perfect for our biomass needs"
-    },
-    { 
-      id: 7, 
-      name: "Wheat Straw", 
-      variety: "Baled",
-      status: "Pending",
-      quantity: "300 kg",
-      price: "₹1800",
-      farmerName: "Emma Davis",
-      farmerLocation: "MP",
-      orderDate: "2024-03-21",
-      expectedDelivery: "2024-03-26",
-      transportRequired: true
-    },
-    { 
-      id: 8, 
-      name: "Sugarcane Bagasse", 
-      variety: "Fresh",
-      status: "Processing",
-      quantity: "400 kg",
-      price: "₹2800",
-      farmerName: "Tom Wilson",
-      farmerLocation: "UP",
-      orderDate: "2024-03-19",
-      expectedDelivery: "2024-03-24",
-      moisture: "15%"
-    }
-  ]);
-
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [visibleOrders, setVisibleOrders] = useState([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get('/consumer/orders');
         if (response.data.success) {
-          console.log('Frontend received consumer orders:', response.data.data);
           setOrders(response.data.data);
         } else {
           setError(response.data.message || 'Failed to fetch orders');
@@ -160,12 +50,6 @@ export default function ConsumerOrders() {
     fetchOrders();
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setVisibleOrders(orders);
-    }, 300);
-  }, [orders]);
-
   const handleViewDetails = (order) => {
     setSelectedOrder(order);
     setOpenDialog(true);
@@ -173,6 +57,22 @@ export default function ConsumerOrders() {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
+  };
+
+  const handleCancelOrder = async (orderId) => {
+    try {
+      const response = await axios.put(`/consumer/orders/${orderId}/cancel`);
+      if (response.data.success) {
+        setOrders(orders.map(order => 
+          order._id === orderId 
+            ? { ...order, status: 'Cancelled' }
+            : order
+        ));
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      alert('Failed to cancel order');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -183,20 +83,57 @@ export default function ConsumerOrders() {
         return 'warning';
       case 'processing':
         return 'info';
-      case 'rejected':
+      case 'cancelled':
         return 'error';
       default:
         return 'default';
     }
   };
 
+  if (loading) {
+    return (
+      <div className="orders-container">
+        <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
+        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+            <CircularProgress />
+          </Box>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="orders-container">
+        <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
+        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+          <Typography color="error" variant="h6" sx={{ textAlign: 'center', mt: 4 }}>
+            {error}
+          </Typography>
+          <Typography variant="body1" color="textSecondary" sx={{ textAlign: 'center', mt: 2 }}>
+            Please try again later or contact support if the problem persists.
+          </Typography>
+        </div>
+      </div>
+    );
+  }
+
+  const currentOrders = orders.filter(order => 
+    ['pending', 'processing', 'confirmed'].includes(order.status.toLowerCase())
+  );
+
+  const pastOrders = orders.filter(order => 
+    ['completed', 'cancelled'].includes(order.status.toLowerCase())
+  );
+
   return (
-    <div className="dashboard-container">
+    <div className="orders-container">
       <Sidebar 
         userType="consumer" 
         onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <Typography variant="h4" className="orders-heading" gutterBottom>
           Current Orders
         </Typography>
@@ -216,27 +153,38 @@ export default function ConsumerOrders() {
               </tr>
             </thead>
             <tbody>
-              {visibleOrders
-                .filter(order => ['pending', 'processing'].includes(order.status.toLowerCase()))
-                .map((order, index) => (
-                  <tr key={order.id} className="order-row animate" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <td>#{order.id}</td>
+              {currentOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="9" align="center">
+                    <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
+                      No current orders found
+                    </Typography>
+                  </td>
+                </tr>
+              ) : (
+                currentOrders.map((order) => (
+                  <tr key={order._id}>
+                    <td>#{order._id.slice(-6)}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.name}</Typography>
-                        <Typography variant="caption" color="textSecondary">{order.variety}</Typography>
+                        <Typography variant="body1">{order.product.productName}</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {order.product.variety}
+                        </Typography>
                       </Box>
                     </td>
-                    <td>{order.quantity}</td>
-                    <td>{order.price}</td>
+                    <td>{order.quantity} {order.product.unit}</td>
+                    <td>₹{order.totalAmount}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.farmerName}</Typography>
-                        <Typography variant="caption" color="textSecondary">{order.farmerLocation}</Typography>
+                        <Typography variant="body1">{order.farmer.name}</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {order.farmer.location}
+                        </Typography>
                       </Box>
                     </td>
-                    <td>{order.orderDate}</td>
-                    <td>{order.expectedDelivery}</td>
+                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td>{order.expectedDelivery ? new Date(order.expectedDelivery).toLocaleDateString() : '-'}</td>
                     <td>
                       <Chip
                         label={order.status}
@@ -250,16 +198,21 @@ export default function ConsumerOrders() {
                           <VisibilityIcon />
                         </IconButton>
                       </Tooltip>
-                      {order.status === 'Pending' && (
+                      {order.status.toLowerCase() === 'pending' && (
                         <Tooltip title="Cancel Order">
-                          <IconButton size="small" color="error">
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleCancelOrder(order._id)}
+                            color="error"
+                          >
                             <CancelIcon />
                           </IconButton>
                         </Tooltip>
                       )}
                     </td>
                   </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -284,27 +237,38 @@ export default function ConsumerOrders() {
               </tr>
             </thead>
             <tbody>
-              {visibleOrders
-                .filter(order => ['completed', 'rejected'].includes(order.status.toLowerCase()))
-                .map((order, index) => (
-                  <tr key={order.id} className="order-row animate" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <td>#{order.id}</td>
+              {pastOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="10" align="center">
+                    <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
+                      No past orders found
+                    </Typography>
+                  </td>
+                </tr>
+              ) : (
+                pastOrders.map((order) => (
+                  <tr key={order._id}>
+                    <td>#{order._id.slice(-6)}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.name}</Typography>
-                        <Typography variant="caption" color="textSecondary">{order.variety}</Typography>
+                        <Typography variant="body1">{order.product.productName}</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {order.product.variety}
+                        </Typography>
                       </Box>
                     </td>
-                    <td>{order.quantity}</td>
-                    <td>{order.price}</td>
+                    <td>{order.quantity} {order.product.unit}</td>
+                    <td>₹{order.totalAmount}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.farmerName}</Typography>
-                        <Typography variant="caption" color="textSecondary">{order.farmerLocation}</Typography>
+                        <Typography variant="body1">{order.farmer.name}</Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {order.farmer.location}
+                        </Typography>
                       </Box>
                     </td>
-                    <td>{order.orderDate}</td>
-                    <td>{order.deliveryDate || '-'}</td>
+                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : '-'}</td>
                     <td>
                       <Chip
                         label={order.status}
@@ -313,7 +277,7 @@ export default function ConsumerOrders() {
                       />
                     </td>
                     <td>
-                      {order.status === 'Completed' && (
+                      {order.status.toLowerCase() === 'completed' && (
                         <Rating
                           value={order.rating || 0}
                           readOnly
@@ -330,108 +294,128 @@ export default function ConsumerOrders() {
                       </Tooltip>
                     </td>
                   </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* Order Details Dialog */}
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-          <DialogTitle>
-            Order Details #{selectedOrder?.id}
-          </DialogTitle>
-          <DialogContent dividers>
-            {selectedOrder && (
-              <Box>
-                <Typography variant="h6" gutterBottom>
-                  Product Information
-                </Typography>
-                <Box display="flex" flexDirection="column" gap={1} mb={3}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Product:</Typography>
-                    <Typography variant="body1">{selectedOrder.name} ({selectedOrder.variety})</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Quantity:</Typography>
-                    <Typography variant="body1">{selectedOrder.quantity}</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Price:</Typography>
-                    <Typography variant="body1">{selectedOrder.price}</Typography>
-                  </Box>
-                  {selectedOrder.organicCertified && (
-                    <Chip label="Organic Certified" color="success" size="small" sx={{ alignSelf: 'flex-start' }} />
-                  )}
-                </Box>
-
-                <Typography variant="h6" gutterBottom>
-                  Farmer Information
-                </Typography>
-                <Box display="flex" flexDirection="column" gap={1} mb={3}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Name:</Typography>
-                    <Typography variant="body1">{selectedOrder.farmerName}</Typography>
-                  </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Location:</Typography>
-                    <Typography variant="body1">{selectedOrder.farmerLocation}</Typography>
-                  </Box>
-                </Box>
-
-                <Typography variant="h6" gutterBottom>
-                  Order Status
-                </Typography>
-                <Box display="flex" flexDirection="column" gap={1}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Status:</Typography>
-                    <Chip
-                      label={selectedOrder.status}
-                      color={getStatusColor(selectedOrder.status)}
-                      size="small"
-                    />
-                  </Box>
-                  <Box display="flex" justifyContent="space-between">
-                    <Typography variant="body1">Order Date:</Typography>
-                    <Typography variant="body1">{selectedOrder.orderDate}</Typography>
-                  </Box>
-                  {selectedOrder.expectedDelivery && (
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography variant="body1">Expected Delivery:</Typography>
-                      <Typography variant="body1">{selectedOrder.expectedDelivery}</Typography>
-                    </Box>
-                  )}
-                  {selectedOrder.deliveryDate && (
-                    <Box display="flex" justifyContent="space-between">
-                      <Typography variant="body1">Delivery Date:</Typography>
-                      <Typography variant="body1">{selectedOrder.deliveryDate}</Typography>
-                    </Box>
-                  )}
-                </Box>
-
-                {selectedOrder.rating && (
-                  <Box mt={3}>
-                    <Typography variant="h6" gutterBottom>
-                      Rating & Review
-                    </Typography>
-                    <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      <Rating value={selectedOrder.rating} readOnly />
-                      <Typography variant="body2">
-                        ({selectedOrder.rating}/5)
+        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+          {selectedOrder && (
+            <>
+              <DialogTitle>Order Details</DialogTitle>
+              <DialogContent>
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Product Information
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Product Name
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedOrder.product.productName}
                       </Typography>
                     </Box>
-                    {selectedOrder.review && (
-                      <Typography variant="body2" color="text.secondary">
-                        "{selectedOrder.review}"
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Variety
                       </Typography>
+                      <Typography variant="body1">
+                        {selectedOrder.product.variety}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Quantity
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedOrder.quantity} {selectedOrder.product.unit}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Total Amount
+                      </Typography>
+                      <Typography variant="body1">
+                        ₹{selectedOrder.totalAmount}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Typography variant="h6" sx={{ mt: 3 }} gutterBottom>
+                    Farmer Information
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Name
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedOrder.farmer.name}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Location
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedOrder.farmer.location}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Typography variant="h6" sx={{ mt: 3 }} gutterBottom>
+                    Order Information
+                  </Typography>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Order Date
+                      </Typography>
+                      <Typography variant="body1">
+                        {new Date(selectedOrder.createdAt).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="textSecondary">
+                        Status
+                      </Typography>
+                      <Chip
+                        label={selectedOrder.status}
+                        color={getStatusColor(selectedOrder.status)}
+                        size="small"
+                      />
+                    </Box>
+                    {selectedOrder.expectedDelivery && (
+                      <Box>
+                        <Typography variant="subtitle2" color="textSecondary">
+                          Expected Delivery
+                        </Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedOrder.expectedDelivery).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    )}
+                    {selectedOrder.deliveryDate && (
+                      <Box>
+                        <Typography variant="subtitle2" color="textSecondary">
+                          Delivery Date
+                        </Typography>
+                        <Typography variant="body1">
+                          {new Date(selectedOrder.deliveryDate).toLocaleDateString()}
+                        </Typography>
+                      </Box>
                     )}
                   </Box>
-                )}
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Close</Button>
-          </DialogActions>
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDialog}>Close</Button>
+              </DialogActions>
+            </>
+          )}
         </Dialog>
       </div>
     </div>

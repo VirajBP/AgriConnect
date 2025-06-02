@@ -1,13 +1,197 @@
+.market-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.market-content {
+    flex: 1;
+    margin-left: 240px;
+    padding: 2rem;
+    transition: margin-left 0.3s ease;
+}
+
+.market-content.sidebar-collapsed {
+    margin-left: 64px;
+}
+
+.market-heading {
+    margin-bottom: 2rem !important;
+    color: var(--primary-color);
+    font-weight: 600 !important;
+}
+
+.product-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.product-image {
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.product-name {
+    font-weight: 600 !important;
+    color: var(--text-color) !important;
+    margin-bottom: 0.5rem !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-variety {
+    color: var(--text-secondary) !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.product-detail-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+/* Dialog Styles */
+.MuiDialog-paper {
+    background-color: var(--card-background) !important;
+    color: var(--text-color) !important;
+}
+
+.MuiDialogTitle-root {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem !important;
+}
+
+.MuiDialogContent-root {
+    padding: 1.5rem !important;
+}
+
+.MuiDialogActions-root {
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 1.5rem !important;
+}
+
+/* Form Controls */
+.MuiTextField-root {
+    background-color: var(--input-background) !important;
+}
+
+.MuiInputBase-root {
+    color: var(--text-color) !important;
+}
+
+.MuiInputLabel-root {
+    color: var(--text-secondary) !important;
+}
+
+.MuiOutlinedInput-notchedOutline {
+    border-color: var(--border-color) !important;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: var(--primary-color) !important;
+}
+
+.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: var(--primary-color) !important;
+}
+
+/* Button Styles */
+.MuiButton-contained {
+    text-transform: none !important;
+    font-weight: 500 !important;
+}
+
+.MuiButton-containedPrimary {
+    background-color: var(--primary-color) !important;
+}
+
+.MuiButton-containedPrimary:hover {
+    background-color: var(--primary-dark) !important;
+}
+
+/* Chip Styles */
+.MuiChip-root {
+    font-weight: 500;
+}
+
+.MuiChip-colorPrimary {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+/* Rating Styles */
+.MuiRating-root {
+    color: var(--rating-color) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .market-content {
+        margin-left: 64px;
+        padding: 1rem;
+    }
+
+    .product-detail-image {
+        height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .market-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .product-detail-image {
+        height: 250px;
+    }
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] {
+    --background-color: #121212;
+    --card-background: #1e1e1e;
+    --input-background: #2d2d2d;
+    --border-color: #333;
+    --text-color: #fff;
+    --text-secondary: #b0b0b0;
+    --primary-color: #90caf9;
+    --primary-dark: #64b5f6;
+    --rating-color: #ffd700;
+}
+
+/* Light Mode Styles */
+[data-theme="light"] {
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --input-background: #f8f9fa;
+    --border-color: #e0e0e0;
+    --text-color: #333;
+    --text-secondary: #666;
+    --primary-color: #1976d2;
+    --primary-dark: #1565c0;
+    --rating-color: #ffc107;
+}
+
 .market-page {
     display: flex;
     min-height: 100vh;
     background-color: #f8fafc;
-}
-
-.market-container {
-    flex: 1;
-    padding: 2rem;
-    margin-left: 240px;
 }
 
 .market-header {
@@ -286,37 +470,6 @@
 /* Search Results Styling */
 .search-results {
     margin-top: 2rem;
-}
-
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    }
-}
-
-@media (max-width: 768px) {
-    .market-container {
-        margin-left: 60px;
-        padding: 1rem;
-    }
-
-    .farmer-header {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .farmer-meta {
-        align-items: flex-start;
-    }
-
-    .farmer-badges {
-        flex-wrap: wrap;
-    }
-
-    .products-grid {
-        grid-template-columns: 1fr;
-    }
 }
 
 /* Animations */

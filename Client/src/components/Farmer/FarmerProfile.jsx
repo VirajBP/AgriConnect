@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaCheck, FaTimes, FaEye, FaEyeSlash, FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaTractor } from 'react-icons/fa';
+import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaTractor, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Sidebar from '../Sidebar/Sidebar';
-import axios from '../../utils/axios'; // Import the configured axios instance
-import { Typography, Box, CircularProgress } from '@mui/material';
+import axios from '../../utils/axios';
+import { CircularProgress } from '@mui/material';
+import { useTheme } from '../../Context/ThemeContext';
 import './FarmerProfile.css';
 
 const FarmerProfile = () => {
@@ -13,6 +14,15 @@ const FarmerProfile = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { isDarkMode, toggleTheme } = useTheme();
+    const [isDark, setIsDark] = useState(false);
+
+useEffect(() => {
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    window.addEventListener('storage', checkDark); // In case theme is toggled elsewhere
+    return () => window.removeEventListener('storage', checkDark);
+  }, []);
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -24,7 +34,7 @@ const FarmerProfile = () => {
                     setError(response.data.message || 'Failed to fetch profile data');
                 }
             } catch (err) {
-                 console.error('Error fetching profile data:', err);
+                console.error('Error fetching profile data:', err);
                 setError(err.response?.data?.message || 'Error fetching profile data');
             } finally {
                 setLoading(false);
@@ -71,63 +81,111 @@ const FarmerProfile = () => {
         setTempData({ ...tempData, [field]: '' });
     };
 
-    const handleSave = (field) => {
+    const handleSave = async (field) => {
         if (editableFields[field].validation(tempData[field])) {
-            // TODO: Implement backend save for profile
-            setProfile({ ...profile, [field]: tempData[field] });
-            setEditMode({ ...editMode, [field]: false });
-            setTempData({ ...tempData, [field]: '' });
+            try {
+                const response = await axios.put('/farmer/profile', {
+                    [field]: tempData[field]
+                });
+                if (response.data.success) {
+                    // Update local state with saved data
+                    setProfile({ ...profile, [field]: tempData[field] });
+                    setEditMode({ ...editMode, [field]: false });
+                    setTempData({ ...tempData, [field]: '' });
+                    // Optionally show a success message
+                    console.log(response.data.message);
+                } else {
+                    // Handle save error
+                    console.error('Failed to save profile data:', response.data.message);
+                    alert('Failed to save profile data');
+                }
+            } catch (error) {
+                console.error('Error saving profile data:', error);
+                alert('Error saving profile data');
+            }
         }
     };
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+            <div className="profile-loading">
                 <CircularProgress />
-            </Box>
+            </div>
         );
     }
 
     if (error) {
-         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-                <Typography color="error" variant="h6">
-                    {error}
-                </Typography>
-            </Box>
+        return (
+            <div className="profile-error">
+                <p>{error}</p>
+            </div>
         );
     }
 
-
     return (
-        <div className="profile-container">
+        <div className="farmer-profile">
             <Sidebar 
                 userType="farmer" 
                 onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
             />
-            <div className={`profile-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-                <div className="profile-wrapper">
-                    <div className="profile-header-card">
-                        <div className="profile-cover">
+            <div className={`profile-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDark? 'dark': ''}`}>
+                <div className="profile-header">
+                    <div className="profile-cover">
                         <div className="profile-avatar">
                             <FaTractor />
                         </div>
+                    </div>
+                    <div className="profile-info">
+                        <h1>{profile?.name || 'Loading...'}</h1>
+                        <p className="profile-role">Farmer</p>
+                        {profile?.activeListings !== undefined && (
+                            <p className="profile-products">
+                                {profile.activeListings} Active Product Listings
+                            </p>
+                        )}
+                        <p className="profile-join-date">
+                            Member since {profile?.joinedDate ? new Date(profile.joinedDate).toLocaleDateString() : 'N/A'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="profile-main">
+                    <div className={` ${isDark? 'profile-section-dark theme-section-dark': 'profile-section theme-section'} `}>
+                        <div className="section-header">
+                            <h2>Theme Settings</h2>
                         </div>
-                        <div className="profile-info">
-                            <h2>{profile?.name || 'No Name Available'}</h2>
-                            <p className="member-since">Member since {profile?.joinedDate ? new Date(profile.joinedDate).toLocaleDateString() : 'No Join Date Available'}</p>
+                        <div className={`${isDark? 'theme-toggle-dark': 'theme-toggle'}`}>
+                            <div className="theme-info">
+                                <div className="theme-icon">
+                                    {isDarkMode ? <FaMoon /> : <FaSun />}
+                                </div>
+                                <div className="theme-text">
+                                    <h3>Current Theme</h3>
+                                    <p>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</p>
+                                </div>
+                            </div>
+                            <button 
+                                className="theme-switch-btn"
+                                onClick={toggleTheme}
+                            >
+                                Switch to {isDarkMode ? 'Light' : 'Dark'} Mode
+                            </button>
                         </div>
                     </div>
 
-                    <div className="profile-details-card">
-                        <h3>Personal Information</h3>
-                        {Object.entries(editableFields).map(([field, config]) => (
-                            <div key={field} className="detail-item">
-                                <div className="detail-icon">{config.icon}</div>
-                                <div className="detail-content">
-                                    <label>{config.label}</label>
+                    <div className={`${isDark? 'profile-section-dark': 'profile-section'}`}>
+                        <div className={`section-header ${isDark? '': ''}`}>
+                            <h2>Personal Information</h2>
+                        </div>
+                        <div className={`profile-fields `}>
+                            {Object.entries(editableFields).map(([field, config]) => (
+                                <div key={field} className={`${isDark? 'profile-field-dark': 'profile-field'}`}>
+                                    <div className="field-header ">
+                                        <div className="field-icon ">{config.icon}</div>
+                                        <label>{config.label}</label>
+                                    </div>
                                     {editMode[field] ? (
-                                        <div className="edit-controls">
+                                        <div className="field-edit">
                                             <input
                                                 type={field === 'password' && !showPassword ? 'password' : config.type}
                                                 value={tempData[field] || ''}
@@ -146,7 +204,7 @@ const FarmerProfile = () => {
                                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                                 </button>
                                             )}
-                                            <div className="action-buttons">
+                                            <div className="edit-actions">
                                                 <button 
                                                     className="action-btn save"
                                                     onClick={() => handleSave(field)}
@@ -164,23 +222,23 @@ const FarmerProfile = () => {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="display-value">
+                                        <div className="field-display">
                                             <span>
                                                 {profile?.[field] !== undefined && profile?.[field] !== null && profile?.[field] !== '' ? 
                                                  (field === 'password' ? '••••••••' : profile[field]) 
-                                                 : 'No info available'}
+                                                 : 'Not set'}
                                             </span>
                                             <button 
-                                                className="edit-button"
+                                                className="edit-btn"
                                                 onClick={() => handleEdit(field)}
                                             >
-                                                Edit
+                                                <FaEdit />
                                             </button>
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

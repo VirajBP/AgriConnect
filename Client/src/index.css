@@ -1,3 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* (You can keep your custom styles below this line) */
+
+:root {
+  --primary-color: #4CAF50;
+  --secondary-color: #2196F3;
+  --background-light: #ffffff;
+  --text-light: #333333;
+  --background-dark: #121212;
+  --surface-dark: #1e1e1e;
+  --text-dark: #ffffff;
+  --text-dark-secondary: #b0b0b0;
+}
+
+/* Base styles */
+html {
+  background-color: var(--background-light);
+  color: var(--text-light);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.dark html {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +34,535 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  background-color: var(--background-light);
+  color: var(--text-light);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.dark body {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* Dark mode styles */
+.dark {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+/* Layout components */
+.dark .app {
+  background-color: var(--background-dark);
+  color: var(--text-dark);
+}
+
+.dark .card {
+  background-color: var(--surface-dark);
+  color: var(--text-dark);
+  border: 1px solid #333;
+}
+
+/* Text colors */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: var(--text-dark);
+}
+
+.dark p, .dark span, .dark div {
+  color: var(--text-dark);
+}
+
+.dark .text-secondary {
+  color: var(--text-dark-secondary) !important;
+}
+
+/* Form elements */
+.dark input, .dark select, .dark textarea {
+  background-color: var(--surface-dark);
+  color: var(--text-dark);
+  border: 1px solid #333;
+}
+
+.dark input:focus, .dark select:focus, .dark textarea:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+/* Buttons */
+.dark .btn {
+  background-color: #2c2c2c;
+  color: var(--text-dark);
+  border: 1px solid #444;
+}
+
+.dark .btn:hover {
+  background-color: #3c3c3c;
+}
+
+.dark .btn-primary {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.dark .btn-primary:hover {
+  background-color: #357abd;
+}
+
+/* Tables */
+.dark table {
+  background-color: var(--surface-dark);
+  color: var(--text-dark);
+}
+
+.dark th {
+  background-color: #2c2c2c;
+  color: var(--text-dark);
+}
+
+.dark td {
+  border-color: #333;
+}
+
+/* Navigation */
+.dark nav {
+  background-color: var(--surface-dark);
+  border-bottom: 1px solid #333;
+}
+
+.dark .nav-link {
+  color: var(--text-dark);
+}
+
+.dark .nav-link:hover {
+  color: #4a90e2;
+}
+
+/* Modals */
+.dark .modal {
+  background-color: var(--background-dark);
+}
+
+.dark .modal-content {
+  background-color: var(--surface-dark);
+  color: var(--text-dark);
+  border: 1px solid #333;
+}
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--surface-dark);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Links */
+.dark a {
+  color: #4a90e2;
+}
+
+.dark a:hover {
+  color: #357abd;
+}
+
+/* Status badges */
+.dark .status-badge {
+  background-color: #2c2c2c;
+  color: var(--text-dark);
+}
+
+.dark .status-badge.pending {
+  background-color: #f39c12;
+  color: white;
+}
+
+.dark .status-badge.confirmed {
+  background-color: #27ae60;
+  color: white;
+}
+
+.dark .status-badge.rejected {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.dark .status-badge.completed {
+  background-color: #2ecc71;
+  color: white;
+}
+
+/* Dividers */
+.dark hr {
+  border-color: #333;
+}
+
+/* Form labels */
+.dark label {
+  color: var(--text-dark);
+}
+
+/* Placeholder text */
+.dark ::placeholder {
+  color: #666;
+}
+
+/* Disabled elements */
+.dark .disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Error messages */
+.dark .error-message {
+  color: #e74c3c;
+}
+
+/* Success messages */
+.dark .success-message {
+  color: #2ecc71;
+}
+
+/* Loading spinners */
+.dark .spinner {
+  border-color: #333;
+  border-top-color: #4a90e2;
+}
+
+/* Tooltips */
+.dark .tooltip {
+  background-color: var(--surface-dark);
+  color: var(--text-dark);
+  border: 1px solid #333;
+}
+
+/* Dropdowns */
+.dark .dropdown-menu {
+  background-color: var(--surface-dark);
+  border: 1px solid #333;
+}
+
+.dark .dropdown-item {
+  color: var(--text-dark);
+}
+
+.dark .dropdown-item:hover {
+  background-color: #2c2c2c;
+}
+
+/* Cards and panels */
+.dark .panel {
+  background-color: var(--surface-dark);
+  border: 1px solid #333;
+}
+
+.dark .card-header {
+  background-color: #2c2c2c;
+  border-bottom: 1px solid #333;
+}
+
+.dark .card-footer {
+  background-color: #2c2c2c;
+  border-top: 1px solid #333;
+}
+
+/* Lists */
+.dark ul, .dark ol {
+  color: var(--text-dark);
+}
+
+.dark li {
+  color: var(--text-dark);
+}
+
+/* Code blocks */
+.dark pre, .dark code {
+  background-color: #2c2c2c;
+  color: var(--text-dark);
+}
+
+/* Blockquotes */
+.dark blockquote {
+  border-left-color: #333;
+  color: var(--text-dark-secondary);
+}
+
+/* Tables */
+.dark .table-striped tbody tr:nth-of-type(odd) {
+  background-color: #2c2c2c;
+}
+
+.dark .table-hover tbody tr:hover {
+  background-color: #3c3c3c;
+}
+
+/* Form validation */
+.dark .is-invalid {
+  border-color: #e74c3c;
+}
+
+.dark .invalid-feedback {
+  color: #e74c3c;
+}
+
+/* Custom components */
+.dark .product-card {
+  background-color: var(--surface-dark);
+  border: 1px solid #333;
+}
+
+.dark .order-card {
+  background-color: var(--surface-dark);
+  border: 1px solid #333;
+}
+
+.dark .profile-card {
+  background-color: var(--surface-dark);
+  border: 1px solid #333;
+}
+
+/* Icons */
+.dark .icon {
+  color: var(--text-dark);
+}
+
+/* Alerts */
+.dark .alert {
+  background-color: var(--surface-dark);
+  border: 1px solid #333;
+}
+
+.dark .alert-info {
+  background-color: #2c3e50;
+  color: var(--text-dark);
+}
+
+.dark .alert-warning {
+  background-color: #f39c12;
+  color: white;
+}
+
+.dark .alert-danger {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.dark .alert-success {
+  background-color: #27ae60;
+  color: white;
+}
+
+/* Pagination */
+.dark .pagination {
+  background-color: var(--surface-dark);
+}
+
+.dark .page-item .page-link {
+  background-color: var(--surface-dark);
+  color: var(--text-dark);
+  border-color: #333;
+}
+
+.dark .page-item.active .page-link {
+  background-color: #4a90e2;
+  border-color: #4a90e2;
+}
+
+.dark .page-item.disabled .page-link {
+  background-color: var(--surface-dark);
+  color: #666;
+}
+
+/* Breadcrumbs */
+.dark .breadcrumb {
+  background-color: var(--surface-dark);
+}
+
+.dark .breadcrumb-item {
+  color: var(--text-dark-secondary);
+}
+
+.dark .breadcrumb-item.active {
+  color: var(--text-dark);
+}
+
+/* Progress bars */
+.dark .progress {
+  background-color: #2c2c2c;
+}
+
+.dark .progress-bar {
+  background-color: #4a90e2;
+}
+
+/* Badges */
+.dark .badge {
+  background-color: #2c2c2c;
+  color: var(--text-dark);
+}
+
+/* Custom scrollbar for Firefox */
+.dark * {
+  scrollbar-color: #444 var(--surface-dark);
+  scrollbar-width: thin;
+}
+
+/* Selection */
+.dark ::selection {
+  background-color: #4a90e2;
+  color: white;
+}
+
+/* Focus outline */
+.dark :focus {
+  outline-color: #4a90e2;
+}
+
+/* Transitions */
+.dark * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* --- DARK MODE IMPROVEMENTS --- */
+
+/* Make all text in dark mode closer to white */
+.dark, .dark body, .dark .app, .dark .card, .dark .panel, .dark .modal-content, .dark .product-card, .dark .order-card, .dark .profile-card {
+  color: #fff !important;
+}
+
+/* Headings and card titles */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark .card-title, .dark .product-title {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Product variety/subtitle */
+.dark .product-variety, .dark .card-subtitle, .dark .subtitle {
+  color: #e0e0e0 !important;
+}
+
+/* Card content (labels and values) */
+.dark .card-content, .dark .product-details, .dark .order-details {
+  color: #fff !important;
+}
+
+/* Table headers and table text */
+.dark th {
+  color: #fff !important;
+  font-weight: 700;
+  background-color: #232323 !important;
+}
+.dark td {
+  color: #fff !important;
+}
+
+/* Status badges */
+.dark .status-badge, .dark .status-badge.pending, .dark .status-badge.confirmed, .dark .status-badge.rejected, .dark .status-badge.completed {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Buttons */
+.dark .btn, .dark .btn-primary, .dark .btn-danger, .dark .btn-success {
+  color: #fff !important;
+  font-weight: 600;
+}
+
+/* Sidebar selected item highlight */
+.dark .sidebar .active, .dark .sidebar .selected, .dark .sidebar .nav-link.active, .dark .sidebar .nav-link.selected, .dark .sidebar .nav-link[aria-current="page"] {
+  background-color: #222e50 !important;
+  color: #fff !important;
+  border-left: 4px solid #4a90e2;
+}
+
+/* Sidebar icons */
+.dark .sidebar .icon {
+  color: #fff !important;
+}
+
+/* Card backgrounds for extra contrast */
+.dark .card, .dark .product-card, .dark .order-card, .dark .profile-card {
+  background-color: #181818 !important;
+  border: 1px solid #333 !important;
+}
+
+/* Table row hover for better visibility */
+.dark .table-hover tbody tr:hover {
+  background-color: #232323 !important;
+}
+
+/* Make sure placeholder text is also bright */
+.dark ::placeholder {
+  color: #cccccc !important;
+}
+
+/* Make sure all links are bright */
+.dark a {
+  color: #4a90e2 !important;
+}
+
+/* Ensure all form labels are bright */
+.dark label {
+  color: #fff !important;
+}
+
+/* Add product box (assuming .add-product-box or similar) */
+.dark .add-product-box, .dark .add-product-form, .dark .add-product-container {
+  background-color: #181818 !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+}
+
+/* Search bar and filter boxes */
+.dark .search-bar, .dark .search-input, .dark .search-container, .dark .filter-box, .dark .min-max-box, .dark .min-price, .dark .max-price {
+  background-color: #232323 !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+}
+
+/* Chart canvas background (for Chart.js or similar) */
+.dark canvas {
+  background-color: #181818 !important;
+}
+
+/* Product details box */
+.dark .product-details, .dark .product-details-box .info-box {
+  background-color: #181818 !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+}
+
+/* Ensure input text in dark mode is white */
+.dark input, .dark select, .dark textarea {
+  color: #fff !important;
+}
+
+/* If the chart is inside a card or container, make sure its parent is also dark */
+.dark .chart-container, .dark .chart-card {
+  background-color: #181818 !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+}
+
+.text-white {
+  color: #fff !important;
+}
+
+.text-black {
+  color: #000 !important;
+}
+
+.dark .info-card{
+  background-color: #181818 !important;
+  color: #fff !important;
+  border: 1px solid #333 !important;
 }

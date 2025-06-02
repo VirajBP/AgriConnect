@@ -3,7 +3,7 @@ import { Box, Typography, Grid, Card, CardContent, Table, TableBody, TableCell, 
 import { useAuth } from '../../Context/AuthContext';
 import axios from '../../utils/axios';
 import Sidebar from '../Sidebar/Sidebar';
-import { FaShoppingBag, FaCalendarCheck, FaHistory, FaArrowRight } from 'react-icons/fa';
+import { FaShoppingBag, FaCalendarCheck, FaHistory, FaClock } from 'react-icons/fa';
 import { Pie, Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -16,7 +16,8 @@ import {
     LineElement,
     Title
 } from 'chart.js';
-import './Dashboard/FarmerDashboard.css';
+import './FarmerDashboard.css';
+import '../../index.css';
 import Chatbot from '../shared/Chatbot/Chatbot';
 
 ChartJS.register(
@@ -41,13 +42,19 @@ const FarmerDashboard = () => {
             pendingOrders: 0
         },
         monthlyRevenue: [],
-        popularProducts: [],
-        todayOrders: [],
-        upcomingOrders: [],
         inventory: []
     });
+    const [pendingOrders, setPendingOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isDark, setIsDark] = useState(false);
+
+useEffect(() => {
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    window.addEventListener('storage', checkDark); // In case theme is toggled elsewhere
+    return () => window.removeEventListener('storage', checkDark);
+  }, []);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -57,10 +64,25 @@ const FarmerDashboard = () => {
                 console.log('Token available:', !!token);
                 
                 const response = await axios.get('/farmer/dashboard');
-                console.log('Dashboard response:', response.data);
+                console.log('Dashboard response:', response.data,'New response' , response.data.data);
                 
                 if (response.data.success) {
-                    setDashboardData(response.data.data);
+                    // Initialize dashboard data without pending orders count
+                    const initialData = {
+                        ...response.data.data,
+                        stats: {
+                            ...response.data.data.stats,
+                            pendingOrders: 0 // Will be updated after fetching pending orders
+                        }
+                    };
+                    setDashboardData(initialData);
+                    
+                    // After getting dashboard data, fetch pending orders
+                //     const response2 = await axios.get(`/api/orders?status=pending&farmerId=${response.data.data._id}`);
+                // console.log('Pending Orders Response:', response2.data);
+                    if (response) {
+                        await fetchPendingOrders(response);
+                    }
                 } else {
                     setError(response.data.message || 'Failed to fetch dashboard data');
                 }
@@ -83,35 +105,70 @@ const FarmerDashboard = () => {
             }
         };
 
+        const fetchPendingOrders = async () => {
+            try {
+                const response = await axios.get('/farmer/orders');
+                // console.log('This is the response of the pending orders', response.data)
+                // console.log('This is the response of the pending orders', response.data.data.stats.pendingOrders)
+                if (response.data.success) {
+                    // console.log('Fetched orders from the orders endpoint:', response.data.data);
+                    const pending = (response.data.data).filter(order => order.status === 'pending');
+                    // console.log('Filtered pending orders:', pending);
+                    setPendingOrders(pending);
+                    setDashboardData(prev => ({
+                        ...prev,
+                        stats: {
+                            ...prev.stats,
+                            pendingOrders: pending.length
+                        }
+                    }));
+                } else {
+                    console.error('Failed to fetch pending orders:', response.data.message);
+                }
+            } catch (error) {
+                console.error('Error fetching pending orders:', error);
+            }
+        };
+
         fetchDashboardData();
     }, []);
 
     if (loading) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-                <CircularProgress />
-            </Box>
+            <div className="dashboard-container">
+                <Sidebar userType="farmer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
+                <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                    <div className="loading">
+                        <CircularProgress />
+                    </div>
+                </div>
+            </div>
         );
     }
 
     if (error) {
         return (
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
-                <Typography color="error" variant="h6">
-                    {error}
-                </Typography>
-            </Box>
+            <div className="dashboard-container">
+                <Sidebar userType="farmer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
+                <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                    <div className="error-message">
+                        <Typography color="error" variant="h6">
+                            {error}
+                        </Typography>
+                    </div>
+                </div>
+            </div>
         );
     }
 
     // Calculate total quantity for percentages
-    const totalQuantity = dashboardData.inventory.reduce((sum, item) => sum + item.quantity, 0);
+    const totalQuantity = (dashboardData.inventory || []).reduce((sum, item) => sum + (item.quantity || 0), 0);
 
     // Updated chart data with percentages
     const chartData = {
-        labels: dashboardData.inventory.map(item => item.productName),
+        labels: (dashboardData.inventory || []).map(item => item.productName || 'Unknown'),
         datasets: [{
-            data: dashboardData.inventory.map(item => item.quantity),
+            data: (dashboardData.inventory || []).map(item => item.quantity || 0),
             backgroundColor: [
                 '#FF6384',
                 '#36A2EB',
@@ -166,15 +223,33 @@ const FarmerDashboard = () => {
     };
 
     const revenueChartData = {
-        labels: dashboardData.monthlyRevenue.map(item => item.month),
+        
+        labels: (dashboardData.monthlyRevenue || []).map(item => item.month || 'Unknown'),
         datasets: [
             {
                 label: 'Monthly Revenue',
-                data: dashboardData.monthlyRevenue.map(item => item.revenue),
+                data: (dashboardData.monthlyRevenue || []).map(item => item.revenue || 0),
                 borderColor: 'rgb(75, 192, 192)',
                 tension: 0.1
             }
         ]
+    };
+    // console.log('This is the dashboard data which is received ', dashboardData)
+    const revenueChartOptions = {
+        plugins: {
+            legend: { labels: { color: isDark ? '#fff' : '#333' } },
+            title: { color: isDark ? '#fff' : '#333' }
+        },
+        scales: {
+            x: {
+                grid: { color: isDark ? '#fff' : '#e5e7eb' },
+                ticks: { color: isDark ? '#fff' : '#333' }
+            },
+            y: {
+                grid: { color: isDark ? '#fff' : '#e5e7eb' },
+                ticks: { color: isDark ? '#fff' : '#333' }
+            }
+        }
     };
 
     return (
@@ -183,205 +258,125 @@ const FarmerDashboard = () => {
                 userType="farmer" 
                 onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
             />
-            <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-                <h1>Dashboard</h1>
-                
-                <Box sx={{ p: 3 }}>
-                    <Typography variant="h4" gutterBottom>
-                        Welcome, {user?.name}!
-                    </Typography>
+            <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDark ? 'dark' : ''}`}>
+                <div className="dashboard-header">
+                    <div>
+                        <h1>Welcome, {user?.name || 'Farmer'}!</h1>
+                        <p >Here's an overview of your farm's performance</p>
+                    </div>
+                </div>
 
-                    <Grid container spacing={3}>
-                        {/* Stats Cards */}
-                        <Grid item xs={12} md={3}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Total Revenue
-                                    </Typography>
-                                    <Typography variant="h4">
-                                        ₹{dashboardData.stats.totalRevenue.toLocaleString()}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                <div className={`stats-grid ${isDark ? 'text-white' : 'text-black'}`}>
+                    <div className="stat-card primary bg-white dark:bg-gray-900 border-l-4" style={{ borderLeftColor: '#3b82f6' }}>
+                        <div className="stat-icon">
+                            <FaShoppingBag />
+                        </div>
+                        <div className="stat-info">
+                            <h3>₹{(dashboardData.stats?.totalRevenue || 0).toLocaleString()}</h3>
+                            
+                            <span className="stat-label">Total Revenue</span>
+                        </div>
+                    </div>
 
-                        <Grid item xs={12} md={3}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Active Listings
-                                    </Typography>
-                                    <Typography variant="h4">
-                                        {dashboardData.stats.activeListings}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                    <div className="stat-card success bg-white dark:bg-gray-900 border-l-4" style={{ borderLeftColor: '#10b981' }}>
+                        <div className="stat-icon">
+                            <FaCalendarCheck />
+                        </div>
+                        <div className="stat-info">
+                            <h3>{dashboardData.stats?.activeListings || 0}</h3>
+                            <span className="stat-label">Active Listings</span>
+                        </div>
+                    </div>
 
-                        <Grid item xs={12} md={3}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Completed Orders
-                                    </Typography>
-                                    <Typography variant="h4">
-                                        {dashboardData.stats.completedOrders}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                    <div className="stat-card warning bg-white dark:bg-gray-900 border-l-4" style={{ borderLeftColor: '#f59e0b' }}>
+                        <div className="stat-icon">
+                            <FaHistory />
+                        </div>
+                        <div className="stat-info">
+                            <h3>{dashboardData.stats?.completedOrders || 0}</h3>
+                            <span className="stat-label">Completed Orders</span>
+                        </div>
+                    </div>
 
-                        <Grid item xs={12} md={3}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Pending Orders
-                                    </Typography>
-                                    <Typography variant="h4">
-                                        {dashboardData.stats.pendingOrders}
-                                    </Typography>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                    <div className="stat-card danger bg-white dark:bg-gray-900 border-l-4" style={{ borderLeftColor: '#ef4444' }}>
+                        <div className="stat-icon">
+                            <FaClock />
+                        </div>
+                        <div className="stat-info">
+                            <h3>{dashboardData.stats?.pendingOrders || 0}</h3>
+                            <span className="stat-label">Pending Orders</span>
+                        </div>
+                    </div>
+                </div>
 
-                        {/* Revenue Chart */}
-                        <Grid item xs={12}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Monthly Revenue
-                                    </Typography>
-                                    <Box sx={{ height: 300 }}>
-                                        <Line data={revenueChartData} />
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                <div className={`dashboard-main ${isDark? 'text-white': 'text-black'}`}>
+                    <div className="monthly-revenue">
+                        <div className="section-header">
+                            <h2>Monthly Revenue</h2>
+                        </div>
+                        <div className="chart-container">
+                            <Line data={revenueChartData} options={revenueChartOptions} />
+                        </div>
+                    </div>
 
-                        {/* Popular Products */}
-                        <Grid item xs={12} md={6}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Popular Products
-                                    </Typography>
-                                    <TableContainer component={Paper}>
-                                        <Table>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Product Name</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {dashboardData.popularProducts.map((product, index) => (
-                                                    <TableRow key={index}>
-                                                        <TableCell>{product}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </CardContent>
-                            </Card>
-                        </Grid>
+                    <div className="pending-orders">
+                        <div className="section-header">
+                            <h2>Pending Orders</h2>
+                        </div>
+                        <div className="activity-list">
+                            {pendingOrders.length > 0 ? (
+                                pendingOrders.map((order) => (
+                                    <div key={order._id || Math.random()} className="activity-item">
+                                        <div className="activity-details">
+                                            <div className="activity-header">
+                                                <h4>{order.product?.name || 'Unknown Product'}</h4>
+                                                <span className="status-badge status-pending">
+                                                    {order.quantity || 0} kg
+                                                </span>
+                                            </div>
+                                            <p className="activity-meta">
+                                                Customer: {order.consumer?.name || 'Unknown Customer'}
+                                            </p>
+                                            <p className="activity-meta">
+                                                Expected Delivery: {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'Not specified'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="no-orders">
+                                    <p>No pending orders at the moment</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
 
-                    {/* Today's Orders */}
-                        <Grid item xs={12} md={6}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Today's Orders
-                                    </Typography>
-                                    <TableContainer component={Paper}>
-                                        <Table>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Product</TableCell>
-                                                    <TableCell>Quantity</TableCell>
-                                                    <TableCell>Customer</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {dashboardData.todayOrders.map((order) => (
-                                                    <TableRow key={order._id}>
-                                                        <TableCell>{order.productName}</TableCell>
-                                                        <TableCell>{order.quantity} kg</TableCell>
-                                                        <TableCell>{order.customerName}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-
-                    {/* Upcoming Orders */}
-                        <Grid item xs={12}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Upcoming Orders
-                                    </Typography>
-                                    <TableContainer component={Paper}>
-                                        <Table>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Product</TableCell>
-                                                    <TableCell>Quantity</TableCell>
-                                                    <TableCell>Delivery Date</TableCell>
-                                                    <TableCell>Customer</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {dashboardData.upcomingOrders.map((order) => (
-                                                    <TableRow key={order._id}>
-                                                        <TableCell>{order.productName}</TableCell>
-                                                        <TableCell>{order.quantity} kg</TableCell>
-                                                        <TableCell>{new Date(order.deliveryDate).toLocaleDateString()}</TableCell>
-                                                        <TableCell>{order.customerName}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-
-                        {/* Inventory */}
-                        <Grid item xs={12}>
-                            <Card>
-                                <CardContent>
-                                    <Typography variant="h6" gutterBottom>
-                                        Inventory
-                                    </Typography>
-                                    <TableContainer component={Paper}>
-                                        <Table>
-                                            <TableHead>
-                                                <TableRow>
-                                                    <TableCell>Product</TableCell>
-                                                    <TableCell>Quantity</TableCell>
-                                                    <TableCell>Unit</TableCell>
-                                                </TableRow>
-                                            </TableHead>
-                                            <TableBody>
-                                                {dashboardData.inventory.map((product) => (
-                                                    <TableRow key={product.productId}>
-                                                        <TableCell>{product.productName}</TableCell>
-                                                        <TableCell>{product.quantity}</TableCell>
-                                                        <TableCell>{product.unit}</TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </TableContainer>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    </Grid>
-                </Box>
+                </div>
+                    <div className={`inventory-section ${isDark? 'text-white': 'text-black'} ${isDark? 'dark': ''}`}>
+                        <div className="section-header" style={{textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                            <h2 className={isDark ? 'text-white' : 'text-black'}>Inventory</h2>
+                        </div>
+                        <div className="inventory-table-container">
+                            <table className="inventory-table w-full bg-white dark:bg-gray-900 dark:text-white">
+                                <thead>
+                                    <tr>
+                                        <th className="bg-gray-100 dark:bg-gray-800 dark:text-white">Product Name</th>
+                                        <th className="bg-gray-100 dark:bg-gray-800 dark:text-white">Quantity</th>
+                                        <th className="bg-gray-100 dark:bg-gray-800 dark:text-white">Unit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(dashboardData.inventory || []).map((product) => (
+                                        <tr key={product.productId || Math.random()} className="border-b border-gray-200 dark:border-gray-700">
+                                            <td>{product.productName || 'Unknown Product'}</td>
+                                            <td>{product.quantity || 0}</td>
+                                            <td>{product.unit || 'units'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 <Chatbot />
             </div>
         </div>

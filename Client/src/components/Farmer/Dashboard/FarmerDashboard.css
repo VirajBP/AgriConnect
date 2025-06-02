@@ -212,7 +212,11 @@
     width: 100%;
     border-collapse: collapse;
 }
-
+.inventory-heading{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .inventory-table th,
 .inventory-table td {
     text-align: left;

@@ -27,27 +27,35 @@ body {
 
 /* Orders Section */
 .orders-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+.orders-content {
+  flex: 1;
+  margin-left: 240px;
   padding: 2rem;
+  transition: margin-left 0.3s ease;
+}
+
+.orders-content.sidebar-collapsed {
+  margin-left: 64px;
 }
 
 /* Page Title */
 .orders-heading {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #2c3e50;
-  text-align: center;
-  margin-bottom: 1.8rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  margin-bottom: 2rem !important;
+  color: var(--primary-color);
+  font-weight: 600 !important;
 }
 
 /* Table Styles */
 .table-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   margin-bottom: 2rem;
 }
@@ -55,51 +63,83 @@ body {
 .orders-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
+  font-size: 0.9rem;
 }
 
 .orders-table th,
 .orders-table td {
   padding: 1rem;
   text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .orders-table th {
-  background-color: #f8fafc;
+  background-color: var(--header-background);
+  color: var(--text-color);
   font-weight: 600;
-  color: #334155;
-  text-transform: uppercase;
-  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
-.orders-table tbody tr:hover {
-  background-color: #f1f5f9;
+.orders-table tr:last-child td {
+  border-bottom: none;
 }
 
-/* Status Badges */
-.status-badge {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
+.orders-table tr:hover {
+  background-color: var(--hover-background);
+}
+
+/* Status Chip Colors */
+.MuiChip-root {
   font-weight: 500;
-  text-transform: uppercase;
 }
 
-.status-pending {
-  background: #fef3c7;
-  color: #92400e;
+.MuiChip-colorSuccess {
+  background-color: var(--success-color) !important;
+  color: white !important;
 }
 
-.status-completed {
-  background: #dcfce7;
-  color: #166534;
+.MuiChip-colorWarning {
+  background-color: var(--warning-color) !important;
+  color: white !important;
 }
 
-.status-rejected {
-  background: #fee2e2;
-  color: #991b1b;
+.MuiChip-colorError {
+  background-color: var(--error-color) !important;
+  color: white !important;
+}
+
+.MuiChip-colorInfo {
+  background-color: var(--info-color) !important;
+  color: white !important;
+}
+
+/* Action Buttons */
+.MuiIconButton-root {
+  padding: 4px !important;
+}
+
+.MuiIconButton-root:hover {
+  background-color: var(--hover-background) !important;
+}
+
+/* Dialog Styles */
+.MuiDialog-paper {
+  background-color: var(--card-background) !important;
+  color: var(--text-color) !important;
+}
+
+.MuiDialogTitle-root {
+  border-bottom: 1px solid var(--border-color);
+  padding: 1.5rem !important;
+}
+
+.MuiDialogContent-root {
+  padding: 1.5rem !important;
+}
+
+.MuiDialogActions-root {
+  border-top: 1px solid var(--border-color);
+  padding: 1rem 1.5rem !important;
 }
 
 /* Animation */
@@ -120,35 +160,65 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
-  .dashboard-content {
-    margin-left: 80px;
-    padding: 1.5rem;
-  }
-
-  .orders-container {
-    padding: 1.5rem;
-  }
-
-  .table-container {
-    margin: 0 -1.5rem;
-    border-radius: 0;
-    box-shadow: none;
+@media (max-width: 1024px) {
+  .orders-content {
+    margin-left: 64px;
+    padding: 1rem;
   }
 
   .orders-table {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   .orders-table th,
   .orders-table td {
     padding: 0.75rem;
   }
+}
 
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    font-size: 0.75rem;
+@media (max-width: 768px) {
+  .orders-content {
+    margin-left: 0;
+    padding: 1rem;
   }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .orders-table {
+    min-width: 800px;
+  }
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] {
+  --background-color: #121212;
+  --card-background: #1e1e1e;
+  --header-background: #2d2d2d;
+  --border-color: #333;
+  --hover-background: #2d2d2d;
+  --text-color: #fff;
+  --primary-color: #90caf9;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --info-color: #2196f3;
+}
+
+/* Light Mode Styles */
+[data-theme="light"] {
+  --background-color: #f5f5f5;
+  --card-background: #ffffff;
+  --header-background: #f8f9fa;
+  --border-color: #e0e0e0;
+  --hover-background: #f5f5f5;
+  --text-color: #333;
+  --primary-color: #1976d2;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --info-color: #2196f3;
 }
 
 /* Empty State */

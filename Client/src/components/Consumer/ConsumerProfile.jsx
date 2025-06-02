@@ -1,40 +1,47 @@
-import React, { useState, useRef } from 'react';
-import { 
-    FaUser, 
-    FaEnvelope, 
-    FaPhone, 
-    FaLock, 
-    FaMapMarkerAlt, 
-    FaBuilding, 
-    FaEye, 
-    FaEyeSlash,
-    FaShoppingBag,
-    FaCalendarAlt
-} from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
 import Sidebar from '../Sidebar/Sidebar';
-import { consumerData } from '../../mockData/consumerData';
+import axios from '../../utils/axios';
+import { CircularProgress } from '@mui/material';
+import { useTheme } from '../../Context/ThemeContext';
 import './ConsumerProfile.css';
 
 const ConsumerProfile = () => {
-    const [profile, setProfile] = useState(consumerData.profile);
+    const [profile, setProfile] = useState(null);
     const [editMode, setEditMode] = useState({});
     const [tempData, setTempData] = useState({});
     const [showPassword, setShowPassword] = useState(false);
-    const [avatar, setAvatar] = useState(profile.avatar || null);
-    const fileInputRef = useRef(null);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { isDarkMode, toggleTheme } = useTheme();
+
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            try {
+                const response = await axios.get('/consumer/profile');
+                if (response.data.success) {
+                    setProfile(response.data.data);
+                } else {
+                    setError(response.data.message || 'Failed to fetch profile data');
+                }
+            } catch (err) {
+                console.error('Error fetching profile data:', err);
+                setError(err.response?.data?.message || 'Error fetching profile data');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProfileData();
+    }, []);
 
     const editableFields = {
         name: {
-            label: 'Business Name',
+            label: 'Full Name',
             type: 'text',
             icon: <FaUser />,
-            validation: value => value.length >= 2
-        },
-        email: {
-            label: 'Business Email',
-            type: 'email',
-            icon: <FaEnvelope />,
-            validation: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+            validation: value => value?.length >= 2
         },
         phoneNumber: {
             label: 'Contact Number',
@@ -46,202 +53,146 @@ const ConsumerProfile = () => {
             label: 'Password',
             type: 'password',
             icon: <FaLock />,
-            validation: value => value.length >= 6
+            validation: value => value?.length >= 6
         },
         address: {
-            label: 'Business Address',
+            label: 'Delivery Address',
             type: 'text',
             icon: <FaMapMarkerAlt />,
-            validation: value => value.length >= 3
+            validation: value => value?.length >= 3
         }
     };
-
-    const nonEditableFields = {
-        businessType: {
-            label: 'Business Type',
-            icon: <FaBuilding />,
-            value: profile.businessType || 'Restaurant' // Example business type
-        }
-    };
-
-    const stats = [
-        {
-            icon: <FaShoppingBag />,
-            label: 'Total Orders',
-            value: '156'
-        },
-        {
-            icon: <FaCalendarAlt />,
-            label: 'Member Since',
-            value: new Date(profile.joinedDate).toLocaleDateString()
-        }
-    ];
 
     const handleEdit = (field) => {
         setEditMode({ ...editMode, [field]: true });
-        setTempData({ ...tempData, [field]: profile[field] });
+        setTempData({ ...tempData, [field]: profile ? profile[field] : '' });
     };
 
     const handleCancel = (field) => {
         setEditMode({ ...editMode, [field]: false });
-        setTempData({ ...tempData, [field]: profile[field] });
+        setTempData({ ...tempData, [field]: '' });
     };
 
     const handleSave = async (field) => {
-        if (!editableFields[field].validation(tempData[field])) {
-            alert('Invalid input');
-            return;
-        }
-
-        try {
-            // API call would go here
-            setProfile({ ...profile, [field]: tempData[field] });
-            setEditMode({ ...editMode, [field]: false });
-        } catch (error) {
-            console.error('Error updating profile:', error);
-            alert('Failed to update profile');
-        }
-    };
-
-    const handleAvatarChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setAvatar(reader.result);
-                // Here you would typically upload to server
-                setProfile({ ...profile, avatar: reader.result });
-            };
-            reader.readAsDataURL(file);
+        if (editableFields[field].validation(tempData[field])) {
+            try {
+                const response = await axios.put('/consumer/profile', {
+                    [field]: tempData[field]
+                });
+                if (response.data.success) {
+                    setProfile({ ...profile, [field]: tempData[field] });
+                    setEditMode({ ...editMode, [field]: false });
+                    setTempData({ ...tempData, [field]: '' });
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile');
+            }
         }
     };
 
-    const handleAvatarClick = () => {
-        fileInputRef.current.click();
-    };
+    if (loading) {
+        return (
+            <div className="profile-loading">
+                <CircularProgress />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="profile-error">
+                <p>{error}</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="profile-container">
-            <Sidebar userType="consumer" />
-            <div className="profile-content">
-                <div className="profile-wrapper">
-                    <div className="profile-header-card">
-                        <div className="profile-cover-photo"></div>
-                        <div className="profile-header-content">
-                            <div 
-                                className="profile-avatar" 
-                                onClick={handleAvatarClick}
-                                style={{
-                                    backgroundImage: avatar ? `url(${avatar})` : 'none',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                {!avatar && profile.name.charAt(0)}
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleAvatarChange}
-                                    accept="image/*"
-                                    style={{ display: 'none' }}
-                                />
-                                <div className="avatar-overlay">
-                                    <FaUser />
-                                    <span>Change Photo</span>
-                                </div>
-                            </div>
-                            <div className="profile-header-info">
-                                <h1>{profile.name}</h1>
-                                <div className="business-type-badge">
-                                    {nonEditableFields.businessType.value}
-                                </div>
-                            </div>
+        <div className="consumer-profile">
+            <Sidebar 
+                userType="consumer" 
+                onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+            />
+            <div className={`profile-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <div className="profile-header">
+                    <div className="profile-cover">
+                        <div className="profile-avatar">
+                            <FaShoppingBag />
                         </div>
                     </div>
-
-                    <div className="profile-stats-grid">
-                        {stats.map((stat, index) => (
-                            <div key={index} className="stat-card">
-                                <div className="stat-icon">{stat.icon}</div>
-                                <div className="stat-details">
-                                    <span className="stat-value">{stat.value}</span>
-                                    <span className="stat-label">{stat.label}</span>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="profile-info">
+                        <h1>{profile?.name || 'Loading...'}</h1>
+                        <p className="profile-role">Consumer</p>
+                        <p className="profile-join-date">
+                            Member since {profile?.joinedDate ? new Date(profile.joinedDate).toLocaleDateString() : 'N/A'}
+                        </p>
                     </div>
+                </div>
 
-                    <div className="profile-details-card">
-                        <h2>Business Information</h2>
+                <div className="profile-main">
+                    <div className="profile-section">
+                        <div className="section-header">
+                            <h2>Personal Information</h2>
+                        </div>
                         <div className="profile-fields">
-                            {/* Non-editable fields */}
-                            {Object.entries(nonEditableFields).map(([field, config]) => (
-                                <div key={field} className="field-group">
-                                    <div className="field-icon">{config.icon}</div>
-                                    <div className="field-content">
-                                        <label>{config.label}</label>
-                                        <div className="field-value">
-                                            <span>{config.value}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-
-                            {/* Editable fields */}
                             {Object.entries(editableFields).map(([field, config]) => (
-                                <div key={field} className="field-group">
-                                    <div className="field-icon">{config.icon}</div>
-                                    <div className="field-content">
+                                <div key={field} className="profile-field">
+                                    <div className="field-header">
+                                        <div className="field-icon">{config.icon}</div>
                                         <label>{config.label}</label>
-                                        {editMode[field] ? (
-                                            <div className="edit-field">
-                                                <div className="input-wrapper">
-                                                    <input
-                                                        type={field === 'password' && !showPassword ? 'password' : config.type}
-                                                        value={tempData[field] || ''}
-                                                        onChange={(e) => setTempData({
-                                                            ...tempData,
-                                                            [field]: e.target.value
-                                                        })}
-                                                        placeholder={`Enter ${config.label.toLowerCase()}`}
-                                                    />
-                                                    {field === 'password' && (
-                                                        <button 
-                                                            className="toggle-password"
-                                                            onClick={() => setShowPassword(!showPassword)}
-                                                        >
-                                                            {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <div className="edit-actions">
-                                                    <button 
-                                                        className="save-btn"
-                                                        onClick={() => handleSave(field)}
-                                                    >
-                                                        Save
-                                                    </button>
-                                                    <button 
-                                                        className="cancel-btn"
-                                                        onClick={() => handleCancel(field)}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="field-value">
-                                                <span>
-                                                    {field === 'password' ? '••••••••' : profile[field]}
-                                                </span>
+                                    </div>
+                                    {editMode[field] ? (
+                                        <div className="field-edit">
+                                            <input
+                                                type={field === 'password' && !showPassword ? 'password' : config.type}
+                                                value={tempData[field] || ''}
+                                                onChange={(e) => setTempData({
+                                                    ...tempData,
+                                                    [field]: e.target.value
+                                                })}
+                                                className="edit-input"
+                                                placeholder={`Enter ${config.label.toLowerCase()}`}
+                                            />
+                                            {field === 'password' && (
                                                 <button 
-                                                    className="edit-btn"
-                                                    onClick={() => handleEdit(field)}
+                                                    className="toggle-password"
+                                                    onClick={() => setShowPassword(!showPassword)}
                                                 >
-                                                    Edit
+                                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                                </button>
+                                            )}
+                                            <div className="edit-actions">
+                                                <button 
+                                                    className="action-btn save"
+                                                    onClick={() => handleSave(field)}
+                                                    title="Save"
+                                                >
+                                                    <FaCheck />
+                                                </button>
+                                                <button 
+                                                    className="action-btn cancel"
+                                                    onClick={() => handleCancel(field)}
+                                                    title="Cancel"
+                                                >
+                                                    <FaTimes />
                                                 </button>
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <div className="field-display">
+                                            <span>
+                                                {profile?.[field] !== undefined && profile?.[field] !== null && profile?.[field] !== '' ? 
+                                                 (field === 'password' ? '••••••••' : profile[field]) 
+                                                 : 'Not set'}
+                                            </span>
+                                            <button 
+                                                className="edit-btn"
+                                                onClick={() => handleEdit(field)}
+                                            >
+                                                <FaEdit />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
