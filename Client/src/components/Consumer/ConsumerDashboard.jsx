@@ -28,6 +28,7 @@ import Chatbot from '../shared/Chatbot/Chatbot';
 import { useAuth } from '../../Context/AuthContext';
 import axios from '../../utils/axios';
 import { Typography } from '@mui/material';
+// import Order from '../../models/order';
 
 ChartJS.register(
     CategoryScale,
@@ -47,12 +48,13 @@ const ConsumerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [timeFilter, setTimeFilter] = useState('6M');
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
                 console.log('Fetching consumer dashboard data...');
-                const response = await axios.get('/consumer/dashboard');
+                const response = await axios.get('/consumer/consumer/dashboard');
                 console.log('Consumer dashboard response:', response.data);
 
                 if (response.data.success) {
@@ -151,8 +153,11 @@ const ConsumerDashboard = () => {
 
     return (
         <div className="consumer-dashboard">
-            <Sidebar userType="consumer" />
-            <div className="dashboard-content">
+            <Sidebar 
+                userType="consumer" 
+                onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+            />
+            <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className="dashboard-header">
                     <div className="welcome-section">
                         <h1>Welcome back, {user?.name}!</h1>

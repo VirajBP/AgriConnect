@@ -2,55 +2,34 @@ import axios from 'axios';
 
 const instance = axios.create({
     baseURL: 'http://localhost:5000/api',
+    timeout: 5000,
     headers: {
         'Content-Type': 'application/json'
     }
 });
 
-// Add a request interceptor to add the auth token to requests
+// Add a request interceptor to add the auth token
 instance.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        console.log('Making request to:', config.url, {
-            method: config.method,
-            headers: config.headers
-        });
+        console.log('Making request to:', config.url, config);
         return config;
     },
     (error) => {
-        console.error('Request error:', error);
         return Promise.reject(error);
     }
 );
 
-// Add a response interceptor to handle common errors
+// Add a response interceptor to handle errors
 instance.interceptors.response.use(
     (response) => {
-        console.log('Response received:', {
-            url: response.config.url,
-            status: response.status,
-            data: response.data
-        });
         return response;
     },
     (error) => {
-        console.error('Response error:', {
-            url: error.config?.url,
-            status: error.response?.status,
-            data: error.response?.data,
-            message: error.message
-        });
-
-        // Handle specific error cases
-        if (error.response?.status === 401) {
-            // Clear token and redirect to login if unauthorized
-            localStorage.removeItem('token');
-            window.location.href = '/login';
-        }
-
+        console.log('Response error:', error.response?.data || error.message);
         return Promise.reject(error);
     }
 );

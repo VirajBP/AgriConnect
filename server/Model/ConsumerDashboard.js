@@ -12,6 +12,7 @@ const consumerDashboardSchema = new mongoose.Schema({
         required: true
     },
     stats: {
+        activeOrders: Number,
         totalSpent: Number,
         totalOrders: Number,
         completedOrders: Number,

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="300" version="1.1" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+    <rect width="400" height="300" fill="#f0f4f8"/>
+    <g fill="#90a4ae">
+        <path d="M180,100 C180,60 220,60 220,100 L220,140 C220,160 200,180 200,180 C200,180 180,160 180,140 Z"/>
+        <path d="M160,80 C160,40 240,40 240,80 L240,140 C240,170 200,200 200,200 C200,200 160,170 160,140 Z" fill-opacity="0.3"/>
+    </g>
+    <text x="200" y="240" text-anchor="middle" fill="#546e7a" font-family="Arial" font-size="16" font-weight="bold">Fresh Crop</text>
+</svg> 

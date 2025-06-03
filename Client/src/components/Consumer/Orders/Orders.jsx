@@ -120,7 +120,8 @@ export default function ConsumerOrders() {
   }
 
   const currentOrders = orders.filter(order => 
-    ['pending', 'processing', 'confirmed'].includes(order.status.toLowerCase())
+    ['pending', 'processing', 'confirmed'].includes(order.status.toLowerCase()),
+    console.log(orders)
   );
 
   const pastOrders = orders.filter(order => 
@@ -167,19 +168,19 @@ export default function ConsumerOrders() {
                     <td>#{order._id.slice(-6)}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.product.productName}</Typography>
+                        <Typography variant="body1">{order.product?.productName || 'Product Removed'}</Typography>
                         <Typography variant="caption" color="textSecondary">
-                          {order.product.variety}
+                          {order.product?.variety || '-'}
                         </Typography>
                       </Box>
                     </td>
-                    <td>{order.quantity} {order.product.unit}</td>
-                    <td>₹{order.totalAmount}</td>
+                    <td>{order.quantity} {order.product?.unit || 'units'}</td>
+                    <td>₹{order.totalPrice}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.farmer.name}</Typography>
+                        <Typography variant="body1">{order.farmer?.name || 'Farmer Unavailable'}</Typography>
                         <Typography variant="caption" color="textSecondary">
-                          {order.farmer.location}
+                          {order.farmer?.location || '-'}
                         </Typography>
                       </Box>
                     </td>
@@ -232,14 +233,13 @@ export default function ConsumerOrders() {
                 <th>Order Date</th>
                 <th>Delivery Date</th>
                 <th>Status</th>
-                <th>Rating</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {pastOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="10" align="center">
+                  <td colSpan="9" align="center">
                     <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
                       No past orders found
                     </Typography>
@@ -251,19 +251,19 @@ export default function ConsumerOrders() {
                     <td>#{order._id.slice(-6)}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.product.productName}</Typography>
+                        <Typography variant="body1">{order.product?.productName || 'Product Removed'}</Typography>
                         <Typography variant="caption" color="textSecondary">
-                          {order.product.variety}
+                          {order.product?.variety || '-'}
                         </Typography>
                       </Box>
                     </td>
-                    <td>{order.quantity} {order.product.unit}</td>
-                    <td>₹{order.totalAmount}</td>
+                    <td>{order.quantity} {order.product?.unit || 'units'}</td>
+                    <td>₹{order.totalPrice}</td>
                     <td>
                       <Box>
-                        <Typography variant="body1">{order.farmer.name}</Typography>
+                        <Typography variant="body1">{order.farmer?.name || 'Farmer Unavailable'}</Typography>
                         <Typography variant="caption" color="textSecondary">
-                          {order.farmer.location}
+                          {order.farmer?.location || '-'}
                         </Typography>
                       </Box>
                     </td>
@@ -275,16 +275,6 @@ export default function ConsumerOrders() {
                         color={getStatusColor(order.status)}
                         size="small"
                       />
-                    </td>
-                    <td>
-                      {order.status.toLowerCase() === 'completed' && (
-                        <Rating
-                          value={order.rating || 0}
-                          readOnly
-                          size="small"
-                          icon={<StarIcon fontSize="inherit" />}
-                        />
-                      )}
                     </td>
                     <td>
                       <Tooltip title="View Details">
@@ -315,7 +305,7 @@ export default function ConsumerOrders() {
                         Product Name
                       </Typography>
                       <Typography variant="body1">
-                        {selectedOrder.product.productName}
+                        {selectedOrder.product?.productName || 'Product Removed'}
                       </Typography>
                     </Box>
                     <Box>
@@ -323,7 +313,7 @@ export default function ConsumerOrders() {
                         Variety
                       </Typography>
                       <Typography variant="body1">
-                        {selectedOrder.product.variety}
+                        {selectedOrder.product?.variety || '-'}
                       </Typography>
                     </Box>
                     <Box>
@@ -331,7 +321,7 @@ export default function ConsumerOrders() {
                         Quantity
                       </Typography>
                       <Typography variant="body1">
-                        {selectedOrder.quantity} {selectedOrder.product.unit}
+                        {selectedOrder.quantity} {selectedOrder.product?.unit || 'units'}
                       </Typography>
                     </Box>
                     <Box>
@@ -353,7 +343,7 @@ export default function ConsumerOrders() {
                         Name
                       </Typography>
                       <Typography variant="body1">
-                        {selectedOrder.farmer.name}
+                        {selectedOrder.farmer?.name || 'Farmer Unavailable'}
                       </Typography>
                     </Box>
                     <Box>
@@ -361,7 +351,7 @@ export default function ConsumerOrders() {
                         Location
                       </Typography>
                       <Typography variant="body1">
-                        {selectedOrder.farmer.location}
+                        {selectedOrder.farmer?.location || '-'}
                       </Typography>
                     </Box>
                   </Box>

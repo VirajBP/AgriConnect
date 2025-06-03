@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaEnvelope, FaCity } from 'react-icons/fa';
 import Sidebar from '../Sidebar/Sidebar';
 import axios from '../../utils/axios';
 import { CircularProgress } from '@mui/material';
@@ -20,6 +20,7 @@ const ConsumerProfile = () => {
         const fetchProfileData = async () => {
             try {
                 const response = await axios.get('/consumer/profile');
+                console.log(response.data)
                 if (response.data.success) {
                     setProfile(response.data.data);
                 } else {
@@ -43,17 +44,23 @@ const ConsumerProfile = () => {
             icon: <FaUser />,
             validation: value => value?.length >= 2
         },
+        email: {
+            label: 'Email Address',
+            type: 'email',
+            icon: <FaEnvelope />,
+            validation: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+        },
         phoneNumber: {
             label: 'Contact Number',
             type: 'tel',
             icon: <FaPhone />,
             validation: value => /^\+?[\d\s-]{10,}$/.test(value)
         },
-        password: {
-            label: 'Password',
-            type: 'password',
-            icon: <FaLock />,
-            validation: value => value?.length >= 6
+        location: {
+            label: 'City',
+            type: 'text',
+            icon: <FaCity />,
+            validation: value => value?.length >= 2
         },
         address: {
             label: 'Delivery Address',
@@ -76,18 +83,24 @@ const ConsumerProfile = () => {
     const handleSave = async (field) => {
         if (editableFields[field].validation(tempData[field])) {
             try {
-                const response = await axios.put('/consumer/profile', {
+                const response = await axios.put('/consumer/profile/update', {
                     [field]: tempData[field]
                 });
+                
                 if (response.data.success) {
                     setProfile({ ...profile, [field]: tempData[field] });
                     setEditMode({ ...editMode, [field]: false });
                     setTempData({ ...tempData, [field]: '' });
+                    alert('Profile updated successfully!');
+                } else {
+                    alert(response.data.message || 'Failed to update profile');
                 }
             } catch (error) {
                 console.error('Error updating profile:', error);
-                alert('Failed to update profile');
+                alert(error.response?.data?.message || 'Failed to update profile');
             }
+        } else {
+            alert('Please enter valid information');
         }
     };
 
