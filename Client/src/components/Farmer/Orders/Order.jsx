@@ -3,7 +3,7 @@ import Sidebar from '../../Sidebar/Sidebar';
 import './Order.css';
 import '../../../index.css';
 import axios from '../../../utils/axios'; // Import the configured axios instance
-import { Typography, Box, CircularProgress } from '@mui/material';
+import { Typography, Box, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 
 export default function FarmerOrders() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -12,6 +12,9 @@ export default function FarmerOrders() {
   const [error, setError] = useState(null); // Add error state
   const [visibleOrders, setVisibleOrders] = useState([]);
   const [isDark, setIsDark] = useState(false);
+  const [showDeliveryDateDialog, setShowDeliveryDateDialog] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState(null);
+  const [deliveryDate, setDeliveryDate] = useState('');
 
 useEffect(() => {
     const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -56,44 +59,37 @@ useEffect(() => {
 
   const handleStatusChange = async (id, status) => {
     try {
-      const response = await axios.put(`/farmer/orders/${id}/status`, { status });
+      if (status === "confirmed") {
+        setSelectedOrderId(id);
+        setShowDeliveryDateDialog(true);
+        return;
+      }
+
+      const response = await axios.put(`/farmer/orders/${id}/status`, { 
+        status,
+        deliveryDate: null // Reset delivery date when rejecting
+      });
       
       if (response.data.success) {
-        // Update the orders state with the new status
         setOrders(prevOrders => 
           prevOrders.map(order => 
             order._id === id 
               ? {
                   ...order,
                   status: status,
-                  // Keep all other fields unchanged
-                  orderId: order.orderId,
-                  product: order.product,
-                  quantity: order.quantity,
-                  price: order.price,
-                  customer: order.customer,
-                  orderDate: order.orderDate,
-                  deliveryDate: order.deliveryDate
+                  deliveryDate: null
                 }
               : order
           )
         );
         
-        // Update visible orders as well
         setVisibleOrders(prevVisibleOrders => 
           prevVisibleOrders.map(order => 
             order._id === id 
               ? {
                   ...order,
                   status: status,
-                  // Keep all other fields unchanged
-                  orderId: order.orderId,
-                  product: order.product,
-                  quantity: order.quantity,
-                  price: order.price,
-                  customer: order.customer,
-                  orderDate: order.orderDate,
-                  deliveryDate: order.deliveryDate
+                  deliveryDate: null
                 }
               : order
           )
@@ -105,6 +101,53 @@ useEffect(() => {
     } catch (err) {
       console.error('Error updating order status:', err);
       setError(err.response?.data?.message || 'Error updating order status');
+    }
+  };
+
+  const handleConfirmDeliveryDate = async () => {
+    if (!deliveryDate) {
+      alert('Please select a delivery date');
+      return;
+    }
+
+    try {
+      const response = await axios.put(`/farmer/orders/${selectedOrderId}/status`, {
+        status: 'confirmed',
+        deliveryDate: deliveryDate
+      });
+      
+      if (response.data.success) {
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === selectedOrderId 
+              ? {
+                  ...order,
+                  status: 'confirmed',
+                  deliveryDate: deliveryDate
+                }
+              : order
+          )
+        );
+        
+        setVisibleOrders(prevVisibleOrders => 
+          prevVisibleOrders.map(order => 
+            order._id === selectedOrderId 
+              ? {
+                  ...order,
+                  status: 'confirmed',
+                  deliveryDate: deliveryDate
+                }
+              : order
+          )
+        );
+
+        setShowDeliveryDateDialog(false);
+        setSelectedOrderId(null);
+        setDeliveryDate('');
+      }
+    } catch (err) {
+      console.error('Error confirming order:', err);
+      setError(err.response?.data?.message || 'Error confirming order');
     }
   };
 
@@ -130,12 +173,12 @@ useEffect(() => {
 
 
   return (
-    <div className="dashboard-container">
+    <div className="orders-container">
       <Sidebar 
         userType="farmer" 
         onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`dashboard-content  ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDark ? 'dark' : ''}`}>
         <h1 className="orders-heading">Pending Orders</h1>
         <div className={`${isDark ? 'table-container-black' : 'table-container'}`}>
           {visibleOrders.filter(order => order.status === "pending").length === 0 ? ( 
@@ -240,6 +283,50 @@ useEffect(() => {
             </table>
           )}
         </div>
+
+        {/* Delivery Date Dialog */}
+        <Dialog 
+          open={showDeliveryDateDialog} 
+          onClose={() => {
+            setShowDeliveryDateDialog(false);
+            setSelectedOrderId(null);
+            setDeliveryDate('');
+          }}
+          className={isDark ? 'dark-dialog' : ''}
+        >
+          <DialogTitle>Set Expected Delivery Date</DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2 }}>
+              <TextField
+                type="date"
+                fullWidth
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                inputProps={{
+                  min: new Date().toISOString().split('T')[0] // Prevent past dates
+                }}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button 
+              onClick={() => {
+                setShowDeliveryDateDialog(false);
+                setSelectedOrderId(null);
+                setDeliveryDate('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmDeliveryDate}
+              variant="contained" 
+              color="primary"
+            >
+              Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

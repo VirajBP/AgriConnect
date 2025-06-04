@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from '../../../utils/axios';
+import { useTheme } from '../../../Context/ThemeContext';
 import { 
     Box, 
     Container, 
@@ -35,7 +36,7 @@ import {
     Snackbar,
     Alert
 } from '@mui/material';
-import { Search as SearchIcon, FilterList as FilterIcon, ShoppingCart as ShoppingCartIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Star as StarIcon, LocationOn as LocationIcon, Phone as PhoneIcon, Email as EmailIcon } from '@mui/icons-material';
+import { Search as SearchIcon, FilterList as FilterIcon, ShoppingCart as ShoppingCartIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Star as StarIcon, LocationOn as LocationIcon, Phone as PhoneIcon, Email as EmailIcon, Person as PersonIcon, LocationOn as LocationOnIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Sidebar/Sidebar';
 import './Market.css';
@@ -67,6 +68,7 @@ const productImages = {
 };
 
 const Market = () => {
+    const { isDarkMode } = useTheme();
     const navigate = useNavigate();
     const [marketType, setMarketType] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
@@ -107,23 +109,19 @@ const Market = () => {
                     }));
                     setProducts(productsWithCategory);
                     
-                    if (marketType) {
-                        console.log('Filtering by market type:', marketType);
-                        const filtered = productsWithCategory.filter(product => product.category === marketType);
-                        console.log('Filtered products:', filtered);
-                        setFilteredProducts(filtered);
+                    // Get user's location from the first product's farmer location
+                    if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.location) {
+                        setUserLocation(productsWithCategory[0].farmer.location);
+                        // Filter products by default to show only those from the user's location
+                        const localProducts = productsWithCategory.filter(product => 
+                            product.farmer?.location?.toLowerCase() === productsWithCategory[0].farmer.location.toLowerCase()
+                        );
+                        setFilteredProducts(localProducts);
                     } else {
-                        console.log('No market type selected, showing all products');
                         setFilteredProducts(productsWithCategory);
                     }
                     
-                    // Set user location if available in the first product's farmer location
-                    if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.location) {
-                        setUserLocation(productsWithCategory[0].farmer.location);
-                    }
-                    
                     console.log('All products:', productsWithCategory);
-                    console.log('Market type:', marketType);
                 } else {
                     console.error('Error fetching products:', response.data.message || 'Failed to fetch products');
                     setError(response.data.message || 'Failed to fetch products');
@@ -149,45 +147,37 @@ const Market = () => {
                 products: products.length,
                 marketType,
                 searchQuery,
-                filters
+                userLocation
             });
 
-            let currentProducts = marketType 
-                ? products.filter(product => product.category === marketType)
-                : products;
+            let currentProducts = products;
 
-            console.log('Products after market type filter:', currentProducts.length);
+            // Filter by market type if selected
+            if (marketType) {
+                currentProducts = currentProducts.filter(product => product.category === marketType);
+            }
 
-            const filtered = currentProducts.filter(product => {
-                const matchesSearch = !searchQuery || (
+            // Filter by search query
+            if (searchQuery) {
+                currentProducts = currentProducts.filter(product => 
                     product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    product.variety?.toLowerCase().includes(searchQuery.toLowerCase())
+                    product.productVariety?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    product.farmer?.location?.toLowerCase().includes(searchQuery.toLowerCase())
                 );
+            }
 
-                const matchesPrice = 
-                    (!filters.minPrice || product.price >= Number(filters.minPrice)) &&
-                    (!filters.maxPrice || product.price <= Number(filters.maxPrice));
+            // Filter by location if provided
+            if (userLocation) {
+                currentProducts = currentProducts.filter(product => 
+                    product.farmer?.location?.toLowerCase() === userLocation.toLowerCase()
+                );
+            }
 
-                let matchesTypeSpecific = true;
-                if (marketType === 'crops') {
-                    matchesTypeSpecific = 
-                        (!filters.organicOnly || product.organicCertified) &&
-                        (!filters.quality || product.quality === filters.quality);
-                } else if (marketType === 'agriWaste') {
-                    matchesTypeSpecific = 
-                        (!filters.moisture || product.moisture === filters.moisture) &&
-                        (!filters.transportRequired || product.transportAvailable);
-                }
-
-                return matchesSearch && matchesPrice && matchesTypeSpecific;
-            });
-
-            console.log('Final filtered products:', filtered);
-            setFilteredProducts(filtered);
+            setFilteredProducts(currentProducts);
         };
 
         applyFilters();
-    }, [products, marketType, searchQuery, filters]);
+    }, [products, marketType, searchQuery, userLocation]);
 
     const handleMarketSelect = (type) => {
         console.log('Selected market type:', type);
@@ -329,12 +319,12 @@ const Market = () => {
 
     if (!marketType) {
         return (
-            <div className="market-container">
+            <div className={`market-container ${isDarkMode ? 'dark' : ''}`}>
                 <Sidebar 
                     userType="consumer" 
                     onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
                 />
-                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
                         <Typography variant="h4" className="market-heading" gutterBottom align="center">
                             Select Market Type
@@ -423,9 +413,9 @@ const Market = () => {
 
     if (loading) {
         return (
-            <div className="market-container">
+            <div className={`market-container ${isDarkMode ? 'dark' : ''}`}>
                 <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
-                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
                         <CircularProgress />
                     </Box>
@@ -436,9 +426,9 @@ const Market = () => {
 
     if (error) {
         return (
-            <div className="market-container">
+            <div className={`market-container ${isDarkMode ? 'dark' : ''}`}>
                 <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
-                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+                <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
                     <Typography color="error" variant="h6" sx={{ textAlign: 'center', mt: 4 }}>
                         {error}
                     </Typography>
@@ -451,12 +441,12 @@ const Market = () => {
     }
 
     return (
-        <div className="market-container">
+        <div className={`market-container ${isDarkMode ? 'dark' : ''}`}>
             <Sidebar 
                 userType="consumer" 
                 onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
             />
-            <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+            <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
                 <Box sx={{ 
                     display: 'flex', 
                     flexDirection: 'column',
@@ -490,38 +480,74 @@ const Market = () => {
                 </Box>
 
                 {/* Search and Filter Section */}
-                <Box sx={{ mb: 4 }}>
-                    <Grid container spacing={2}>
+                <Box className="search-container" sx={{ mb: 4 }}>
+                    <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
-                                variant="outlined"
                                 placeholder="Search products..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <SearchIcon />
+                                            <SearchIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'inherit' }} />
                                         </InputAdornment>
-                                    )
+                                    ),
+                                    sx: {
+                                        bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.23)'
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#90caf9' : '#1976d2'
+                                        },
+                                        '& input': {
+                                            color: isDarkMode ? '#fff' : 'inherit'
+                                        },
+                                        '& input::placeholder': {
+                                            color: isDarkMode ? '#b0b0b0' : 'inherit',
+                                            opacity: 1
+                                        }
+                                    }
                                 }}
                             />
                         </Grid>
                         <Grid item xs={12} md={6}>
                             <TextField
                                 fullWidth
-                                variant="outlined"
+                                placeholder="Enter your location..."
                                 value={userLocation}
-                                disabled
+                                onChange={(e) => setUserLocation(e.target.value)}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
-                                            <LocationIcon />
+                                            <LocationIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'inherit' }} />
                                         </InputAdornment>
-                                    )
+                                    ),
+                                    sx: {
+                                        bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.23)'
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#90caf9' : '#1976d2'
+                                        },
+                                        '& input': {
+                                            color: isDarkMode ? '#fff' : 'inherit'
+                                        },
+                                        '& input::placeholder': {
+                                            color: isDarkMode ? '#b0b0b0' : 'inherit',
+                                            opacity: 1
+                                        }
+                                    }
                                 }}
-                                helperText="Showing products from farmers in your location"
                             />
                         </Grid>
                     </Grid>
@@ -529,10 +555,10 @@ const Market = () => {
 
                 {filteredProducts.length === 0 ? (
                     <Box sx={{ textAlign: 'center', mt: 4 }}>
-                        <Typography variant="h6" color="textSecondary" gutterBottom>
+                        <Typography variant="h6" color={isDarkMode ? '#b0b0b0' : 'textSecondary'} gutterBottom>
                             No products available in your city
                         </Typography>
-                        <Typography variant="body1" color="textSecondary">
+                        <Typography variant="body1" color={isDarkMode ? '#b0b0b0' : 'textSecondary'}>
                             Check back later for new products from local farmers
                         </Typography>
                     </Box>
@@ -541,14 +567,15 @@ const Market = () => {
                         {filteredProducts.map(product => (
                             <Grid item xs={12} sm={6} md={4} lg={3} key={product._id}>
                                 <Card 
-                                    className="product-card"
+                                    className={`product-card ${isDarkMode ? 'dark' : ''}`}
                                     sx={{
                                         height: '100%',
                                         display: 'flex',
                                         flexDirection: 'column',
                                         p: 2,
                                         maxWidth: 320,
-                                        margin: '0 auto'
+                                        margin: '0 auto',
+                                        bgcolor: isDarkMode ? '#1e1e1e' : '#fff'
                                     }}
                                 >
                                     <CardMedia
@@ -563,17 +590,28 @@ const Market = () => {
                                     />
                                     <CardContent sx={{ flexGrow: 1, p: 0 }}>
                                         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                                            <Typography variant="h6" component="div" className="product-name">
+                                            <Typography 
+                                                variant="h6" 
+                                                component="div" 
+                                                className={`product-name ${isDarkMode ? 'dark' : ''}`}
+                                            >
                                                 {product.productName}
                                             </Typography>
                                             <Chip
                                                 label={`₹${product.price}/${product.unit || 'kg'}`}
                                                 color="primary"
                                                 size="small"
-                                                sx={{ fontWeight: 'bold' }}
+                                                sx={{ 
+                                                    fontWeight: 'bold',
+                                                    bgcolor: isDarkMode ? '#1a237e' : undefined
+                                                }}
                                             />
                                         </Box>
-                                        <Typography variant="body2" color="text.secondary" className="product-variety" gutterBottom>
+                                        <Typography 
+                                            variant="body2" 
+                                            className={`product-variety ${isDarkMode ? 'dark' : ''}`} 
+                                            gutterBottom
+                                        >
                                             {product.variety || 'Standard Variety'}
                                         </Typography>
                                         <Box mt={2}>
@@ -599,9 +637,9 @@ const Market = () => {
                                             disabled={!product.quantity || product.quantity <= 0}
                                             sx={{
                                                 py: 1,
-                                                backgroundColor: '#1a237e',
+                                                bgcolor: isDarkMode ? '#1a237e' : '#1a237e',
                                                 '&:hover': {
-                                                    backgroundColor: '#283593'
+                                                    bgcolor: isDarkMode ? '#283593' : '#283593'
                                                 }
                                             }}
                                         >
@@ -617,12 +655,16 @@ const Market = () => {
                 <Dialog 
                     open={dialogOpen} 
                     onClose={handleCloseDialog} 
-                    maxWidth="md" 
-                    fullWidth
+                    maxWidth="md"
                     PaperProps={{
                         sx: {
                             borderRadius: 2,
-                            maxWidth: 800
+                            maxWidth: 700,
+                            height: 'auto',
+                            maxHeight: '85vh',
+                            bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                            display: 'flex',
+                            flexDirection: 'column'
                         }
                     }}
                 >
@@ -631,95 +673,157 @@ const Market = () => {
                             <DialogTitle 
                                 sx={{ 
                                     borderBottom: '1px solid #e0e0e0',
-                                    p: 3
+                                    p: 2,
+                                    flex: '0 0 auto'
                                 }}
                             >
                                 <Typography variant="h5" fontWeight="600">
                                     Product Details
                                 </Typography>
                             </DialogTitle>
-                            <DialogContent sx={{ p: 3 }}>
-                                <Grid container spacing={3}>
-                                    <Grid item xs={12} md={6}>
+                            <DialogContent sx={{ 
+                                p: 0,
+                                flex: '1 1 auto',
+                                overflow: 'hidden',
+                                display: 'flex',
+                                flexDirection: 'column'
+                            }}>
+                                <Grid container sx={{ flex: 1, minHeight: 0 }}>
+                                    <Grid item xs={12}>
                                         <CardMedia
                                             component="img"
                                             image={getProductImage(selectedProduct)}
                                             alt={selectedProduct.productName}
                                             sx={{
                                                 width: '100%',
-                                                height: 300,
-                                                objectFit: 'cover',
-                                                borderRadius: 2,
-                                                mb: 2
+                                                height: 280,
+                                                objectFit: 'cover'
                                             }}
                                         />
                                     </Grid>
-                                    <Grid item xs={12} md={6}>
-                                        <Box>
-                                            <Typography variant="h5" gutterBottom fontWeight="600">
-                                                {selectedProduct.productName}
-                                            </Typography>
-                                            <Typography variant="subtitle1" color="text.secondary" gutterBottom>
-                                                {selectedProduct.variety || 'Standard Variety'}
-                                            </Typography>
-                                            
+                                    <Grid item xs={12}>
+                                        <Box sx={{ 
+                                            p: 2,
+                                            height: 'calc(100% - 280px)',
+                                            display: 'flex',
+                                            flexDirection: 'column'
+                                        }}>
+                                            <Box sx={{ mb: 2 }}>
+                                                <Typography variant="h5" gutterBottom sx={{ 
+                                                    color: isDarkMode ? '#fff' : 'inherit',
+                                                    fontWeight: 600 
+                                                }}>
+                                                    {selectedProduct.productName}
+                                                </Typography>
+                                                <Typography variant="subtitle1" sx={{ 
+                                                    color: isDarkMode ? '#b0b0b0' : 'text.secondary'
+                                                }}>
+                                                    {selectedProduct.productVariety}
+                                                </Typography>
+                                            </Box>
+
                                             <Box sx={{ 
-                                                mt: 3,
-                                                p: 2, 
-                                                bgcolor: 'background.paper', 
-                                                borderRadius: 2,
-                                                border: '1px solid',
-                                                borderColor: 'divider'
+                                                display: 'flex', 
+                                                gap: 3,
+                                                mb: 2,
+                                                flexWrap: 'wrap'
                                             }}>
-                                                <Typography variant="h6" color="primary" gutterBottom>
-                                                    ₹{selectedProduct.price}/{selectedProduct.unit || 'kg'}
-                                                </Typography>
-                                                <Typography variant="body1" gutterBottom>
-                                                    Available Quantity: {selectedProduct.quantity || 0} {selectedProduct.unit || 'kg'}
-                                                </Typography>
-                                                <Box mt={2}>
-                                                    <Typography variant="body2" gutterBottom>
-                                                        <FaUser style={{ marginRight: '8px', verticalAlign: 'middle' }} />
-                                                        Farmer: {selectedProduct.farmer?.name || 'Unknown'}
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <PersonIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary' }} />
+                                                    <Typography sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
+                                                        {selectedProduct.farmer.name}
                                                     </Typography>
-                                                    <Typography variant="body2" gutterBottom>
-                                                        <LocationIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                                                        Location: {selectedProduct.farmer?.location || 'Not specified'}
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <LocationOnIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary' }} />
+                                                    <Typography sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
+                                                        {selectedProduct.farmer.location}
+                                                    </Typography>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <PhoneIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary' }} />
+                                                    <Typography sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
+                                                        {selectedProduct.farmer.phoneNumber}
                                                     </Typography>
                                                 </Box>
                                             </Box>
 
-                                            <Box mt={3}>
-                                                <Typography variant="subtitle1" gutterBottom>
-                                                    Order Quantity ({selectedProduct.unit || 'kg'})
-                                                </Typography>
-                                                <TextField
-                                                    type="number"
-                                                    fullWidth
-                                                    value={orderQuantity}
-                                                    onChange={(e) => {
-                                                        setOrderQuantity(e.target.value);
-                                                        setOrderError('');
-                                                    }}
-                                                    error={!!orderError}
-                                                    helperText={orderError}
-                                                    InputProps={{
-                                                        inputProps: { 
-                                                            min: 1,
-                                                            max: selectedProduct.quantity 
-                                                        }
-                                                    }}
-                                                    sx={{ mb: 2 }}
-                                                />
-                                                <Button
-                                                    variant="contained"
-                                                    fullWidth
-                                                    onClick={handlePlaceOrder}
-                                                    disabled={!orderQuantity || orderQuantity <= 0 || orderQuantity > selectedProduct.quantity}
-                                                >
-                                                    Place Order
-                                                </Button>
-                                            </Box>
+                                            <Divider sx={{ my: 2, borderColor: isDarkMode ? '#333' : 'divider' }} />
+
+                                            <Grid container spacing={2} sx={{ mt: 'auto' }}>
+                                                <Grid item xs={12} md={7}>
+                                                    <Box sx={{ display: 'flex', gap: 4 }}>
+                                                        <Box>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                Available Quantity
+                                                            </Typography>
+                                                            <Typography variant="h6" sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
+                                                                {selectedProduct.quantity} {selectedProduct.unit || 'kg'}
+                                                            </Typography>
+                                                        </Box>
+                                                        <Box>
+                                                            <Typography variant="body2" color="text.secondary">
+                                                                Price per unit
+                                                            </Typography>
+                                                            <Typography variant="h6" sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
+                                                                ₹{selectedProduct.price}/{selectedProduct.unit || 'kg'}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                </Grid>
+                                                <Grid item xs={12} md={5}>
+                                                    <Box>
+                                                        <TextField
+                                                            type="number"
+                                                            size="small"
+                                                            fullWidth
+                                                            label="Order Quantity"
+                                                            value={orderQuantity}
+                                                            onChange={(e) => setOrderQuantity(e.target.value)}
+                                                            error={!!orderError}
+                                                            helperText={orderError}
+                                                            InputProps={{
+                                                                inputProps: { 
+                                                                    min: 1,
+                                                                    max: selectedProduct.quantity
+                                                                },
+                                                                sx: {
+                                                                    color: isDarkMode ? '#fff' : 'inherit',
+                                                                    bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                                                                }
+                                                            }}
+                                                            InputLabelProps={{
+                                                                sx: {
+                                                                    color: isDarkMode ? '#b0b0b0' : 'inherit'
+                                                                }
+                                                            }}
+                                                        />
+                                                        <Typography variant="h6" sx={{ mt: 1, mb: 1, textAlign: 'right' }}>
+                                                            Total: ₹{orderQuantity * selectedProduct.price || 0}
+                                                        </Typography>
+                                                        <Button
+                                                            variant="contained"
+                                                            fullWidth
+                                                            onClick={handlePlaceOrder}
+                                                            disabled={!orderQuantity || orderQuantity <= 0 || orderQuantity > selectedProduct.quantity}
+                                                            sx={{
+                                                                py: 1,
+                                                                bgcolor: isDarkMode ? '#1a237e' : '#1a237e',
+                                                                color: '#fff',
+                                                                '&:hover': {
+                                                                    bgcolor: isDarkMode ? '#283593' : '#283593'
+                                                                },
+                                                                '&.Mui-disabled': {
+                                                                    bgcolor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.12)',
+                                                                    color: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.26)'
+                                                                }
+                                                            }}
+                                                        >
+                                                            Place Order
+                                                        </Button>
+                                                    </Box>
+                                                </Grid>
+                                            </Grid>
                                         </Box>
                                     </Grid>
                                 </Grid>
@@ -737,7 +841,11 @@ const Market = () => {
                     <Alert
                         onClose={handleCloseSnackbar}
                         severity={snackbar.severity}
-                        sx={{ width: '100%' }}
+                        sx={{ 
+                            width: '100%',
+                            bgcolor: isDarkMode ? '#1e1e1e' : undefined,
+                            color: isDarkMode ? '#fff' : undefined
+                        }}
                     >
                         {snackbar.message}
                     </Alert>

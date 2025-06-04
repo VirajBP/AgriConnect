@@ -33,7 +33,7 @@ const Sidebar = ({ userType, onToggle }) => {
         { path: '/consumer/orders', name: 'Orders', icon: <FaShoppingCart /> },
         { path: '/consumer/profile', name: 'Profile', icon: <FaUser /> },
     ];
-// const menuItems;
+
     const menuItems = userType === 'farmer' ? farmerMenuItems : consumerMenuItems;
 
     const handleLogout = () => {

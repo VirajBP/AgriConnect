@@ -5,6 +5,10 @@ const Consumer = require('../Model/Consumer');
 const FarmerDashboard = require('../Model/FarmerDashboard');
 const ConsumerDashboard = require('../Model/ConsumerDashboard');
 const { syncFarmerProducts } = require('../Utils/farmerUtils');
+const { sendOTPEmail } = require('../Utils/emailService');
+
+// Store OTP temporarily (in production, use Redis or similar)
+const otpStore = new Map();
 
 // Helper function to generate token
 const generateToken = (user, type) => {
@@ -62,6 +66,11 @@ const createConsumerDashboard = async (consumerId) => {
         console.error('Error creating consumer dashboard:', error);
         throw error;
     }
+};
+
+// Helper function to generate OTP
+const generateOTP = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 exports.register = async (req, res, next) => {
@@ -409,6 +418,148 @@ exports.login = async (req, res, next) => {
     } catch (error) {
         console.error('Login error in catch block:', error);
         res.status(500).json({ success: false, message: 'Server error during login' });
+    }
+};
+
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email, phoneNumber } = req.body;
+
+        if (!email && !phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                message: 'Either email or phone number is required'
+            });
+        }
+
+        let user = null;
+        let identifier = '';
+
+        if (email) {
+            // Check for consumer account
+            user = await Consumer.findOne({ email });
+            identifier = email;
+        } else {
+            // Check for farmer account
+            user = await Farmer.findOne({ phoneNumber });
+            identifier = phoneNumber;
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'No account found with the provided details'
+            });
+        }
+
+        // Generate OTP
+        const otp = generateOTP();
+        
+        // Store OTP with timestamp (expires in 10 minutes)
+        otpStore.set(identifier, {
+            otp,
+            timestamp: Date.now(),
+            userId: user._id,
+            userType: email ? 'consumer' : 'farmer'
+        });
+
+        try {
+            if (email) {
+                // Send OTP via email for consumers
+                await sendOTPEmail(email, otp);
+            } else {
+                // TODO: Implement SMS sending for farmers
+                // For now, just log the OTP
+                console.log(`[MOCK SMS] Sending OTP ${otp} to ${phoneNumber}`);
+            }
+            
+            return res.json({
+                success: true,
+                message: email 
+                    ? 'OTP sent successfully to your email'
+                    : 'OTP sent successfully to your phone number'
+            });
+        } catch (sendError) {
+            console.error('Error sending OTP:', sendError);
+            otpStore.delete(identifier);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to send OTP. Please try again.'
+            });
+        }
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+exports.verifyOTP = async (req, res) => {
+    try {
+        const { email, phoneNumber, otp } = req.body;
+        const identifier = email || phoneNumber;
+
+        if (!identifier || !otp) {
+            return res.status(400).json({
+                success: false,
+                message: 'Required fields missing'
+            });
+        }
+
+        // Get stored OTP data
+        const storedData = otpStore.get(identifier);
+        
+        if (!storedData) {
+            return res.status(400).json({
+                success: false,
+                message: 'OTP expired or not found'
+            });
+        }
+
+        // Check if OTP is expired (10 minutes)
+        if (Date.now() - storedData.timestamp > 10 * 60 * 1000) {
+            otpStore.delete(identifier);
+            return res.status(400).json({
+                success: false,
+                message: 'OTP expired'
+            });
+        }
+
+        // Verify OTP
+        if (otp !== storedData.otp) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid OTP'
+            });
+        }
+
+        // Generate reset token
+        const resetToken = jwt.sign(
+            { 
+                userId: storedData.userId,
+                userType: storedData.userType
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
+
+        // Clear OTP
+        otpStore.delete(identifier);
+
+        return res.json({
+            success: true,
+            message: 'OTP verified successfully',
+            resetToken,
+            userType: storedData.userType
+        });
+    } catch (error) {
+        console.error('OTP verification error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
     }
 };
 

@@ -183,29 +183,112 @@
 }
 
 /* Dark Mode Styles */
-[data-theme="dark"] {
-    --background-color: #121212;
-    --card-background: #1e1e1e;
-    --input-background: #2d2d2d;
-    --border-color: #333;
-    --text-color: #fff;
-    --text-secondary: #b0b0b0;
-    --primary-color: #90caf9;
-    --primary-dark: #64b5f6;
-    --rating-color: #ffd700;
+.market-container.dark {
+    background-color: #121212;
 }
 
-/* Light Mode Styles */
-[data-theme="light"] {
-    --background-color: #f5f5f5;
-    --card-background: #ffffff;
-    --input-background: #f8f9fa;
-    --border-color: #e0e0e0;
-    --text-color: #333;
-    --text-secondary: #666;
-    --primary-color: #1976d2;
-    --primary-dark: #1565c0;
-    --rating-color: #ffc107;
+.market-content.dark {
+    background-color: #121212;
+    color: #fff;
+}
+
+.market-type-card.dark {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.market-type-card.dark .MuiTypography-root {
+    color: #fff;
+}
+
+.market-type-card.dark .MuiTypography-colorTextSecondary {
+    color: #b0b0b0;
+}
+
+.product-card.dark {
+    /* background-color: #1e1e1e; */
+    border: 1px solid #333;
+}
+
+.product-card.dark .product-name {
+    color: #90caf9 !important;
+}
+
+.product-card.dark .product-variety {
+    color: #b0b0b0 !important;
+}
+
+.dark .MuiTextField-root {
+    background-color: #1e1e1e;
+}
+
+.dark .MuiOutlinedInput-root {
+    border-color: #333;
+}
+
+.dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: #90caf9;
+}
+
+.dark .MuiInputLabel-root {
+    color: #b0b0b0;
+}
+
+.dark .MuiInputBase-input {
+    color: #fff;
+}
+
+.dark .MuiDialog-paper {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.dark .MuiDialogTitle-root {
+    border-bottom: 1px solid #333;
+}
+
+.dark .MuiDialogContent-root {
+    background-color: #1e1e1e;
+}
+
+.dark .MuiTableCell-root {
+    color: #fff;
+    border-color: #333;
+}
+
+.dark .MuiTableHead-root .MuiTableCell-root {
+    background-color: #2d2d2d;
+}
+
+.dark .MuiTableBody-root .MuiTableRow-root:hover {
+    background-color: #2a2a2a;
+}
+
+.dark .MuiPaper-root {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.dark .MuiChip-root {
+    background-color: #2d2d2d;
+    color: #fff;
+}
+
+.dark .MuiChip-colorPrimary {
+    background-color: #1a237e;
+}
+
+.dark .MuiButton-contained {
+    background-color: #1a237e;
+    color: #fff;
+}
+
+.dark .MuiButton-contained:hover {
+    background-color: #283593;
+}
+
+.dark .MuiTypography-colorTextSecondary {
+    color: #b0b0b0;
 }
 
 .market-page {
@@ -227,6 +310,8 @@
 .search-container {
     max-width: 800px;
     margin-bottom: 2rem;
+    padding: 1.5rem;
+    border-radius: 12px;
 }
 
 .search-input {
@@ -613,4 +698,109 @@
 /* Card Media */
 .MuiCardMedia-root {
     height: 200px !important;
+}
+
+/* Dark Mode Styles */
+.dark .MuiDialog-paper {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+}
+
+.dark .MuiDialogTitle-root {
+    background-color: #1e1e1e !important;
+    border-bottom: 1px solid #333 !important;
+}
+
+.dark .MuiDialogContent-root {
+    background-color: #1e1e1e !important;
+}
+
+.dark .MuiTextField-root {
+    background-color: #1e1e1e !important;
+}
+
+.dark .MuiOutlinedInput-root {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+}
+
+.dark .MuiOutlinedInput-notchedOutline {
+    border-color: #333 !important;
+}
+
+.dark .MuiInputLabel-root {
+    color: #b0b0b0 !important;
+}
+
+.dark .MuiInputBase-input {
+    color: #fff !important;
+}
+
+.dark .MuiInputBase-input::placeholder {
+    color: #b0b0b0 !important;
+    opacity: 1;
+}
+
+.dark .product-info {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+}
+
+.dark .product-variety {
+    color: #b0b0b0 !important;
+}
+
+.dark .product-details-box {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+    border: 1px solid #333 !important;
+}
+
+.dark .search-container .MuiOutlinedInput-root {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+}
+
+.dark .search-container .MuiOutlinedInput-notchedOutline {
+    border-color: #333 !important;
+}
+
+.dark .search-container .MuiInputLabel-root {
+    color: #b0b0b0 !important;
+}
+
+.dark .search-container .MuiInputBase-input {
+    color: #fff !important;
+}
+
+.dark .search-container .MuiInputBase-input::placeholder {
+    color: #b0b0b0 !important;
+}
+
+.dark .product-card {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333 !important;
+}
+
+.dark .product-name {
+    color: #fff !important;
+}
+
+.dark .product-variety {
+    color: #b0b0b0 !important;
+    background-color: transparent !important;
+}
+
+.dark .MuiTypography-colorTextSecondary {
+    color: #b0b0b0 !important;
+}
+
+.dark .MuiPaper-root {
+    background-color: #1e1e1e !important;
+    color: #fff !important;
+    border: 1px solid #333 !important;
+}
+
+.dark .search-container {
+    background-color: #121212;
 }

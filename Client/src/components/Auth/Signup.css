@@ -200,3 +200,29 @@ select.form-control {
 .form-col {
     flex: 1;
 }
+
+/* Override dark mode text colors for signup form */
+.signup-form .form-group label {
+    color: #333 !important;
+}
+
+.signup-form .form-control {
+    color: #333 !important;
+    background-color: #fff !important;
+}
+
+.signup-form .form-text {
+    color: #666 !important;
+}
+
+.signup-form .login-link {
+    color: #666 !important;
+}
+
+.signup-form .login-link a {
+    color: #1a73e8 !important;
+}
+
+.signup-form select.form-control {
+    background-color: #fff !important;
+}

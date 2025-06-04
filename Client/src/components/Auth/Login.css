@@ -240,3 +240,38 @@
         padding: 2rem;
     }
 }
+
+/* Override dark mode text colors for login form */
+.login-form .form-group label {
+    color: #333 !important;
+}
+
+.login-form .form-control {
+    color: #333 !important;
+    background-color: #fff !important;
+}
+
+.login-form .remember-me {
+    color: #333 !important;
+}
+
+.login-form .forgot-password {
+    color: #1a73e8 !important;
+}
+
+.login-form .signup-link {
+    color: #666 !important;
+}
+
+.login-form .signup-link a {
+    color: #1a73e8 !important;
+}
+
+/* Override dark mode input backgrounds */
+.login-form .user-type-button {
+    background: white !important;
+}
+
+.login-form .user-type-button.active {
+    background: rgba(26, 115, 232, 0.1) !important;
+}

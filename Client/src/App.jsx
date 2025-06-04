@@ -5,6 +5,7 @@ import { ThemeProvider } from './Context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Signup';
+import ForgotPassword from './components/Auth/ForgotPassword';
 import FarmerDashboard from './components/Farmer/FarmerDashboard';
 import FarmerProfile from './components/Farmer/FarmerProfile';
 import FarmerOrders from './components/Farmer/Orders/Order';
@@ -23,7 +24,8 @@ function App() {
           <div className="app">
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              <Route path="/signup/:userType" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               
               {/* Protected Farmer Routes */}
               <Route path="/farmer/dashboard" element={

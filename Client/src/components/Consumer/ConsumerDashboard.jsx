@@ -24,11 +24,10 @@ import {
 } from 'chart.js';
 import { consumerData } from '../../mockData/consumerData';
 import './ConsumerDashboard.css';
-import Chatbot from '../shared/Chatbot/Chatbot';
 import { useAuth } from '../../Context/AuthContext';
 import axios from '../../utils/axios';
 import { Typography } from '@mui/material';
-// import Order from '../../models/order';
+import { useTheme } from '../../Context/ThemeContext';
 
 ChartJS.register(
     CategoryScale,
@@ -48,7 +47,8 @@ const ConsumerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [timeFilter, setTimeFilter] = useState('6M');
-
+    const { isDarkMode } = useTheme();
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -85,31 +85,61 @@ const ConsumerDashboard = () => {
         fetchDashboardData();
     }, []); // Empty dependency array means this runs once on mount
 
-    // Function to prepare chart data based on filter (Placeholder - needs actual implementation)
+    // Function to prepare chart data based on filter
     const getChartData = (period) => {
-        // This part needs to be implemented based on how monthlySpending is structured
-        // For now, returning a placeholder or basic structure
         if (!dashboardData || !dashboardData.monthlySpending) return { labels: [], datasets: [] };
 
-        let filteredData = dashboardData.monthlySpending;
-        // Basic filtering logic (can be expanded)
-        if (period === '3M') {
-             filteredData = dashboardData.monthlySpending.slice(-3);
-        } else if (period === '1M') {
-             // Assuming 1M filter might need weekly data or similar, not directly available
-             // For now, slice last entry or show a different view
-             filteredData = dashboardData.monthlySpending.slice(-1);
+        // Get current date and create a date for filtering
+        const currentDate = new Date();
+        const filterDate = new Date(currentDate);
+
+        // Set filter date based on period
+        switch (period) {
+            case '3M':
+                filterDate.setMonth(currentDate.getMonth() - 2); // Show last 3 months
+                break;
+            case '1M':
+                filterDate.setMonth(currentDate.getMonth()); // Show current month
+                break;
+            default: // 6M
+                filterDate.setMonth(currentDate.getMonth() - 5); // Show last 6 months
         }
 
+        // Reset dates to start of month for accurate comparison
+        filterDate.setDate(1);
+        filterDate.setHours(0, 0, 0, 0);
+
+        // Generate all months in the range
+        const months = [];
+        const tempDate = new Date(filterDate);
+        
+        while (tempDate <= currentDate) {
+            months.push(tempDate.toLocaleString('default', { month: 'short', year: 'numeric' }));
+            tempDate.setMonth(tempDate.getMonth() + 1);
+        }
+
+        // Map existing data to the months
+        const existingData = [...dashboardData.monthlySpending];
+        const mergedData = months.map(month => {
+            const existingMonth = existingData.find(data => data.month === month);
+            return {
+                month: month,
+                amount: existingMonth ? existingMonth.amount : 0
+            };
+        });
+
         return {
-            labels: filteredData.map(item => item.month),
+            labels: mergedData.map(item => item.month),
             datasets: [{
                 label: 'Monthly Spending',
-                data: filteredData.map(item => item.amount),
+                data: mergedData.map(item => item.amount),
                 fill: true,
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.2)',
                 borderColor: '#6366f1',
-                tension: 0.4
+                tension: 0.4,
+                spanGaps: false,
+                pointRadius: 4,
+                pointHoverRadius: 6
             }]
         };
     };
@@ -133,18 +163,39 @@ const ConsumerDashboard = () => {
         plugins: {
             legend: {
                 display: false
+            },
+            tooltip: {
+                backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
+                titleColor: isDarkMode ? '#fff' : '#333',
+                bodyColor: isDarkMode ? '#fff' : '#333',
+                borderColor: isDarkMode ? '#333' : '#e0e0e0',
+                borderWidth: 1
             }
         },
         scales: {
             y: {
                 beginAtZero: true,
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.05)'
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    display: true
+                },
+                ticks: {
+                    color: isDarkMode ? '#fff' : '#333',
+                    font: {
+                        weight: 'bold'
+                    }
                 }
             },
             x: {
                 grid: {
-                    display: false
+                    color: isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    display: true
+                },
+                ticks: {
+                    color: isDarkMode ? '#fff' : '#333',
+                    font: {
+                        weight: 'bold'
+                    }
                 }
             }
         }
@@ -152,8 +203,11 @@ const ConsumerDashboard = () => {
 
     return (
         <div className="consumer-dashboard">
-            <Sidebar userType="consumer" />
-            <div className="dashboard-content">
+            <Sidebar 
+                userType="consumer" 
+                onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+            />
+            <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
                 <div className="dashboard-header">
                     <div className="welcome-section">
                         <h1>Welcome back, {user?.name}!</h1>
@@ -200,7 +254,7 @@ const ConsumerDashboard = () => {
                 </div>
 
                 <div className="dashboard-main">
-                    <div className="spending-trends">
+                    <div className={`spending-trends ${isDarkMode ? 'dark' : ''}`}>
                         <div className="section-header">
                             <h2>Spending Trends</h2>
                             <div className="time-filters">
@@ -209,7 +263,7 @@ const ConsumerDashboard = () => {
                                         key={period}
                                         className={timeFilter === period ? 'active' : ''}
                                         onClick={() => handleTimeFilterChange(period)}
-                                        disabled={ (period === '3M' && (!dashboardData?.monthlySpending || dashboardData.monthlySpending.length < 3)) || (period === '1M' && (!dashboardData?.monthlySpending || dashboardData.monthlySpending.length < 1)) }
+                                        disabled={period === '1M' && (!dashboardData?.monthlySpending || dashboardData.monthlySpending.length < 1)}
                                     >
                                         {period}
                                     </button>
@@ -225,7 +279,7 @@ const ConsumerDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="recent-activity">
+                    <div className={`${isDarkMode ? 'dark recent-activity' : 'recent-activity'}`}>
                         <div className="section-header">
                             <h2>Recent Activity</h2>
                             <button className="view-all" onClick={() => navigate('/consumer/orders')}>
@@ -234,7 +288,7 @@ const ConsumerDashboard = () => {
                         </div>
                         <div className="activity-list">
                             {dashboardData?.recentOrders?.map(order => (
-                                <div key={order._id} className="activity-item">
+                                <div key={order._id} className={`${isDarkMode ? 'dark activity-item' : 'activity-item'}`}>
                                     <div className="activity-icon">
                                         <FaBox />
                                     </div>
@@ -264,7 +318,6 @@ const ConsumerDashboard = () => {
                         </div>
                     </div>
                 </div>
-                <Chatbot />
             </div>
         </div>
     );

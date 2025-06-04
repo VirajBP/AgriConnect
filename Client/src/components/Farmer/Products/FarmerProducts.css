@@ -1,3 +1,182 @@
+.farmer-products {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--background-color);
+}
+
+.products-content {
+    flex: 1;
+    padding: 2rem;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+
+.products-content.sidebar-collapsed {
+    margin-left: 80px;
+}
+
+/* Header Section */
+.products-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+}
+
+.products-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.add-product-btn {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-product-btn:hover {
+    background-color: #43A047;
+    transform: translateY(-2px);
+}
+
+/* Search Section */
+.search-section {
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    background-color: var(--input-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.search-box input {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 0.5rem;
+    font-size: 1rem;
+    color: var(--text-color);
+    outline: none;
+}
+
+.search-box input::placeholder {
+    color: var(--text-secondary);
+}
+
+.price-filter {
+    display: flex;
+    gap: 1rem;
+}
+
+.price-filter input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--input-background);
+}
+
+/* Chart Section */
+.chart-section {
+    background-color: var(--card-background);
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-section h2 {
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Dark Mode Styles */
+.dark .farmer-products {
+    --background-color: #121212;
+    --card-background: #1e1e1e;
+    --text-color: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-color: #333;
+    --input-background: #2c2c2c;
+}
+
+/* Light Mode Styles */
+.light .farmer-products {
+    --background-color: #f5f5f5;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --text-secondary: #666666;
+    --border-color: #e0e0e0;
+    --input-background: #ffffff;
+}
+
+/* Chart Labels */
+.chart-container {
+    position: relative;
+    margin-top: 1rem;
+}
+
+.chart-container canvas {
+    max-height: 400px;
+}
+
+/* Ensure chart labels are visible in both modes */
+.light .chart-container text {
+    fill: #333333 !important;
+}
+
+.dark .chart-container text {
+    fill: #ffffff !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .products-content {
+        margin-left: 80px;
+    }
+}
+
+@media (max-width: 768px) {
+    .products-content {
+        padding: 1rem;
+    }
+
+    .products-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .price-filter {
+        flex-direction: column;
+    }
+}
+
 .products-container {
     display: flex;
     min-height: 100vh;
@@ -34,6 +213,17 @@
     margin-bottom: 2rem;
     padding: 1rem 2rem;
     background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    animation: slideDown 0.5s ease;
+}
+.products-header.dark{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem 2rem;
+    background: #1e1e1e;
     border-radius: 16px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     animation: slideDown 0.5s ease;
@@ -182,6 +372,14 @@
     gap: 1rem;
     padding: 0.5rem 1rem;
     background: #f8fafc;
+    border-radius: 12px;
+}
+.price-filter.dark {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 1rem;
+    background: #1e1e1a;
     border-radius: 12px;
 }
 
@@ -441,38 +639,6 @@
     cursor: pointer;
 }
 
-@media (max-width: 768px) {
-    .products-content {
-        margin-left: 0;
-        padding: 1rem;
-    }
-
-    .products-header {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-        text-align: center;
-    }
-
-    .search-filters {
-        flex-direction: column;
-    }
-
-    .price-filter {
-        width: 100%;
-    }
-
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .modal-content {
-        margin: 1rem;
-        padding: 1.5rem;
-    }
-}
-
-/* Loading animation */
 .loading {
     position: relative;
     overflow: hidden;
@@ -501,10 +667,9 @@
     100% {
         transform: translateX(100%);
     }
-  }
-  
-  /* Sidebar Styles */
-  .sidebar {
+}
+
+.sidebar {
     width: 260px;
     background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
@@ -512,28 +677,28 @@
     position: fixed;
     transition: all 0.3s ease;
     z-index: 1000;
-  }
-  
-  .sidebar.collapsed {
+}
+
+.sidebar.collapsed {
     width: 80px;
-  }
-  
-  .sidebar-header {
+}
+
+.sidebar-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .sidebar-header h2 {
+}
+
+.sidebar-header h2 {
     color: white;
     margin: 0;
     font-size: 24px;
     font-weight: 600;
-  }
-  
-  .sidebar-toggle {
+}
+
+.sidebar-toggle {
     background: transparent;
     border: none;
     color: white;
@@ -544,16 +709,16 @@
     align-items: center;
     justify-content: center;
     transition: transform 0.3s ease;
-  }
-  
-  .nav-links {
+}
+
+.nav-links {
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 10px;
-  }
-  
-  .nav-link {
+}
+
+.nav-link {
     display: flex;
     align-items: center;
     gap: 15px;
@@ -562,49 +727,47 @@
     text-decoration: none;
     border-radius: 8px;
     transition: all 0.3s ease;
-  }
-  
-  .nav-link svg {
+}
+
+.nav-link svg {
     font-size: 20px;
     min-width: 20px;
-  }
-  
-  .nav-link:hover {
+}
+
+.nav-link:hover {
     background: rgba(255, 255, 255, 0.1);
-  }
-  
-  .nav-link.active {
+}
+
+.nav-link.active {
     background: #2196F3;
-  }
-  
-  .nav-link.logout {
+}
+
+.nav-link.logout {
     margin-top: auto;
     color: #ff4444;
-  }
-  
-  .nav-link.logout:hover {
+}
+
+.nav-link.logout:hover {
     background: #ff4444;
     color: white;
-  }
-  
-  .sidebar.collapsed .nav-link span {
+}
+
+.sidebar.collapsed .nav-link span {
     display: none;
-  }
-  
-  /* Main Content Styles */
-  .main-content {
+}
+
+.main-content {
     flex: 1;
     margin-left: 260px;
     padding: 2rem;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .main-content.expanded {
+}
+
+.main-content.expanded {
     margin-left: 80px;
-  }
-  
-  /* Page Header */
-  .page-header {
+}
+
+.page-header {
     background: white;
     border-radius: 15px;
     padding: 1.5rem 2rem;
@@ -613,9 +776,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  
-  .page-header h1 {
+}
+
+.page-header h1 {
     font-size: 2rem;
     color: #1a1a1a;
     font-weight: 700;
@@ -623,16 +786,15 @@
     background: linear-gradient(120deg, #2c5282, #4299e1);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-  }
-  
-  /* Content Grid */
-  .content-grid {
+}
+
+.content-grid {
     display: grid;
     gap: 2rem;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  }
-  
-  .section-card {
+}
+
+.section-card {
     background: white;
     border-radius: 15px;
     padding: 2rem;
@@ -643,20 +805,26 @@
 .section-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-  
-  .add-product-section {
+}
+
+.add-product-section {
     grid-column: 1 / -1;
-  }
-  
-  .chart-section {
+}
+
+.chart-section {
     padding: 2rem;
     background: white;
     border-radius: 15px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  }
-  
-  .products-list-section {
+}
+.chart-section.dark {
+    padding: 2rem;
+    background: #1e1e1e;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.products-list-section {
     grid-column: 1 / -1;
     padding: 2rem;
 }
@@ -666,10 +834,9 @@
     color: #2d3748;
     font-size: 1.5rem;
     font-weight: 600;
-  }
-  
-  /* Form Styles */
-  .form-grid {
+}
+
+.form-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1.5rem;
@@ -719,8 +886,8 @@ select {
 .form-grid input,
 .form-grid select {
     transition: all 0.3s ease;
-  }
-  
+}
+
 .form-grid input:focus,
 .form-grid select:focus {
     border-color: #4299e1;
@@ -745,16 +912,9 @@ select {
 .add-product-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
-  }
-  
-  /* Chart Container */
-  .chart-container {
-    height: 400px;
-    position: relative;
-  }
-  
-/* Search and Filter Bar - Fixed Layout */
-  .search-filter-bar {
+}
+
+.search-filter-bar {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -765,175 +925,6 @@ select {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Search Section */
-.search-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    width: 100%;
-  }
-  
-  .search-box {
-    flex: 0 1 400px;
-    position: relative;
-  }
-
-.search-box input {
-    width: 95%;
-    padding: 1rem 1rem 1rem 3rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 10px;
-    font-size: 1rem;
-    background: white;
-    transition: all 0.3s ease;
-}
-
-.search-box input:focus {
-    border-color: #4299e1;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
-}
-  
-  .search-box svg {
-    position: absolute;
-    left: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #718096;
-    font-size: 1.2rem;
-}
-
-/* Price Filter Section */
-.price-filter {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.price-filter-label {
-    font-weight: 500;
-    color: #4a5568;
-    white-space: nowrap;
-}
-
-.price-inputs {
-    display: flex;
-    gap: 1rem;
-    flex: 1;
-}
-
-.price-inputs input {
-    width: 150px;
-    padding: 0.75rem 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    background: white;
-}
-
-.price-filter input::placeholder {
-    color: #a0aec0;
-}
-
-/* Products Table - Enhanced Styling */
-  .products-table {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-  }
-  
-.products-table table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.products-table th {
-    background: linear-gradient(to right, #f8fafc, #f1f5f9);
-    padding: 1.25rem 1rem;
-    font-weight: 600;
-    text-align: left;
-    color: #2d3748;
-    border-bottom: 2px solid #e2e8f0;
-    white-space: nowrap;
-}
-
-.products-table td {
-    padding: 1rem;
-    border-bottom: 1px solid #e2e8f0;
-    transition: all 0.2s ease;
-}
-
-.products-table tr:hover td {
-    background: #f8fafc;
-    transform: translateY(-1px);
-    transition: all 0.2s ease;
-  }
-  
-  /* Action Buttons */
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-}
-
-  .edit-button,
-  .save-button,
-.cancel-button {
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .edit-button {
-    background: #4299e1;
-    color: white;
-  }
-  
-  .save-button {
-    background: #48bb78;
-    color: white;
-  }
-  
-  .cancel-button {
-    background: #f56565;
-    color: white;
-  }
-  
-  /* Responsive Design */
-  @media (max-width: 768px) {
-    .search-section {
-        flex-direction: column;
-    }
-  
-    .search-box {
-        width: 100%;
-    }
-  
-    .price-filter {
-        flex-direction: column;
-        align-items: flex-start;
-      width: 100%;
-    }
-  
-    .price-inputs {
-        width: 100%;
-    }
-  
-    .price-inputs input {
-        width: 100%;
-    }
-}
-
-/* Loading States */
 .loading-skeleton {
     animation: pulse 1.5s infinite;
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -949,7 +940,6 @@ select {
     }
 }
 
-/* Empty States */
 .empty-state {
     text-align: center;
     padding: 3rem;
@@ -962,7 +952,6 @@ select {
     color: #a0aec0;
 }
 
-/* Success Messages */
 .success-message {
     background: #c6f6d5;
     color: #2f855a;
@@ -974,7 +963,6 @@ select {
     gap: 0.5rem;
 }
 
-/* Error Messages */
 .error-message {
     background: #fed7d7;
     color: #c53030;
@@ -986,7 +974,6 @@ select {
     gap: 0.5rem;
 }
 
-/* Add these new styles for better visual hierarchy */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -1008,14 +995,12 @@ select {
     margin-bottom: 0.5rem;
 }
 
-/* Enhanced input focus states */
-  input:focus {
+input:focus {
     outline: none;
     border-color: #4299e1;
     box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
 }
 
-/* Add subtle animation to search and filter inputs */
 .search-box input,
 .price-filter input {
     transition: all 0.2s ease-in-out;
@@ -1026,7 +1011,6 @@ select {
     border-color: #cbd5e0;
 }
 
-/* Add Product Inline Form Styles */
 .add-product-inline-form {
     background: white;
     border-radius: 12px;
@@ -1069,7 +1053,7 @@ select {
 }
 
 .add-product-inline-form .form-actions {
-    grid-column: 1 / -1; /* Span across all columns */
+    grid-column: 1 / -1;
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
@@ -1100,7 +1084,6 @@ select {
     transform: translateY(-2px);
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .add-product-inline-form form {
         grid-template-columns: 1fr;
@@ -1111,68 +1094,67 @@ select {
     }
 }
 
-/* Edit Product Form */
 .edit-product-form {
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 1rem;
 }
 
 .edit-product-form h3 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #2d3748;
-  font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #2d3748;
+    font-size: 1.2rem;
 }
 
 .edit-product-form form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .edit-product-form input {
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+    padding: 0.75rem;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
 }
 
 .edit-product-form input:focus {
-  border-color: #3182ce;
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
-  outline: none;
+    border-color: #3182ce;
+    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+    outline: none;
 }
 
 .edit-product-form .form-actions {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
 }
 
 .edit-product-form .form-actions button {
-  flex: 1;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    flex: 1;
+    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
 }
 
 .edit-product-form .form-actions button[type="submit"] {
-  background: #3182ce;
-  color: white;
+    background: #3182ce;
+    color: white;
 }
 
 .edit-product-form .form-actions button[type="button"] {
-  background: #e2e8f0;
-  color: #2d3748;
+    background: #e2e8f0;
+    color: #2d3748;
 }
 
 .edit-product-form .form-actions button:hover {
-  opacity: 0.9;
-  transform: translateY(-2px);
+    opacity: 0.9;
+    transform: translateY(-2px);
 }

@@ -161,20 +161,28 @@ const ProductPage = () => {
     }]
   };
 
-  // Pie chart legend and tooltip colors
+  // Chart options with proper label colors
   const chartOptions = {
     plugins: {
       legend: {
+        position: 'right',
         labels: {
-          color: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#e5e7eb' : '#333',
-          font: { weight: 'bold' }
+          color: isDark ? '#fff' : '#333',
+          font: { 
+            weight: 'bold',
+            size: 12
+          }
         }
       },
       tooltip: {
-        bodyColor: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#e5e7eb' : '#333',
-        titleColor: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#e5e7eb' : '#333'
+        backgroundColor: isDark ? '#1e1e1e' : '#fff',
+        titleColor: isDark ? '#fff' : '#333',
+        bodyColor: isDark ? '#fff' : '#333',
+        borderColor: isDark ? '#333' : '#e0e0e0',
+        borderWidth: 1
       }
-    }
+    },
+    maintainAspectRatio: false
   };
 
   if (loading) {
@@ -204,15 +212,18 @@ const ProductPage = () => {
   }
 
   return (
-    <div className="farmer-products">
+    <div className={`farmer-products ${isDark ? 'dark' : 'light'}`}>
       <Sidebar 
         userType="farmer" 
         onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`  products-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className={!isDark? "products-header" : "products-header dark add-product-container add-product-box"}>
-          <h1 className={isDark ? 'text-white' : 'text-black'}>My Products</h1>
-          <button className="add-product-btn" onClick={() => setShowAddProduct(true)}>
+      <div className={`products-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <div className={`${isDark ? 'dark products-header' : 'products-header'}`}>
+          <h1>My Products</h1>
+          <button 
+            className="add-product-btn"
+            onClick={() => setShowAddProduct(true)}
+          >
             <FaPlus /> Add New Product
           </button>
         </div>
@@ -264,43 +275,38 @@ const ProductPage = () => {
           </div>
         )}
 
-        <div className="flex flex-col items-center w-full">
-          <div className="flex justify-center w-full mb-4">
-            <div className="search-box search-bar w-full max-w-md flex items-center bg-white dark:bg-gray-800 rounded shadow px-4 py-2">
-              <FaSearch className="text-gray-400 dark:text-gray-300" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input w-full bg-transparent text-black dark:text-white ml-2 focus:outline-none"
-              />
-            </div>
+        <div className="search-section">
+          <div className="search-box">
+            <FaSearch />
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-          <div className="flex justify-center w-full mb-4">
-            <div className="price-filter filter-box min-max-box min-price max-price flex gap-2 bg-white dark:bg-gray-800 rounded shadow px-4 py-2">
-              <input
-                type="number"
-                placeholder="Min price"
-                value={priceRange.min}
-                onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-                className="bg-transparent text-black dark:text-white focus:outline-none"
-              />
-              <input
-                type="number"
-                placeholder="Max price"
-                value={priceRange.max}
-                onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-                className="bg-transparent text-black dark:text-white focus:outline-none"
-              />
-            </div>
+          <div className={`${isDark ? 'dark price-filter' : 'price-filter'}`}>
+            <input
+              type="number"
+              placeholder="Min price"
+              value={priceRange.min}
+              onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+            />
+            <input
+              type="number"
+              placeholder="Max price"
+              value={priceRange.max}
+              onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+            />
           </div>
         </div>
 
         {showChart && (
-          <div className="products-chart center chart-card">
+          <div className={`${isDark ? 'dark chart-section' : 'chart-section'}`}>
             <h2>Product Distribution</h2>
-            <Pie data={chartData} options={chartOptions} />
+            <div className="chart-container">
+              <Pie data={chartData} options={chartOptions} />
+            </div>
           </div>
         )}
 

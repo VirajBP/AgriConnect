@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from '../../Sidebar/Sidebar';
 import './Orders.css';
+import '../../../index.css';
 import { 
   Box, 
   Typography, 
@@ -21,6 +22,7 @@ import {
   Star as StarIcon
 } from '@mui/icons-material';
 import axios from '../../../utils/axios';
+import { useTheme } from '../../../Context/ThemeContext';
 
 // Add this function to get product image
 const getProductImage = (productName) => {
@@ -63,6 +65,7 @@ export default function ConsumerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -127,8 +130,11 @@ export default function ConsumerOrders() {
   if (loading) {
     return (
       <div className="orders-container">
-        <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
-        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <Sidebar 
+          userType="consumer" 
+          onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+        />
+        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
             <CircularProgress />
           </Box>
@@ -140,8 +146,11 @@ export default function ConsumerOrders() {
   if (error) {
     return (
       <div className="orders-container">
-        <Sidebar userType="consumer" onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)} />
-        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+        <Sidebar 
+          userType="consumer" 
+          onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+        />
+        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
           <Typography color="error" variant="h6" sx={{ textAlign: 'center', mt: 4 }}>
             {error}
           </Typography>
@@ -154,8 +163,7 @@ export default function ConsumerOrders() {
   }
 
   const currentOrders = orders.filter(order => 
-    ['pending', 'processing', 'confirmed'].includes(order.status.toLowerCase()),
-    console.log(orders)
+    ['pending', 'processing', 'confirmed'].includes(order.status.toLowerCase())
   );
 
   const pastOrders = orders.filter(order => 
@@ -168,11 +176,11 @@ export default function ConsumerOrders() {
         userType="consumer" 
         onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
         <Typography variant="h4" className="orders-heading" gutterBottom>
           Current Orders
         </Typography>
-        <div className="table-container">
+        <div className={`table-container ${isDarkMode ? 'dark' : ''}`}>
           <table className="orders-table">
             <thead>
               <tr>
@@ -190,7 +198,7 @@ export default function ConsumerOrders() {
             <tbody>
               {currentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="9" align="center">
+                  <td colSpan="9" className="empty-message">
                     <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
                       No current orders found
                     </Typography>
@@ -198,52 +206,66 @@ export default function ConsumerOrders() {
                 </tr>
               ) : (
                 currentOrders.map((order) => (
-                  <tr key={order._id}>
+                  <tr key={order._id} className="order-row">
                     <td>#{order._id.slice(-6)}</td>
                     <td>
-                      <Box>
-                        <Typography variant="body1">{order.product?.productName || 'Product Removed'}</Typography>
+                      <Box className="product-info">
+                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                          {order.product?.productName || 'Product Removed'}
+                        </Typography>
                         <Typography variant="caption" color="textSecondary">
                           {order.product?.variety || '-'}
                         </Typography>
                       </Box>
                     </td>
-                    <td>{order.quantity} {order.product?.unit || 'units'}</td>
-                    <td>₹{order.totalPrice}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>{order.quantity} {order.product?.unit || 'units'}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>₹{order.totalPrice}</td>
                     <td>
-                      <Box>
-                        <Typography variant="body1">{order.farmer?.name || 'Farmer Unavailable'}</Typography>
+                      <Box className="farmer-info">
+                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                          {order.farmer?.name || 'Farmer Unavailable'}
+                        </Typography>
                         <Typography variant="caption" color="textSecondary">
                           {order.farmer?.location || '-'}
                         </Typography>
                       </Box>
                     </td>
-                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>{order.expectedDelivery ? new Date(order.expectedDelivery).toLocaleDateString() : '-'}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      {order.expectedDelivery ? new Date(order.expectedDelivery).toLocaleDateString() : '-'}
+                    </td>
                     <td>
                       <Chip
                         label={order.status}
                         color={getStatusColor(order.status)}
                         size="small"
+                        className={`status-chip ${order.status.toLowerCase()}`}
                       />
                     </td>
                     <td>
-                      <Tooltip title="View Details">
-                        <IconButton size="small" onClick={() => handleViewDetails(order)}>
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
-                      {order.status.toLowerCase() === 'pending' && (
-                        <Tooltip title="Cancel Order">
+                      <Box className="action-buttons">
+                        <Tooltip title="View Details">
                           <IconButton 
                             size="small" 
-                            onClick={() => handleCancelOrder(order._id)}
-                            color="error"
+                            onClick={() => handleViewDetails(order)}
+                            className={isDarkMode ? 'dark-icon' : ''}
                           >
-                            <CancelIcon />
+                            <VisibilityIcon />
                           </IconButton>
                         </Tooltip>
-                      )}
+                        {order.status.toLowerCase() === 'pending' && (
+                          <Tooltip title="Cancel Order">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => handleCancelOrder(order._id)}
+                              color="error"
+                              className={isDarkMode ? 'dark-icon' : ''}
+                            >
+                              <CancelIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
                     </td>
                   </tr>
                 ))
@@ -255,7 +277,7 @@ export default function ConsumerOrders() {
         <Typography variant="h4" className="orders-heading" gutterBottom sx={{ mt: 4 }}>
           Past Orders
         </Typography>
-        <div className="table-container">
+        <div className={`table-container ${isDarkMode ? 'dark' : ''}`}>
           <table className="orders-table">
             <thead>
               <tr>
@@ -273,7 +295,7 @@ export default function ConsumerOrders() {
             <tbody>
               {pastOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="9" align="center">
+                  <td colSpan="9" className="empty-message">
                     <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
                       No past orders found
                     </Typography>
@@ -281,41 +303,54 @@ export default function ConsumerOrders() {
                 </tr>
               ) : (
                 pastOrders.map((order) => (
-                  <tr key={order._id}>
+                  <tr key={order._id} className="order-row">
                     <td>#{order._id.slice(-6)}</td>
                     <td>
-                      <Box>
-                        <Typography variant="body1">{order.product?.productName || 'Product Removed'}</Typography>
+                      <Box className="product-info">
+                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                          {order.product?.productName || 'Product Removed'}
+                        </Typography>
                         <Typography variant="caption" color="textSecondary">
                           {order.product?.variety || '-'}
                         </Typography>
                       </Box>
                     </td>
-                    <td>{order.quantity} {order.product?.unit || 'units'}</td>
-                    <td>₹{order.totalPrice}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>{order.quantity} {order.product?.unit || 'units'}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>₹{order.totalPrice}</td>
                     <td>
-                      <Box>
-                        <Typography variant="body1">{order.farmer?.name || 'Farmer Unavailable'}</Typography>
+                      <Box className="farmer-info">
+                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                          {order.farmer?.name || 'Farmer Unavailable'}
+                        </Typography>
                         <Typography variant="caption" color="textSecondary">
                           {order.farmer?.location || '-'}
                         </Typography>
                       </Box>
                     </td>
-                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : '-'}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>{new Date(order.createdAt).toLocaleDateString()}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : '-'}
+                    </td>
                     <td>
                       <Chip
                         label={order.status}
                         color={getStatusColor(order.status)}
                         size="small"
+                        className={`status-chip ${order.status.toLowerCase()}`}
                       />
                     </td>
                     <td>
-                      <Tooltip title="View Details">
-                        <IconButton size="small" onClick={() => handleViewDetails(order)}>
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
+                      <Box className="action-buttons">
+                        <Tooltip title="View Details">
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleViewDetails(order)}
+                            className={isDarkMode ? 'dark-icon' : ''}
+                          >
+                            <VisibilityIcon />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </td>
                   </tr>
                 ))
@@ -324,7 +359,13 @@ export default function ConsumerOrders() {
           </table>
         </div>
 
-        <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <Dialog 
+          open={openDialog} 
+          onClose={handleCloseDialog} 
+          maxWidth="md" 
+          fullWidth
+          className={isDarkMode ? 'dark-dialog' : ''}
+        >
           {selectedOrder && (
             <>
               <DialogTitle>Order Details</DialogTitle>

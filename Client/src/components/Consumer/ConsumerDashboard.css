@@ -138,6 +138,12 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
 }
 
+.spending-trends.dark,
+.recent-activity.dark {
+    background: #1e1e1e;
+    color: #fff;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -199,6 +205,13 @@
     gap: 15px;
     padding: 15px 0;
     border-bottom: 1px solid #eee;
+}
+
+.activity-item.dark {
+    background: #1e1e1e;
+    color: #fff;
+    padding: 5px;
+    border-radius:10px;
 }
 
 .activity-item:last-child {

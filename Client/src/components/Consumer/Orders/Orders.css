@@ -1,8 +1,8 @@
 /* General Styles */
 body {
   font-family: 'Poppins', sans-serif;
-  background-color: #f8f9fa;
-  color: #333;
+  background-color: var(--background-color);
+  color: var(--text-color);
   margin: 0;
   padding: 0;
 }
@@ -35,13 +35,18 @@ body {
 
 .orders-content {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 150px;
   padding: 2rem;
-  transition: margin-left 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .orders-content.sidebar-collapsed {
   margin-left: 64px;
+}
+
+.orders-content.dark {
+  background-color: #121212;
+  color: #fff;
 }
 
 /* Page Title */
@@ -54,10 +59,17 @@ body {
 /* Table Styles */
 .table-container {
   background-color: var(--card-background);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.table-container.dark {
+  background-color: #1e1e1e;
+  border: 1px solid #333;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .orders-table {
@@ -88,58 +100,116 @@ body {
   background-color: var(--hover-background);
 }
 
-/* Status Chip Colors */
-.MuiChip-root {
-  font-weight: 500;
+.dark .orders-table th {
+  background-color: #2d2d2d;
+  color: #fff;
+  border-bottom: 1px solid #333;
 }
 
-.MuiChip-colorSuccess {
-  background-color: var(--success-color) !important;
-  color: white !important;
+.dark .orders-table td {
+  border-bottom: 1px solid #333;
 }
 
-.MuiChip-colorWarning {
-  background-color: var(--warning-color) !important;
-  color: white !important;
+.dark .orders-table tr:hover {
+  background-color: #2a2a2a;
 }
 
-.MuiChip-colorError {
-  background-color: var(--error-color) !important;
-  color: white !important;
+/* Status Chips */
+.status-chip {
+  font-weight: 500 !important;
+  padding: 4px 12px !important;
 }
 
-.MuiChip-colorInfo {
-  background-color: var(--info-color) !important;
-  color: white !important;
+.status-chip.pending {
+  background-color: #ff9800 !important;
+  color: #fff !important;
+}
+
+.status-chip.confirmed {
+  background-color: #2196f3 !important;
+  color: #fff !important;
+}
+
+.status-chip.processing {
+  background-color: #673ab7 !important;
+  color: #fff !important;
+}
+
+.status-chip.completed {
+  background-color: #4caf50 !important;
+  color: #fff !important;
+}
+
+.status-chip.cancelled {
+  background-color: #f44336 !important;
+  color: #fff !important;
 }
 
 /* Action Buttons */
-.MuiIconButton-root {
-  padding: 4px !important;
+.action-buttons {
+  display: flex;
+  gap: 8px;
 }
 
-.MuiIconButton-root:hover {
-  background-color: var(--hover-background) !important;
+.action-buttons .MuiIconButton-root {
+  padding: 6px !important;
+  transition: all 0.3s ease !important;
 }
 
-/* Dialog Styles */
-.MuiDialog-paper {
-  background-color: var(--card-background) !important;
-  color: var(--text-color) !important;
+.action-buttons .MuiIconButton-root:hover {
+  transform: translateY(-2px);
 }
 
-.MuiDialogTitle-root {
-  border-bottom: 1px solid var(--border-color);
-  padding: 1.5rem !important;
+.dark-icon {
+  color: #fff !important;
 }
 
-.MuiDialogContent-root {
-  padding: 1.5rem !important;
+.dark-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-.MuiDialogActions-root {
-  border-top: 1px solid var(--border-color);
-  padding: 1rem 1.5rem !important;
+/* Product and Farmer Info */
+.product-info,
+.farmer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Empty Message */
+.empty-message {
+  text-align: center;
+  padding: 2rem !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Dialog Dark Mode */
+.dark-dialog .MuiDialog-paper {
+  background-color: #1e1e1e !important;
+  color: #fff !important;
+}
+
+.dark-dialog .MuiDialogTitle-root {
+  background-color: #2d2d2d !important;
+  border-bottom: 1px solid #333 !important;
+}
+
+.dark-dialog .MuiDialogContent-root {
+  background-color: #1e1e1e !important;
+}
+
+.dark-dialog .MuiDialogActions-root {
+  background-color: #2d2d2d !important;
+  border-top: 1px solid #333 !important;
+}
+
+/* Text Colors */
+.text-white {
+  color: #fff !important;
+}
+
+.text-black {
+  color: #333 !important;
 }
 
 /* Animation */
@@ -191,22 +261,19 @@ body {
   }
 }
 
-/* Dark Mode Styles */
+/* Dark Mode Variables */
 [data-theme="dark"] {
   --background-color: #121212;
   --card-background: #1e1e1e;
   --header-background: #2d2d2d;
   --border-color: #333;
-  --hover-background: #2d2d2d;
+  --hover-background: #2a2a2a;
   --text-color: #fff;
+  --text-secondary: #b0b0b0;
   --primary-color: #90caf9;
-  --success-color: #4caf50;
-  --warning-color: #ff9800;
-  --error-color: #f44336;
-  --info-color: #2196f3;
 }
 
-/* Light Mode Styles */
+/* Light Mode Variables */
 [data-theme="light"] {
   --background-color: #f5f5f5;
   --card-background: #ffffff;
@@ -214,11 +281,8 @@ body {
   --border-color: #e0e0e0;
   --hover-background: #f5f5f5;
   --text-color: #333;
+  --text-secondary: #666;
   --primary-color: #1976d2;
-  --success-color: #4caf50;
-  --warning-color: #ff9800;
-  --error-color: #f44336;
-  --info-color: #2196f3;
 }
 
 /* Empty State */
