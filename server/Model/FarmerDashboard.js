@@ -12,13 +12,31 @@ const farmerDashboardSchema = new mongoose.Schema({
         required: true
     },
     stats: {
-        totalRevenue: Number,
-        activeListings: Number,
-        completedOrders: Number,
-        pendingOrders: Number
+        totalRevenue: {
+            type: Number,
+            default: 0
+        },
+        activeListings: {
+            type: Number,
+            default: 0
+        },
+        completedOrders: {
+            type: Number,
+            default: 0
+        },
+        pendingOrders: {
+            type: Number,
+            default: 0
+        }
     },
-    recentOrders: [String],
-    popularProducts: [String],
+    recentOrders: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order'
+    }],
+    popularProducts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product'
+    }],
     monthlyRevenue: [monthlyRevenueSchema]
 }, {
     timestamps: true

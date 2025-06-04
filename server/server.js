@@ -5,16 +5,11 @@ const connectDB = require("./Config/Database");
 const cors = require('cors');
 const mongoose = require("mongoose");
 
-// Connect to MongoDB
-(async () => {
-    try {
-        await connectDB();
-        console.log('MongoDB connected successfully');
-    } catch (err) {
-        console.error('Failed to connect to MongoDB:', err);
-        process.exit(1);
-    }
-})();
+// Pre-load models in correct order
+require('./Model/Farmer');
+require('./Model/Consumer');
+require('./Model/Product');
+require('./Model/Order');
 
 // Middleware
 app.use(cors({
@@ -39,11 +34,32 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes
-app.use('/api/auth', require('./Routes/authRoutes'));
-app.use('/api/farmer', require('./Routes/farmerRoutes'));
-app.use('/api/consumer', require('./Routes/consumerRoutes'));
-app.use('/api/chatbot', require('./Routes/chatbotRoutes'));
+// Connect to MongoDB and initialize routes
+let isConnected = false;
+
+const initializeServer = async () => {
+    if (isConnected) return;
+    
+    try {
+        await connectDB();
+        isConnected = true;
+        console.log('MongoDB connected successfully');
+
+        // Routes
+        app.use('/api/auth', require('./Routes/authRoutes'));
+        app.use('/api/farmer', require('./Routes/farmerRoutes'));
+        app.use('/api/consumer', require('./Routes/consumerRoutes'));
+        app.use('/api/chatbot', require('./Routes/chatbotRoutes'));
+
+        const PORT = process.env.PORT || 5000;
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (err) {
+        console.error('Failed to connect to MongoDB:', err);
+        process.exit(1);
+    }
+};
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -53,7 +69,6 @@ app.use((err, req, res, next) => {
         code: err.code
     });
 
-    // Handle specific error types
     if (err.name === 'ValidationError') {
         return res.status(400).json({
             success: false,
@@ -70,15 +85,12 @@ app.use((err, req, res, next) => {
         });
     }
 
-    // Default error response
     res.status(500).json({ 
         success: false, 
         message: err.message || 'Something went wrong!',
         error: process.env.NODE_ENV === 'development' ? err : undefined
     });
 });
-
-const PORT = process.env.PORT || 5000;
 
 // Error handling for MongoDB connection
 mongoose.connection.on('error', (err) => {
@@ -87,6 +99,7 @@ mongoose.connection.on('error', (err) => {
 
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB disconnected');
+    isConnected = false;
 });
 
 process.on('SIGINT', async () => {
@@ -100,18 +113,5 @@ process.on('SIGINT', async () => {
     }
 });
 
-// Start server with error handling
-const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-}).on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please try these steps:`);
-        console.error('1. Stop any other servers running on this port');
-        console.error('2. Wait a few seconds');
-        console.error('3. Try starting the server again');
-        process.exit(1);
-    } else {
-        console.error('Server error:', err);
-        process.exit(1);
-    }
-});
+// Initialize the server
+initializeServer();

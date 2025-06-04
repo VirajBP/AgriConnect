@@ -18,8 +18,8 @@ import './App.css';
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <ThemeProvider>
+      <ThemeProvider>
+        <AuthProvider>
           <div className="app">
             <Routes>
               <Route path="/login" element={<Login />} />
@@ -77,8 +77,8 @@ function App() {
               <Route path="/" element={<Login />} />
             </Routes>
           </div>
-        </ThemeProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </Router>
   );
 }

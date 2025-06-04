@@ -2,11 +2,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext(null);
 
-
 export const ThemeProvider = ({ children }) => {
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem('theme');
-        return savedTheme==='dark'?true:false; // Default to dark mode
+        return savedTheme === 'dark';
     });
 
     useEffect(() => {
@@ -24,8 +23,14 @@ export const ThemeProvider = ({ children }) => {
         setIsDarkMode(!isDarkMode);
     };
 
+    const resetTheme = () => {
+        setIsDarkMode(false);
+        localStorage.removeItem('theme');
+        window.document.documentElement.classList.remove('dark');
+    };
+
     return (
-        <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+        <ThemeContext.Provider value={{ isDarkMode, toggleTheme, resetTheme }}>
             {children}
         </ThemeContext.Provider>
     );

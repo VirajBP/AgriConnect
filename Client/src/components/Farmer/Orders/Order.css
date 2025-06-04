@@ -83,11 +83,12 @@ body {
   font-size: 0.9rem;
   font-weight: bold;
   text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .status-pending {
-  background: #fff3cd;
-  color: #856404;
+  background: #ffd700;
+  color: #000;
 }
 
 .status-accepted {
@@ -96,8 +97,8 @@ body {
 }
 
 .status-rejected {
-  background: #f8d7da;
-  color: #721c24;
+  background: #9c27b0;
+  color: white;
 }
 
 /* Action Buttons */
@@ -140,6 +141,17 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
+  border: 1px solid #dee2e6;
+}
+
+.table-container-black {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+  background: #1e1e1e;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  border: 1px solid #333;
 }
 
 .orders-table {
@@ -161,18 +173,97 @@ body {
   color: #2c3e50;
 }
 
+/* Dark mode table headers */
+.text-white th {
+  background: #2c2c2c !important;
+  color: #fff !important;
+  border-color: #333;
+}
+
+/* Hover styles for light and dark mode */
 .orders-table tbody tr:hover {
   background: #f9fafb;
 }
 
-.orders-table td .action-buttons {
-  display: flex;
-  gap: 0.8rem;
+.text-white tbody tr:hover {
+  background: #2c2c2c !important;
 }
 
-.orders-table td .action-button {
+/* Status badge styles with improved visibility */
+.status-badge {
+  display: inline-block;
   padding: 0.5rem 1.2rem;
-  font-size: 0.875rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Light mode status colors with improved contrast */
+.status-pending {
+  background: #ffd700;
+  color: #000;
+}
+
+.status-confirmed {
+  background: #00e676;
+  color: #000;
+}
+
+.status-completed {
+  background: #00bcd4;
+  color: #000;
+}
+
+.status-cancelled {
+  background: #ff1744;
+  color: white;
+}
+
+.status-rejected {
+  background: #d500f9;
+  color: white;
+}
+
+/* Dark mode status colors with increased vibrancy */
+.text-white .status-badge {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.text-white .status-pending {
+  background: #ffd700;
+  color: #000;
+  border: 1px solid #ffd700;
+}
+
+.text-white .status-confirmed {
+  background: #00e676;
+  color: #000;
+  border: 1px solid #00e676;
+}
+
+.text-white .status-completed {
+  background: #00bcd4;
+  color: #000;
+  border: 1px solid #00bcd4;
+}
+
+.text-white .status-cancelled {
+  background: #ff1744;
+  color: white;
+  border: 1px solid #ff1744;
+}
+
+.text-white .status-rejected {
+  background: #d500f9;
+  color: white;
+  border: 1px solid #d500f9;
+}
+
+/* Dark mode table borders */
+.text-white td {
+  border-color: #333;
 }
 
 /* Loading State */
@@ -308,23 +399,28 @@ body {
     color: #fff !important;
 }
 
-.dark .status-badge.pending {
+.dark .status-badge.status-pending {
     background-color: #f39c12;
     color: #fff !important;
 }
 
-.dark .status-badge.confirmed {
+.dark .status-badge.status-confirmed {
     background-color: #27ae60;
     color: #fff !important;
 }
 
-.dark .status-badge.completed {
-    background-color: #2ecc71;
+.dark .status-badge.status-completed {
+    background-color: #0087ca;
     color: #fff !important;
 }
 
-.dark .status-badge.rejected {
+.dark .status-badge.status-rejected {
     background-color: #e74c3c;
+    color: #fff !important;
+}
+
+.dark .status-badge.status-cancelled {
+    background-color: #e22a16;
     color: #fff !important;
 }
 

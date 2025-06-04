@@ -1,3 +1,6 @@
+// THIS FILE IS NO LONGER IN USE - PLEASE USE server.js INSTEAD
+// Keeping this file for reference only
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');

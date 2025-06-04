@@ -22,6 +22,40 @@ import {
 } from '@mui/icons-material';
 import axios from '../../../utils/axios';
 
+// Add this function to get product image
+const getProductImage = (productName) => {
+  if (!productName) return null;
+  
+  // Handle special cases for product names
+  const nameMap = {
+    'green peppers': 'green-pepper',
+    'red peppers': 'red-pepper',
+    'yellow peppers': 'yellow-pepper',
+    // Add more special cases as needed
+  };
+
+  // Check if we have a special case for this product name
+  const formattedName = nameMap[productName.toLowerCase()] || 
+    productName.toLowerCase()
+      .replace(/\s+/g, '-')     // Replace spaces with hyphens
+      .replace(/s$/, '');       // Remove trailing 's' if present
+  
+  // Try different image extensions
+  const extensions = ['jpg', 'jpeg', 'webp', 'avif'];
+  
+  // Find the first existing image
+  for (const ext of extensions) {
+    try {
+      const imagePath = `/images/products/crops/${formattedName}.${ext}`;
+      return imagePath; // Return first attempt
+    } catch (error) {
+      continue;
+    }
+  }
+  
+  return null;
+};
+
 export default function ConsumerOrders() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -295,109 +329,126 @@ export default function ConsumerOrders() {
             <>
               <DialogTitle>Order Details</DialogTitle>
               <DialogContent>
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Product Information
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
-                        Product Name
-                      </Typography>
-                      <Typography variant="body1">
-                        {selectedOrder.product?.productName || 'Product Removed'}
-                      </Typography>
+                <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                  {/* Left side - Product Image and Basic Info */}
+                  <Box>
+                    <Box 
+                      sx={{ 
+                        width: '100%', 
+                        height: 300, 
+                        borderRadius: 2, 
+                        overflow: 'hidden',
+                        mb: 2,
+                        bgcolor: 'background.paper',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      {selectedOrder.product?.productName ? (
+                        <img 
+                          src={getProductImage(selectedOrder.product.productName)} 
+                          alt={selectedOrder.product.productName}
+                          onError={(e) => {
+                            e.target.onerror = null; // Prevent infinite loop
+                            e.target.src = '/images/products/placeholder.jpg'; // Fallback image
+                          }}
+                          style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            objectFit: 'cover' 
+                          }}
+                        />
+                      ) : (
+                        <Box 
+                          sx={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            bgcolor: 'grey.100'
+                          }}
+                        >
+                          <Typography variant="body1" color="textSecondary">
+                            No image available
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
-                        Variety
-                      </Typography>
-                      <Typography variant="body1">
-                        {selectedOrder.product?.variety || '-'}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
+
+                    <Typography variant="h5" gutterBottom>
+                      {selectedOrder.product?.productName || 'Product Removed'}
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="subtitle1" color="textSecondary">
                         Quantity
                       </Typography>
-                      <Typography variant="body1">
+                      <Typography variant="subtitle1">
                         {selectedOrder.quantity} {selectedOrder.product?.unit || 'units'}
                       </Typography>
                     </Box>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="subtitle1" color="textSecondary">
                         Total Amount
                       </Typography>
-                      <Typography variant="body1">
-                        ₹{selectedOrder.totalAmount}
+                      <Typography variant="h6" color="primary">
+                        ₹{selectedOrder.totalPrice}
                       </Typography>
                     </Box>
                   </Box>
 
-                  <Typography variant="h6" sx={{ mt: 3 }} gutterBottom>
-                    Farmer Information
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
-                        Name
-                      </Typography>
-                      <Typography variant="body1">
-                        {selectedOrder.farmer?.name || 'Farmer Unavailable'}
-                      </Typography>
+                  {/* Right side - Order and Farmer Details */}
+                  <Box>
+                    <Typography variant="h6" gutterBottom>
+                      Order Information
+                    </Typography>
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="textSecondary">Order ID</Typography>
+                        <Typography variant="body1">#{selectedOrder._id.slice(-6)}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="textSecondary">Order Date</Typography>
+                        <Typography variant="body1">{new Date(selectedOrder.createdAt).toLocaleDateString()}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="textSecondary">Status</Typography>
+                        <Chip
+                          label={selectedOrder.status}
+                          color={getStatusColor(selectedOrder.status)}
+                          size="small"
+                        />
+                      </Box>
+                      {selectedOrder.expectedDelivery && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" color="textSecondary">Expected Delivery</Typography>
+                          <Typography variant="body1">{new Date(selectedOrder.expectedDelivery).toLocaleDateString()}</Typography>
+                        </Box>
+                      )}
                     </Box>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
-                        Location
-                      </Typography>
-                      <Typography variant="body1">
-                        {selectedOrder.farmer?.location || '-'}
-                      </Typography>
-                    </Box>
-                  </Box>
 
-                  <Typography variant="h6" sx={{ mt: 3 }} gutterBottom>
-                    Order Information
-                  </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
-                        Order Date
-                      </Typography>
-                      <Typography variant="body1">
-                        {new Date(selectedOrder.createdAt).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" color="textSecondary">
-                        Status
-                      </Typography>
-                      <Chip
-                        label={selectedOrder.status}
-                        color={getStatusColor(selectedOrder.status)}
-                        size="small"
-                      />
-                    </Box>
-                    {selectedOrder.expectedDelivery && (
-                      <Box>
-                        <Typography variant="subtitle2" color="textSecondary">
-                          Expected Delivery
-                        </Typography>
-                        <Typography variant="body1">
-                          {new Date(selectedOrder.expectedDelivery).toLocaleDateString()}
-                        </Typography>
+                    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
+                      Farmer Information
+                    </Typography>
+                    <Box sx={{ mb: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="textSecondary">Name</Typography>
+                        <Typography variant="body1">{selectedOrder.farmer?.name || 'Farmer Unavailable'}</Typography>
                       </Box>
-                    )}
-                    {selectedOrder.deliveryDate && (
-                      <Box>
-                        <Typography variant="subtitle2" color="textSecondary">
-                          Delivery Date
-                        </Typography>
-                        <Typography variant="body1">
-                          {new Date(selectedOrder.deliveryDate).toLocaleDateString()}
-                        </Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" color="textSecondary">Location</Typography>
+                        <Typography variant="body1">{selectedOrder.farmer?.location || '-'}</Typography>
                       </Box>
-                    )}
+                      {selectedOrder.farmer?.phoneNumber && (
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography variant="body2" color="textSecondary">Contact</Typography>
+                          <Typography variant="body1">{selectedOrder.farmer.phoneNumber}</Typography>
+                        </Box>
+                      )}
+                    </Box>
                   </Box>
                 </Box>
               </DialogContent>

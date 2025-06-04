@@ -48,7 +48,6 @@ const ConsumerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [timeFilter, setTimeFilter] = useState('6M');
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -153,11 +152,8 @@ const ConsumerDashboard = () => {
 
     return (
         <div className="consumer-dashboard">
-            <Sidebar 
-                userType="consumer" 
-                onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
-            />
-            <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+            <Sidebar userType="consumer" />
+            <div className="dashboard-content">
                 <div className="dashboard-header">
                     <div className="welcome-section">
                         <h1>Welcome back, {user?.name}!</h1>

@@ -25,6 +25,7 @@ useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get('/farmer/orders');
+        console.log("These are the orders", response.data.data);
         if (response.data.success) {
           setOrders(response.data.data);
         } else {
@@ -55,25 +56,54 @@ useEffect(() => {
 
   const handleStatusChange = async (id, status) => {
     try {
-      // Implement backend API call to update order status
       const response = await axios.put(`/farmer/orders/${id}/status`, { status });
       
       if (response.data.success) {
-        // For now, simulate updating state
-        setOrders((prevOrders) =>
-          prevOrders.map((order) =>
-            order._id === id ? { ...order, status } : order // Use _id instead of id
+        // Update the orders state with the new status
+        setOrders(prevOrders => 
+          prevOrders.map(order => 
+            order._id === id 
+              ? {
+                  ...order,
+                  status: status,
+                  // Keep all other fields unchanged
+                  orderId: order.orderId,
+                  product: order.product,
+                  quantity: order.quantity,
+                  price: order.price,
+                  customer: order.customer,
+                  orderDate: order.orderDate,
+                  deliveryDate: order.deliveryDate
+                }
+              : order
           )
         );
-        console.log(`Order ${id} status updated to ${status}`);
+        
+        // Update visible orders as well
+        setVisibleOrders(prevVisibleOrders => 
+          prevVisibleOrders.map(order => 
+            order._id === id 
+              ? {
+                  ...order,
+                  status: status,
+                  // Keep all other fields unchanged
+                  orderId: order.orderId,
+                  product: order.product,
+                  quantity: order.quantity,
+                  price: order.price,
+                  customer: order.customer,
+                  orderDate: order.orderDate,
+                  deliveryDate: order.deliveryDate
+                }
+              : order
+          )
+        );
       } else {
         console.error('Failed to update order status:', response.data.message);
-        // Optionally show an error message to the user
         setError(response.data.message || 'Failed to update order status');
       }
     } catch (err) {
       console.error('Error updating order status:', err);
-      // Optionally show an error message to the user
       setError(err.response?.data?.message || 'Error updating order status');
     }
   };
@@ -105,17 +135,17 @@ useEffect(() => {
         userType="farmer" 
         onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`dashboard-content ${isDark ? 'dark' : ''} ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className={`dashboard-content  ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
         <h1 className="orders-heading">Pending Orders</h1>
-        <div className={`table-container ${isDark? 'text-white': 'text-black'}`}>
-          {visibleOrders.filter(order => order.status === "pending").length === 0 ? ( // Check for pending/confirmed orders
+        <div className={`${isDark ? 'table-container-black' : 'table-container'}`}>
+          {visibleOrders.filter(order => order.status === "pending").length === 0 ? ( 
              <Box display="flex" justifyContent="center" alignItems="center" minHeight="100px">
-              <Typography variant="h6" color="textSecondary" className={isDark ? 'text-white' : 'text-black'}>
+              <Typography variant="h6" color="textSecondary" className={isDark ? 'text-white' : ''}>
                 No pending or confirmed orders.
               </Typography>
             </Box>
           ) : (
-            <table className={`orders-table ${isDark? 'text-white': 'text-black'}`}>
+            <table className={`orders-table ${isDark ? 'text-white' : ''}`}>
               <thead>
                 <tr>
                   <th>Order ID</th>
@@ -132,16 +162,16 @@ useEffect(() => {
               <tbody>
                 {visibleOrders.filter(order => order.status === "pending").map((order, index) => (
                   <tr key={order._id} className="order-row animate" style={{ animationDelay: `${index * 0.1}s` }}> 
-                    <td>#{order.orderId || 'N/A'}</td>
-                    <td>{order.product?.productName || 'N/A'}</td> {/* Access product name from populated product object */}
-                    <td>{order.quantity !== undefined && order.quantity !== null ? `${order.quantity} kg` : 'N/A'}</td>
-                    <td>{order.product?.price !== undefined && order.product?.price !== null && order.quantity !== undefined && order.quantity !== null ? `₹${order.product.price * order.quantity}` : 'N/A'}</td> {/* Calculate total price */}
-                    <td>{order.consumer?.name || 'N/A'}</td> {/* Access customer name from populated consumer object */}
-                    <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</td>
-                    <td>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'N/A'}</td>
-                    <td className={isDark ? 'text-white' : 'text-black'}>
-                      <span className={`status-badge status-${order.status?.toLowerCase() || 'unknown'} `}>
-                        {order.status || 'Unknown'}
+                    <td>{order.orderId}</td>
+                    <td>{order.product}</td>
+                    <td>{order.quantity}</td>
+                    <td>{order.price}</td>
+                    <td>{order.customer}</td>
+                    <td>{order.orderDate}</td>
+                    <td>{order.deliveryDate}</td>
+                    <td>
+                      <span className={`status-badge status-${order.status?.toLowerCase() || 'unknown'} ${isDark ? 'dark' : ''}`}>
+                        {order.status}
                       </span>
                     </td>
                     <td>
@@ -168,15 +198,15 @@ useEffect(() => {
         </div>
 
         <h1 className="orders-heading">All Orders</h1>
-        <div className="table-container">
-           {visibleOrders.length === 0 ? ( // Check if any orders exist
+        <div className={`${isDark ? 'table-container-black' : 'table-container'}`}>
+           {visibleOrders.length === 0 ? (
              <Box display="flex" justifyContent="center" alignItems="center" minHeight="100px">
-              <Typography variant="h6" color="textSecondary">
+              <Typography variant="h6" color="textSecondary" className={isDark ? 'text-white' : ''}>
                 No orders available.
               </Typography>
             </Box>
           ) : (
-            <table className="orders-table">
+            <table className={`orders-table ${isDark ? 'text-white' : ''}`}>
               <thead>
                 <tr>
                   <th>Order ID</th>
@@ -192,16 +222,16 @@ useEffect(() => {
               <tbody>
                 {visibleOrders.map((order, index) => (
                   <tr key={order._id} className="order-row animate" style={{ animationDelay: `${index * 0.1}s` }}>
-                    <td>#{order.orderId || 'N/A'}</td>
-                    <td>{order.product?.productName || 'N/A'}</td> {/* Access product name */}
-                    <td>{order.quantity !== undefined && order.quantity !== null ? `${order.quantity} kg` : 'N/A'}</td>
-                    <td>{order.product?.price !== undefined && order.product?.price !== null && order.quantity !== undefined && order.quantity !== null ? `₹${order.product.price * order.quantity}` : 'N/A'}</td> {/* Calculate total price */}
-                    <td>{order.consumer?.name || 'N/A'}</td> {/* Access customer name */}
-                    <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}</td>
-                    <td>{order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'N/A'}</td>
+                    <td>{order.orderId}</td>
+                    <td>{order.product}</td>
+                    <td>{order.quantity}</td>
+                    <td>{order.price}</td>
+                    <td>{order.customer}</td>
+                    <td>{order.orderDate}</td>
+                    <td>{order.deliveryDate}</td>
                     <td>
-                      <span className={`status-badge status-${order.status?.toLowerCase() || 'unknown'}`}>
-                        {order.status || 'Unknown'}
+                      <span className={`status-badge status-${order.status?.toLowerCase() || 'unknown'} ${isDark ? 'dark' : ''}`}>
+                        {order.status}
                       </span>
                     </td>
                   </tr>

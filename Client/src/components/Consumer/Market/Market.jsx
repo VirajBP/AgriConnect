@@ -35,11 +35,12 @@ import {
     Snackbar,
     Alert
 } from '@mui/material';
-import { Search as SearchIcon, FilterList as FilterIcon, ShoppingCart as ShoppingCartIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Star as StarIcon, LocationOn as LocationIcon, Phone as PhoneIcon, Email as EmailIcon, Person as PersonIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Search as SearchIcon, FilterList as FilterIcon, ShoppingCart as ShoppingCartIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Star as StarIcon, LocationOn as LocationIcon, Phone as PhoneIcon, Email as EmailIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../Sidebar/Sidebar';
 import './Market.css';
 import noImage from '../../../assets/images/no-image.svg';
+import { FaUser } from 'react-icons/fa';
 
 // Define product images mapping
 const productImages = {
@@ -49,12 +50,12 @@ const productImages = {
         'Corn': '/images/products/crops/corn.jpg',
         'Cotton': '/images/products/crops/cotton.jpg',
         'Sugarcane': '/images/products/crops/sugarcane.jpg',
-        'Soybean': '/images/products/crops/Soyabean.jpg',
+        'Soybean': '/images/products/crops/soybean.jpg',
         'Maize': '/images/products/crops/corn.jpg',
         'Spinach': '/images/products/crops/Spinach.avif',
         'Tomato': '/images/products/crops/tomato.jpg',
         'Potato': '/images/products/crops/potato.jpg',
-        'Green Peppers': '/images/products/crops/GreenPepper.jpg',
+        'Green Peppers': '/images/products/crops/greenpepper.jpg',
         'Onion':'/images/products/crops/onion.jpeg',
         'Garlic':'/images/products/crops/garlic.webp',
     },
@@ -74,27 +75,23 @@ const Market = () => {
     const [recentListings, setRecentListings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userLocation, setUserLocation] = useState('');
     const [filters, setFilters] = useState({
+        category: 'all',
         minPrice: '',
         maxPrice: '',
-        location: '',
-        sortBy: 'latest',
-        organicOnly: false,
-        quality: '',
-        moisture: '',
-        transportRequired: false
+        searchQuery: ''
     });
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [openDialog, setOpenDialog] = useState(false);
-    const [quantity, setQuantity] = useState(1);
+    const [dialogOpen, setDialogOpen] = useState(false);
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
-        severity: 'success'
+        severity: 'info'
     });
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-    const [cartItems, setCartItems] = useState([]);
-    const [cartOpen, setCartOpen] = useState(false);
+    const [orderQuantity, setOrderQuantity] = useState('');
+    const [orderError, setOrderError] = useState('');
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -118,6 +115,11 @@ const Market = () => {
                     } else {
                         console.log('No market type selected, showing all products');
                         setFilteredProducts(productsWithCategory);
+                    }
+                    
+                    // Set user location if available in the first product's farmer location
+                    if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.location) {
+                        setUserLocation(productsWithCategory[0].farmer.location);
                     }
                     
                     console.log('All products:', productsWithCategory);
@@ -159,17 +161,12 @@ const Market = () => {
             const filtered = currentProducts.filter(product => {
                 const matchesSearch = !searchQuery || (
                     product.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    product.variety?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    product.farmer?.location?.toLowerCase().includes(searchQuery.toLowerCase())
+                    product.variety?.toLowerCase().includes(searchQuery.toLowerCase())
                 );
 
                 const matchesPrice = 
                     (!filters.minPrice || product.price >= Number(filters.minPrice)) &&
                     (!filters.maxPrice || product.price <= Number(filters.maxPrice));
-
-                const matchesLocation = 
-                    !filters.location || 
-                    product.farmer?.location?.toLowerCase() === filters.location.toLowerCase();
 
                 let matchesTypeSpecific = true;
                 if (marketType === 'crops') {
@@ -182,7 +179,7 @@ const Market = () => {
                         (!filters.transportRequired || product.transportAvailable);
                 }
 
-                return matchesSearch && matchesPrice && matchesLocation && matchesTypeSpecific;
+                return matchesSearch && matchesPrice && matchesTypeSpecific;
             });
 
             console.log('Final filtered products:', filtered);
@@ -191,21 +188,6 @@ const Market = () => {
 
         applyFilters();
     }, [products, marketType, searchQuery, filters]);
-
-    useEffect(() => {
-        const fetchCartItems = async () => {
-            try {
-                const response = await axios.get('/consumer/cart');
-                if (response.data.success) {
-                    setCartItems(response.data.data);
-                }
-            } catch (error) {
-                console.error('Error fetching cart items:', error);
-            }
-        };
-
-        fetchCartItems();
-    }, []);
 
     const handleMarketSelect = (type) => {
         console.log('Selected market type:', type);
@@ -255,130 +237,12 @@ const Market = () => {
 
     const handleViewDetails = (product) => {
         setSelectedProduct(product);
-        setOpenDialog(true);
-        setQuantity(1);
+        setDialogOpen(true);
     };
 
     const handleCloseDialog = () => {
-        setOpenDialog(false);
+        setDialogOpen(false);
         setSelectedProduct(null);
-    };
-
-    const handleQuantityChange = (event) => {
-        const value = parseInt(event.target.value);
-        if (value > 0 && value <= selectedProduct.availableQuantity) {
-            setQuantity(value);
-        }
-    };
-
-    const handleAddToCart = async () => {
-        try {
-            const cartResponse = await axios.post('/consumer/cart/add', {
-                productId: selectedProduct._id,
-                quantity: quantity
-            });
-
-            if (cartResponse.data.success) {
-                // Fetch updated cart items after adding
-                const response = await axios.get('/consumer/cart');
-                if (response.data.success) {
-                    setCartItems(response.data.data);
-                }
-                
-                setSnackbar({
-                    open: true,
-                    message: 'Product added to cart successfully',
-                    severity: 'success'
-                });
-                handleCloseDialog();
-            }
-        } catch (error) {
-            console.error('Error adding to cart:', error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.message || 'Error adding to cart',
-                severity: 'error'
-            });
-        }
-    };
-
-    const handleRemoveFromCart = async (productId) => {
-        try {
-            const response = await axios.delete(`/consumer/cart/remove/${productId}`);
-            if (response.data.success) {
-                // Update cart items after removal
-                const cartResponse = await axios.get('/consumer/cart');
-                if (cartResponse.data.success) {
-                    setCartItems(cartResponse.data.data);
-                }
-
-                setSnackbar({
-                    open: true,
-                    message: 'Product removed from cart',
-                    severity: 'success'
-                });
-            }
-        } catch (error) {
-            console.error('Error removing from cart:', error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.message || 'Error removing from cart',
-                severity: 'error'
-            });
-        }
-    };
-
-    const handlePlaceOrder = async (products) => {
-        try {
-            // Group products by farmer
-            const productsByFarmer = products.reduce((acc, product) => {
-                const farmerId = product.farmer._id;
-                if (!acc[farmerId]) {
-                    acc[farmerId] = {
-                        farmerId,
-                        products: [],
-                        totalAmount: 0
-                    };
-                }
-                acc[farmerId].products.push({
-                    productId: product._id,
-                    quantity: product.quantity,
-                    pricePerUnit: product.price
-                });
-                acc[farmerId].totalAmount += product.quantity * product.price;
-                return acc;
-            }, {});
-
-            // Create orders for each farmer
-            const orderPromises = Object.values(productsByFarmer).map(({ farmerId, products, totalAmount }) => 
-                axios.post('/consumer/orders/create', {
-                    farmerId,
-                    products,
-                    totalAmount,
-                    status: 'pending'
-                })
-            );
-
-            await Promise.all(orderPromises);
-
-            // Clear cart after successful order placement
-            await axios.post('/consumer/cart/clear');
-            setCartItems([]);
-            
-            setSnackbar({
-                open: true,
-                message: 'Orders placed successfully',
-                severity: 'success'
-            });
-            setCartOpen(false);
-        } catch (error) {
-            console.error('Error placing orders:', error);
-            setSnackbar({
-                open: true,
-                message: error.response?.data?.message || 'Error placing orders',
-                severity: 'error'
-            });
-        }
     };
 
     const handleCloseSnackbar = () => {
@@ -407,6 +271,62 @@ const Market = () => {
             : '/images/products/crops/default-crop.jpg';
     };
 
+    const handlePlaceOrder = async () => {
+        try {
+            if (!orderQuantity || orderQuantity <= 0) {
+                setOrderError('Please enter a valid quantity');
+                return;
+            }
+
+            if (orderQuantity > selectedProduct.quantity) {
+                setOrderError('Order quantity cannot exceed available quantity');
+                return;
+            }
+
+            const response = await axios.post('/consumer/orders', {
+                product: selectedProduct._id,
+                quantity: orderQuantity,
+                farmer: selectedProduct.farmer._id
+            });
+
+            if (response.data.success) {
+                setSnackbar({
+                    open: true,
+                    message: 'Order placed successfully!',
+                    severity: 'success'
+                });
+                
+                // Reset order quantity
+                setOrderQuantity('');
+                
+                // Close the current product dialog
+                handleCloseDialog();
+                
+                // Refresh the products list
+                const productsResponse = await axios.get('/consumer/market/products');
+                if (productsResponse.data.success) {
+                    const updatedProducts = productsResponse.data.data;
+                    setProducts(updatedProducts);
+                    
+                    // Update filtered products based on current market type
+                    if (marketType) {
+                        const filtered = updatedProducts.filter(product => product.category === marketType);
+                        setFilteredProducts(filtered);
+                    } else {
+                        setFilteredProducts(updatedProducts);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error placing order:', error);
+            setSnackbar({
+                open: true,
+                message: error.response?.data?.message || 'Error placing order',
+                severity: 'error'
+            });
+        }
+    };
+
     if (!marketType) {
         return (
             <div className="market-container">
@@ -416,24 +336,9 @@ const Market = () => {
                 />
                 <div className={`market-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-                        <Box sx={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            mb: 4
-                        }}>
-                            <Typography variant="h4" className="market-heading" gutterBottom>
-                                Select Market Type
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                startIcon={<ShoppingCartIcon />}
-                                onClick={() => setCartOpen(true)}
-                                sx={{ ml: 2 }}
-                            >
-                                Cart ({cartItems.length})
-                            </Button>
-                        </Box>
+                        <Typography variant="h4" className="market-heading" gutterBottom align="center">
+                            Select Market Type
+                        </Typography>
                         <Box sx={{ 
                             display: 'flex', 
                             justifyContent: 'center',
@@ -512,66 +417,6 @@ const Market = () => {
                         </Box>
                     </Container>
                 </div>
-
-                {/* Cart Drawer */}
-                <Drawer
-                    anchor="right"
-                    open={cartOpen}
-                    onClose={() => setCartOpen(false)}
-                    sx={{
-                        '& .MuiDrawer-paper': {
-                            width: '100%',
-                            maxWidth: 400,
-                            p: 2
-                        }
-                    }}
-                >
-                    <Box sx={{ p: 2 }}>
-                        <Typography variant="h6" gutterBottom>Shopping Cart</Typography>
-                        {cartItems.length === 0 ? (
-                            <Typography variant="body1" color="text.secondary">
-                                Your cart is empty
-                            </Typography>
-                        ) : (
-                            <>
-                                <List>
-                                    {cartItems.map((item) => (
-                                        <ListItem
-                                            key={item._id}
-                                            secondaryAction={
-                                                <IconButton 
-                                                    edge="end" 
-                                                    aria-label="delete"
-                                                    onClick={() => handleRemoveFromCart(item._id)}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            }
-                                        >
-                                            <ListItemText
-                                                primary={item.productName}
-                                                secondary={`${item.quantity} ${item.unit} × ₹${item.price}`}
-                                            />
-                                        </ListItem>
-                                    ))}
-                                </List>
-                                <Box sx={{ mt: 2 }}>
-                                    <Typography variant="h6" gutterBottom>
-                                        Total: ₹{cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)}
-                                    </Typography>
-                                    <Button
-                                        variant="contained"
-                                        fullWidth
-                                        onClick={() => handlePlaceOrder(cartItems)}
-                                        sx={{ mt: 2 }}
-                                    >
-                                        Place Order
-                                    </Button>
-                                </Box>
-                            </>
-                        )}
-                    </Box>
-                </Drawer>
             </div>
         );
     }
@@ -667,9 +512,8 @@ const Market = () => {
                             <TextField
                                 fullWidth
                                 variant="outlined"
-                                placeholder="Filter by city..."
-                                value={filters.location}
-                                onChange={(e) => setFilters({ ...filters, location: e.target.value })}
+                                value={userLocation}
+                                disabled
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
@@ -677,6 +521,7 @@ const Market = () => {
                                         </InputAdornment>
                                     )
                                 }}
+                                helperText="Showing products from farmers in your location"
                             />
                         </Grid>
                     </Grid>
@@ -736,6 +581,10 @@ const Market = () => {
                                                 <LocationIcon fontSize="small" sx={{ mr: 1 }} />
                                                 {product.farmer?.location || 'Location not specified'}
                                             </Typography>
+                                            <Typography variant="body2" color="text.secondary" display="flex" alignItems="center" gutterBottom>
+                                                <FaUser fontSize="small" style={{ marginRight: '8px' }} />
+                                                {product.farmer?.name || 'Unknown Farmer'}
+                                            </Typography>
                                             <Typography variant="body2" color="text.secondary" gutterBottom>
                                                 Available: {product.quantity || 0} {product.unit || 'kg'}
                                             </Typography>
@@ -746,7 +595,6 @@ const Market = () => {
                                             variant="contained"
                                             color="primary"
                                             fullWidth
-                                            startIcon={<ShoppingCartIcon />}
                                             onClick={() => handleViewDetails(product)}
                                             disabled={!product.quantity || product.quantity <= 0}
                                             sx={{
@@ -757,7 +605,7 @@ const Market = () => {
                                                 }
                                             }}
                                         >
-                                            Add to Cart
+                                            View Details
                                         </Button>
                                     </CardActions>
                                 </Card>
@@ -767,7 +615,7 @@ const Market = () => {
                 )}
 
                 <Dialog 
-                    open={openDialog} 
+                    open={dialogOpen} 
                     onClose={handleCloseDialog} 
                     maxWidth="md" 
                     fullWidth
@@ -818,8 +666,10 @@ const Market = () => {
                                             <Box sx={{ 
                                                 mt: 3,
                                                 p: 2, 
-                                                bgcolor: '#f5f5f5', 
-                                                borderRadius: 2
+                                                bgcolor: 'background.paper', 
+                                                borderRadius: 2,
+                                                border: '1px solid',
+                                                borderColor: 'divider'
                                             }}>
                                                 <Typography variant="h6" color="primary" gutterBottom>
                                                     ₹{selectedProduct.price}/{selectedProduct.unit || 'kg'}
@@ -827,102 +677,53 @@ const Market = () => {
                                                 <Typography variant="body1" gutterBottom>
                                                     Available Quantity: {selectedProduct.quantity || 0} {selectedProduct.unit || 'kg'}
                                                 </Typography>
-                                            </Box>
-
-                                            <Box sx={{ mt: 3 }}>
-                                                <Typography variant="h6" gutterBottom>
-                                                    Farmer Information
-                                                </Typography>
-                                                <Box sx={{ 
-                                                    mt: 2,
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: 1
-                                                }}>
-                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                        <PersonIcon fontSize="small" color="action" />
-                                                        <Typography variant="body1">
-                                                            {selectedProduct.farmer?.name || 'Name not available'}
-                                                        </Typography>
-                                                    </Box>
-                                                    <Box display="flex" alignItems="center" gap={1}>
-                                                        <LocationIcon fontSize="small" color="action" />
-                                                        <Typography variant="body1">
-                                                            {selectedProduct.farmer?.location || 'Location not available'}
-                                                        </Typography>
-                                                    </Box>
-                                                    {selectedProduct.farmer?.phoneNumber && (
-                                                        <Box display="flex" alignItems="center" gap={1}>
-                                                            <PhoneIcon fontSize="small" color="action" />
-                                                            <Typography variant="body1">
-                                                                {selectedProduct.farmer.phoneNumber}
-                                                            </Typography>
-                                                        </Box>
-                                                    )}
-                                                    {selectedProduct.farmer?.email && (
-                                                        <Box display="flex" alignItems="center" gap={1}>
-                                                            <EmailIcon fontSize="small" color="action" />
-                                                            <Typography variant="body1">
-                                                                {selectedProduct.farmer.email}
-                                                            </Typography>
-                                                        </Box>
-                                                    )}
+                                                <Box mt={2}>
+                                                    <Typography variant="body2" gutterBottom>
+                                                        <FaUser style={{ marginRight: '8px', verticalAlign: 'middle' }} />
+                                                        Farmer: {selectedProduct.farmer?.name || 'Unknown'}
+                                                    </Typography>
+                                                    <Typography variant="body2" gutterBottom>
+                                                        <LocationIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                                                        Location: {selectedProduct.farmer?.location || 'Not specified'}
+                                                    </Typography>
                                                 </Box>
                                             </Box>
 
-                                            <Box sx={{ mt: 3 }}>
+                                            <Box mt={3}>
+                                                <Typography variant="subtitle1" gutterBottom>
+                                                    Order Quantity ({selectedProduct.unit || 'kg'})
+                                                </Typography>
                                                 <TextField
                                                     type="number"
-                                                    label="Quantity"
-                                                    value={quantity}
-                                                    onChange={handleQuantityChange}
-                                                    inputProps={{ 
-                                                        min: 1, 
-                                                        max: selectedProduct.quantity || 0
-                                                    }}
                                                     fullWidth
+                                                    value={orderQuantity}
+                                                    onChange={(e) => {
+                                                        setOrderQuantity(e.target.value);
+                                                        setOrderError('');
+                                                    }}
+                                                    error={!!orderError}
+                                                    helperText={orderError}
+                                                    InputProps={{
+                                                        inputProps: { 
+                                                            min: 1,
+                                                            max: selectedProduct.quantity 
+                                                        }
+                                                    }}
                                                     sx={{ mb: 2 }}
                                                 />
-                                                <Box sx={{ display: 'flex', gap: 2 }}>
-                                                    <Button
-                                                        variant="outlined"
-                                                        color="primary"
-                                                        fullWidth
-                                                        startIcon={<ShoppingCartIcon />}
-                                                        onClick={handleAddToCart}
-                                                        disabled={!selectedProduct.quantity || selectedProduct.quantity <= 0}
-                                                    >
-                                                        Add to Cart
-                                                    </Button>
-                                                    <Button
-                                                        variant="contained"
-                                                        color="primary"
-                                                        fullWidth
-                                                        onClick={() => handlePlaceOrder([{ ...selectedProduct, quantity }])}
-                                                        disabled={!selectedProduct.quantity || selectedProduct.quantity <= 0}
-                                                        sx={{
-                                                            backgroundColor: '#1a237e',
-                                                            '&:hover': {
-                                                                backgroundColor: '#283593'
-                                                            }
-                                                        }}
-                                                    >
-                                                        Place Order
-                                                    </Button>
-                                                </Box>
+                                                <Button
+                                                    variant="contained"
+                                                    fullWidth
+                                                    onClick={handlePlaceOrder}
+                                                    disabled={!orderQuantity || orderQuantity <= 0 || orderQuantity > selectedProduct.quantity}
+                                                >
+                                                    Place Order
+                                                </Button>
                                             </Box>
                                         </Box>
                                     </Grid>
                                 </Grid>
                             </DialogContent>
-                            <DialogActions sx={{ p: 3, borderTop: '1px solid #e0e0e0' }}>
-                                <Button 
-                                    onClick={handleCloseDialog}
-                                    variant="outlined"
-                                >
-                                    Close
-                                </Button>
-                            </DialogActions>
                         </>
                     )}
                 </Dialog>

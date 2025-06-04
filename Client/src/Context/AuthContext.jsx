@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from '../utils/axios'; // Import the configured axios instance
+import { useTheme } from './ThemeContext';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { resetTheme } = useTheme();
 
     useEffect(() => {
         // Check if user is logged in on mount
@@ -86,6 +88,7 @@ export const AuthProvider = ({ children }) => {
 
     const logout = () => {
         localStorage.removeItem('token');
+        resetTheme(); // Reset theme when logging out
         setUser(null);
     };
 

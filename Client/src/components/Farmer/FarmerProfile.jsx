@@ -15,14 +15,6 @@ const FarmerProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { isDarkMode, toggleTheme } = useTheme();
-    const [isDark, setIsDark] = useState(false);
-
-useEffect(() => {
-    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
-    checkDark();
-    window.addEventListener('storage', checkDark); // In case theme is toggled elsewhere
-    return () => window.removeEventListener('storage', checkDark);
-  }, []);
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -128,7 +120,7 @@ useEffect(() => {
                 userType="farmer" 
                 onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
             />
-            <div className={`profile-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDark? 'dark': ''}`}>
+            <div className={`profile-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
                 <div className="profile-header">
                     <div className="profile-cover">
                         <div className="profile-avatar">
@@ -150,11 +142,11 @@ useEffect(() => {
                 </div>
 
                 <div className="profile-main">
-                    <div className={` ${isDark? 'profile-section-dark theme-section-dark': 'profile-section theme-section'} `}>
+                    <div className={`${isDarkMode ? 'profile-section-dark theme-section-dark' : 'profile-section theme-section'}`}>
                         <div className="section-header">
                             <h2>Theme Settings</h2>
                         </div>
-                        <div className={`${isDark? 'theme-toggle-dark': 'theme-toggle'}`}>
+                        <div className={`${isDarkMode ? 'theme-toggle-dark' : 'theme-toggle'}`}>
                             <div className="theme-info">
                                 <div className="theme-icon">
                                     {isDarkMode ? <FaMoon /> : <FaSun />}
@@ -173,15 +165,15 @@ useEffect(() => {
                         </div>
                     </div>
 
-                    <div className={`${isDark? 'profile-section-dark': 'profile-section'}`}>
-                        <div className={`section-header ${isDark? '': ''}`}>
+                    <div className={`${isDarkMode ? 'profile-section-dark' : 'profile-section'}`}>
+                        <div className={`section-header`}>
                             <h2>Personal Information</h2>
                         </div>
-                        <div className={`profile-fields `}>
+                        <div className={`profile-fields`}>
                             {Object.entries(editableFields).map(([field, config]) => (
-                                <div key={field} className={`${isDark? 'profile-field-dark': 'profile-field'}`}>
-                                    <div className="field-header ">
-                                        <div className="field-icon ">{config.icon}</div>
+                                <div key={field} className={`${isDarkMode ? 'profile-field-dark' : 'profile-field'}`}>
+                                    <div className="field-header">
+                                        <div className="field-icon">{config.icon}</div>
                                         <label>{config.label}</label>
                                     </div>
                                     {editMode[field] ? (
