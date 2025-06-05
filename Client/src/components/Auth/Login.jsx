@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from 'react';
-// import axios from '../../utils/axios';
-import axios from 'axios';
+import axios from '../../utils/axios';
 import { useNavigate, Link } from 'react-router-dom';
 import PasswordChangeAlert from './PasswordChangeAlert';
 import './Login.css';
-
-// Define API URL from environment variable
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -83,7 +79,7 @@ const Login = () => {
             console.log('Attempting login with:', { ...loginData, userType });
 
             const response = await axios.post(
-                `${API_URL}/auth/${userType}/login`,
+                `/auth/${userType}/login`,
                 loginData,
                 {
                     headers: {
