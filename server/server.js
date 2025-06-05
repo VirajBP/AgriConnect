@@ -13,10 +13,11 @@ require('./Model/Order');
 
 // Middleware
 app.use(cors({
-    origin: 'https://agri-connect-gamma.vercel.app/',
+    origin: 'https://agri-connect-gamma.vercel.app',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 
 // Parse JSON bodies
