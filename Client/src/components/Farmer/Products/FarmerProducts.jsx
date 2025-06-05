@@ -46,7 +46,7 @@ const ProductPage = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/farmer/products');
+        const response = await axios.get('/api/farmer/products');
         if (response.data.success) {
           setProducts(response.data.data);
         } else {
@@ -74,7 +74,7 @@ const ProductPage = () => {
   const handleAddProduct = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/farmer/products', newProduct);
+      const response = await axios.post('/api/farmer/products', newProduct);
       if (response.data.success) {
         setProducts([...products, response.data.data]);
         setShowAddProduct(false);
