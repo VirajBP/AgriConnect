@@ -7,7 +7,7 @@ const PasswordChangeAlert = ({ onClose }) => {
     const userType = localStorage.getItem('userType');
 
     const handleGoToProfile = () => {
-        navigate(`/${userType}/profile`);
+        navigate(`/api/${userType}/profile`);
         onClose();
     };
 
