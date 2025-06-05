@@ -99,7 +99,7 @@ const Market = () => {
         const fetchProducts = async () => {
             try {
                 console.log('Fetching products from API...');
-                const response = await axios.get('/consumer/market/products');
+                const response = await axios.get('/api/consumer/market/products');
                 console.log('API Response:', response.data);
                 
                 if (response.data.success) {
@@ -273,7 +273,7 @@ const Market = () => {
                 return;
             }
 
-            const response = await axios.post('/consumer/orders', {
+            const response = await axios.post('/api/consumer/orders', {
                 product: selectedProduct._id,
                 quantity: orderQuantity,
                 farmer: selectedProduct.farmer._id
@@ -293,7 +293,7 @@ const Market = () => {
                 handleCloseDialog();
                 
                 // Refresh the products list
-                const productsResponse = await axios.get('/consumer/market/products');
+                const productsResponse = await axios.get('/api/consumer/market/products');
                 if (productsResponse.data.success) {
                     const updatedProducts = productsResponse.data.data;
                     setProducts(updatedProducts);

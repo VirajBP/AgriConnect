@@ -27,7 +27,7 @@ useEffect(() => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('/farmer/orders');
+        const response = await axios.get('/api/farmer/orders');
         console.log("These are the orders", response.data.data);
         if (response.data.success) {
           setOrders(response.data.data);

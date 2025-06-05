@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
             const { id, type } = tokenData.user;
 
             // Fetch full user profile based on type and ID
-            const profileEndpoint = type === 'farmer' ? '/farmer/profile' : '/consumer/profile';
+            const profileEndpoint = type === 'farmer' ? '/api/farmer/profile' : '/api/consumer/profile';
             const response = await axios.get(profileEndpoint);
             
             if (response.data.success) {

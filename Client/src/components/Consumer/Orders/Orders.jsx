@@ -70,7 +70,7 @@ export default function ConsumerOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await axios.get('/consumer/orders');
+        const response = await axios.get('/api/consumer/orders');
         if (response.data.success) {
           setOrders(response.data.data);
         } else {

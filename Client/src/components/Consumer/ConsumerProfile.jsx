@@ -20,7 +20,7 @@ const ConsumerProfile = () => {
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                const response = await axios.get('/consumer/profile');
+                const response = await axios.get('/api/consumer/profile');
                 console.log(response.data)
                 if (response.data.success) {
                     setProfile(response.data.data);
@@ -106,7 +106,7 @@ const ConsumerProfile = () => {
             }
 
             try {
-                const response = await axios.put('/consumer/profile/update-password', {
+                const response = await axios.put('/api/consumer/profile/update-password', {
                     password: tempData.password
                 });
                 
@@ -127,7 +127,7 @@ const ConsumerProfile = () => {
         // Handle other fields
         if (editableFields[field].validation(tempData[field])) {
             try {
-                const response = await axios.put('/consumer/profile/update', {
+                const response = await axios.put('/api/consumer/profile/update', {
                     [field]: tempData[field]
                 });
                 

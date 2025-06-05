@@ -19,7 +19,7 @@ const FarmerProfile = () => {
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
-                const response = await axios.get('/farmer/profile');
+                const response = await axios.get('/api/farmer/profile');
                 if (response.data.success) {
                     setProfile(response.data.data);
                 } else {
@@ -76,7 +76,7 @@ const FarmerProfile = () => {
     const handleSave = async (field) => {
         if (editableFields[field].validation(tempData[field])) {
             try {
-                const response = await axios.put('/farmer/profile', {
+                const response = await axios.put('/api/farmer/profile', {
                     [field]: tempData[field]
                 });
                 if (response.data.success) {

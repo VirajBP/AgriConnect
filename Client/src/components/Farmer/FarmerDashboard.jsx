@@ -63,7 +63,7 @@ useEffect(() => {
                 const token = localStorage.getItem('token');
                 console.log('Token available:', !!token);
                 
-                const response = await axios.get('/farmer/dashboard');
+                const response = await axios.get('/api/farmer/dashboard');
                 console.log('Dashboard response:', response.data,'New response' , response.data.data);
                 
                 if (response.data.success) {
@@ -107,7 +107,7 @@ useEffect(() => {
 
         const fetchPendingOrders = async () => {
             try {
-                const response = await axios.get('/farmer/orders');
+                const response = await axios.get('/api/farmer/orders');
                 // console.log('This is the response of the pending orders', response.data)
                 // console.log('This is the response of the pending orders', response.data.data.stats.pendingOrders)
                 if (response.data.success) {
