@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../../utils/axios';
 import './ForgotPassword.css';
-
-// Define API URL from environment variable
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
@@ -31,7 +28,7 @@ const ForgotPassword = () => {
 
         try {
             const response = await axios.post(
-                `${API_URL}/auth/forgot-password`,
+                '/auth/forgot-password',
                 { email, userType },
                 {
                     headers: {
@@ -60,7 +57,7 @@ const ForgotPassword = () => {
 
         try {
             const response = await axios.post(
-                `${API_URL}/auth/verify-otp`,
+                '/auth/verify-otp',
                 { email, otp, userType },
                 {
                     headers: {
