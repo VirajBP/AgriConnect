@@ -656,15 +656,15 @@ const Market = () => {
                     open={dialogOpen} 
                     onClose={handleCloseDialog} 
                     maxWidth="md"
+                    fullWidth
                     PaperProps={{
                         sx: {
-                            borderRadius: 2,
+                            borderRadius: 3,
                             maxWidth: 700,
-                            height: 'auto',
-                            maxHeight: '85vh',
+                            maxHeight: '90vh',
                             bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
                             display: 'flex',
-                            flexDirection: 'column'
+                            flexDirection: 'column',
                         }
                     }}
                 >
@@ -672,21 +672,24 @@ const Market = () => {
                         <>
                             <DialogTitle 
                                 sx={{ 
-                                    borderBottom: '1px solid #e0e0e0',
+                                    borderBottom: '1px solid',
+                                    borderColor: isDarkMode ? '#333' : 'divider',
                                     p: 2,
-                                    flex: '0 0 auto'
+                                    fontWeight: 700,
+                                    fontSize: 24,
+                                    bgcolor: isDarkMode ? '#181818' : 'background.default',
+                                    color: isDarkMode ? '#fff' : 'inherit',
                                 }}
                             >
-                                <Typography variant="h5" fontWeight="600">
-                                    Product Details
-                                </Typography>
+                                Product Details
                             </DialogTitle>
                             <DialogContent sx={{ 
                                 p: 0,
-                                flex: '1 1 auto',
-                                overflow: 'hidden',
+                                flex: 1,
+                                overflowY: 'auto',
                                 display: 'flex',
-                                flexDirection: 'column'
+                                flexDirection: 'column',
+                                minHeight: 0
                             }}>
                                 <Grid container sx={{ flex: 1, minHeight: 0 }}>
                                     <Grid item xs={12}>
@@ -697,37 +700,25 @@ const Market = () => {
                                             sx={{
                                                 width: '100%',
                                                 height: 280,
-                                                objectFit: 'cover'
+                                                objectFit: 'cover',
+                                                borderRadius: 0
                                             }}
                                         />
                                     </Grid>
                                     <Grid item xs={12}>
                                         <Box sx={{ 
-                                            p: 2,
-                                            height: 'calc(100% - 280px)',
+                                            p: 3,
                                             display: 'flex',
-                                            flexDirection: 'column'
+                                            flexDirection: 'column',
+                                            gap: 2
                                         }}>
-                                            <Box sx={{ mb: 2 }}>
-                                                <Typography variant="h5" gutterBottom sx={{ 
-                                                    color: isDarkMode ? '#fff' : 'inherit',
-                                                    fontWeight: 600 
-                                                }}>
-                                                    {selectedProduct.productName}
-                                                </Typography>
-                                                <Typography variant="subtitle1" sx={{ 
-                                                    color: isDarkMode ? '#b0b0b0' : 'text.secondary'
-                                                }}>
-                                                    {selectedProduct.productVariety}
-                                                </Typography>
-                                            </Box>
-
-                                            <Box sx={{ 
-                                                display: 'flex', 
-                                                gap: 3,
-                                                mb: 2,
-                                                flexWrap: 'wrap'
-                                            }}>
+                                            <Typography variant="h5" fontWeight={700} gutterBottom sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
+                                                {selectedProduct.productName}
+                                            </Typography>
+                                            <Typography variant="subtitle1" sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary', mb: 1 }}>
+                                                {selectedProduct.productVariety}
+                                            </Typography>
+                                            <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 2 }}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <PersonIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary' }} />
                                                     <Typography sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
@@ -747,10 +738,8 @@ const Market = () => {
                                                     </Typography>
                                                 </Box>
                                             </Box>
-
                                             <Divider sx={{ my: 2, borderColor: isDarkMode ? '#333' : 'divider' }} />
-
-                                            <Grid container spacing={2} sx={{ mt: 'auto' }}>
+                                            <Grid container spacing={2}>
                                                 <Grid item xs={12} md={7}>
                                                     <Box sx={{ display: 'flex', gap: 4 }}>
                                                         <Box>
@@ -789,7 +778,7 @@ const Market = () => {
                                                                 },
                                                                 sx: {
                                                                     color: isDarkMode ? '#fff' : 'inherit',
-                                                                    bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                                                                    bgcolor: isDarkMode ? '#232323' : '#fff',
                                                                 }
                                                             }}
                                                             InputLabelProps={{
@@ -797,30 +786,11 @@ const Market = () => {
                                                                     color: isDarkMode ? '#b0b0b0' : 'inherit'
                                                                 }
                                                             }}
+                                                            sx={{ mb: 2 }}
                                                         />
-                                                        <Typography variant="h6" sx={{ mt: 1, mb: 1, textAlign: 'right' }}>
+                                                        <Typography variant="h6" sx={{ mt: 1, mb: 1, textAlign: 'right', color: isDarkMode ? '#fff' : 'inherit' }}>
                                                             Total: ₹{orderQuantity * selectedProduct.price || 0}
                                                         </Typography>
-                                                        <Button
-                                                            variant="contained"
-                                                            fullWidth
-                                                            onClick={handlePlaceOrder}
-                                                            disabled={!orderQuantity || orderQuantity <= 0 || orderQuantity > selectedProduct.quantity}
-                                                            sx={{
-                                                                py: 1,
-                                                                bgcolor: isDarkMode ? '#1a237e' : '#1a237e',
-                                                                color: '#fff',
-                                                                '&:hover': {
-                                                                    bgcolor: isDarkMode ? '#283593' : '#283593'
-                                                                },
-                                                                '&.Mui-disabled': {
-                                                                    bgcolor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.12)',
-                                                                    color: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.26)'
-                                                                }
-                                                            }}
-                                                        >
-                                                            Place Order
-                                                        </Button>
                                                     </Box>
                                                 </Grid>
                                             </Grid>
@@ -828,6 +798,22 @@ const Market = () => {
                                     </Grid>
                                 </Grid>
                             </DialogContent>
+                            <DialogActions sx={{
+                                position: 'sticky',
+                                bottom: 0,
+                                bgcolor: isDarkMode ? '#181818' : 'background.paper',
+                                borderTop: '1px solid',
+                                borderColor: isDarkMode ? '#333' : 'divider',
+                                p: 2,
+                                zIndex: 2
+                            }}>
+                                <Button onClick={handleCloseDialog} variant="outlined" color="secondary">
+                                    Cancel
+                                </Button>
+                                <Button onClick={handlePlaceOrder} variant="contained" color="primary" sx={{ minWidth: 120 }}>
+                                    Place Order
+                                </Button>
+                            </DialogActions>
                         </>
                     )}
                 </Dialog>
