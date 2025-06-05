@@ -91,7 +91,7 @@ const Signup = () => {
             console.log('Attempting signup with:', signupData);
 
             const response = await axios.post(
-                `${API_URL}/auth/${userType}/register`,
+                `${API_URL}/api/auth/${userType}/register`,
                 signupData,
                 {
                     headers: {
