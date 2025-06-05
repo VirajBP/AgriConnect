@@ -149,6 +149,13 @@ router.get('/orders', auth, async (req, res) => {
 
         console.log('Raw orders data:', JSON.stringify(orders, null, 2));
 
+        // Auto-complete confirmed orders whose delivery date has passed
+        const now = new Date();
+        await Order.updateMany(
+          { farmer: req.user.id, status: 'confirmed', deliveryDate: { $lt: now } },
+          { $set: { status: 'completed' } }
+        );
+
         // Transform orders to match frontend expectations
         const transformedOrders = orders.map(order => {
             const formatDate = (date) => {

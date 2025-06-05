@@ -188,6 +188,13 @@ router.get('/consumer/dashboard', auth, async (req, res) => {
         const validUpcomingOrders = upcomingOrders.filter(order => order.product && order.farmer);
         const validRecentOrders = recentOrders.filter(order => order.product && order.farmer);
 
+        // Auto-complete confirmed orders whose delivery date has passed
+        const now = new Date();
+        await Order.updateMany(
+          { consumer: req.user.id, status: 'confirmed', deliveryDate: { $lt: now } },
+          { $set: { status: 'completed' } }
+        );
+
         console.log('Dashboard data fetched successfully:', {
             stats: dashboard.stats,
             monthlySpending: dashboard.monthlySpending,

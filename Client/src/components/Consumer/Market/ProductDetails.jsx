@@ -331,9 +331,21 @@ const ProductDetails = () => {
                 </Grid>
 
                 {/* Order Dialog */}
-                <Dialog open={openDialog} onClose={handleCloseDialog}>
+                <Dialog 
+                    open={openDialog} 
+                    onClose={handleCloseDialog}
+                    maxWidth="xs"
+                    fullWidth
+                    PaperProps={{
+                        sx: {
+                            maxHeight: '80vh',
+                            display: 'flex',
+                            flexDirection: 'column',
+                        }
+                    }}
+                >
                     <DialogTitle>Place Order</DialogTitle>
-                    <DialogContent>
+                    <DialogContent sx={{ overflowY: 'auto', flex: 1, pb: 0 }}>
                         <Box sx={{ mt: 2 }}>
                             <TextField
                                 label="Quantity (kg)"
@@ -353,7 +365,7 @@ const ProductDetails = () => {
                             )}
                         </Box>
                     </DialogContent>
-                    <DialogActions>
+                    <DialogActions sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', zIndex: 1 }}>
                         <Button onClick={handleCloseDialog}>Cancel</Button>
                         <Button onClick={handlePlaceOrder} variant="contained" color="primary">
                             Place Order
