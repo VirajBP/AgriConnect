@@ -79,7 +79,7 @@ const Login = () => {
             console.log('Attempting login with:', { ...loginData, userType });
 
             const response = await axios.post(
-                `/auth/${userType}/login`,
+                `/api/auth/${userType}/login`,
                 loginData,
                 {
                     headers: {
