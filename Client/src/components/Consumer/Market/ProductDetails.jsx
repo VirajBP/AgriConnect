@@ -334,29 +334,45 @@ const ProductDetails = () => {
                 <Dialog 
                     open={openDialog} 
                     onClose={handleCloseDialog}
-                    maxWidth="xs"
+                    maxWidth="sm"
                     fullWidth
                     PaperProps={{
                         sx: {
-                            maxHeight: '80vh',
+                            maxHeight: '90vh',
                             display: 'flex',
                             flexDirection: 'column',
+                            borderRadius: 3,
+                            bgcolor: 'background.paper',
                         }
                     }}
                 >
-                    <DialogTitle>Place Order</DialogTitle>
-                    <DialogContent sx={{ overflowY: 'auto', flex: 1, pb: 0 }}>
-                        <Box sx={{ mt: 2 }}>
+                    <DialogTitle sx={{ fontWeight: 700, fontSize: 24, pb: 1, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+                        Place Order
+                    </DialogTitle>
+                    <DialogContent sx={{ overflowY: 'auto', flex: 1, p: 3, pb: 0 }}>
+                        <Box sx={{ mt: 1, mb: 2 }}>
+                            <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                                Enter the quantity you wish to order:
+                            </Typography>
                             <TextField
-                                label="Quantity (kg)"
+                                label="Order Quantity (kg)"
                                 type="number"
                                 fullWidth
                                 value={orderQuantity}
                                 onChange={(e) => setOrderQuantity(e.target.value)}
-                                InputProps={{ inputProps: { min: 1 } }}
+                                InputProps={{ inputProps: { min: 1, max: product.quantity } }}
+                                sx={{ mb: 2 }}
                             />
+                            <Box display="flex" alignItems="center" gap={1} mb={2}>
+                                <Typography variant="body2" color="text.secondary">
+                                    Available: <b>{product.quantity} kg</b>
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                    Price: <b>₹{product.price}/kg</b>
+                                </Typography>
+                            </Box>
                             {product.minimumOrder && (
-                                <Box display="flex" alignItems="center" gap={1} mt={1} color="warning.main">
+                                <Box display="flex" alignItems="center" gap={1} color="warning.main" mb={2}>
                                     <Warning fontSize="small" />
                                     <Typography variant="body2">
                                         Minimum order quantity: {product.minimumOrder}
@@ -365,9 +381,19 @@ const ProductDetails = () => {
                             )}
                         </Box>
                     </DialogContent>
-                    <DialogActions sx={{ position: 'sticky', bottom: 0, bgcolor: 'background.paper', zIndex: 1 }}>
-                        <Button onClick={handleCloseDialog}>Cancel</Button>
-                        <Button onClick={handlePlaceOrder} variant="contained" color="primary">
+                    <DialogActions sx={{
+                        position: 'sticky',
+                        bottom: 0,
+                        bgcolor: 'background.paper',
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                        p: 2,
+                        zIndex: 2
+                    }}>
+                        <Button onClick={handleCloseDialog} variant="outlined" color="secondary">
+                            Cancel
+                        </Button>
+                        <Button onClick={handlePlaceOrder} variant="contained" color="primary" sx={{ minWidth: 120 }}>
                             Place Order
                         </Button>
                     </DialogActions>
