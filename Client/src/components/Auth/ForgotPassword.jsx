@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './ForgotPassword.css';
 
@@ -8,11 +8,21 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Success
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [userType, setUserType] = useState('consumer');
+
+    useEffect(() => {
+        // Get user type from URL state or default to 'consumer'
+        const stateUserType = location.state?.userType;
+        if (stateUserType) {
+            setUserType(stateUserType);
+        }
+    }, [location]);
 
     const handleSendOTP = async (e) => {
         e.preventDefault();
@@ -21,8 +31,8 @@ const ForgotPassword = () => {
 
         try {
             const response = await axios.post(
-                `${API_URL}/api/auth/forgot-password`,
-                { email },
+                `${API_URL}/auth/forgot-password`,
+                { email, userType },
                 {
                     headers: {
                         'Content-Type': 'application/json'
@@ -50,8 +60,8 @@ const ForgotPassword = () => {
 
         try {
             const response = await axios.post(
-                `${API_URL}/api/auth/verify-otp`,
-                { email, otp },
+                `${API_URL}/auth/verify-otp`,
+                { email, otp, userType },
                 {
                     headers: {
                         'Content-Type': 'application/json'
@@ -61,10 +71,12 @@ const ForgotPassword = () => {
             
             if (response.data.success) {
                 localStorage.setItem('resetToken', response.data.resetToken);
+                localStorage.setItem('userType', response.data.userType);
                 setStep(3);
+                // Redirect to the appropriate dashboard after 2 seconds
                 setTimeout(() => {
-                    navigate('/login');
-                }, 3000);
+                    navigate(`/${response.data.userType}/dashboard`);
+                }, 2000);
             } else {
                 setError(response.data.message || 'Invalid OTP');
             }
@@ -84,7 +96,7 @@ const ForgotPassword = () => {
                     <p>
                         {step === 1 && 'Enter your email to receive a verification code'}
                         {step === 2 && 'Enter the verification code sent to your email'}
-                        {step === 3 && 'Success! You can now login and change your password'}
+                        {step === 3 && `Success! Redirecting to your ${userType} dashboard...`}
                     </p>
                 </div>
 
@@ -144,7 +156,7 @@ const ForgotPassword = () => {
                 {step === 3 && (
                     <div className="success-message">
                         <p>Password reset process completed successfully!</p>
-                        <p>Redirecting to login page...</p>
+                        <p>Redirecting to your dashboard...</p>
                     </div>
                 )}
 

@@ -221,7 +221,11 @@ const Login = () => {
                                     />
                                     Remember me
                                 </label>
-                                <Link to="/forgot-password" className="forgot-password">
+                                <Link 
+                                    to="/forgot-password" 
+                                    state={{ userType }}
+                                    className="forgot-password"
+                                >
                                     Forgot Password?
                                 </Link>
                             </div>

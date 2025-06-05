@@ -423,65 +423,58 @@ exports.login = async (req, res, next) => {
 
 exports.forgotPassword = async (req, res) => {
     try {
-        const { email, phoneNumber } = req.body;
+        const { email, userType } = req.body;
 
-        if (!email && !phoneNumber) {
+        if (!email || !userType) {
             return res.status(400).json({
                 success: false,
-                message: 'Either email or phone number is required'
+                message: 'Email and user type are required'
             });
         }
 
         let user = null;
-        let identifier = '';
-
-        if (email) {
-            // Check for consumer account
+        
+        // Find user based on userType
+        if (userType === 'consumer') {
             user = await Consumer.findOne({ email });
-            identifier = email;
+        } else if (userType === 'farmer') {
+            user = await Farmer.findOne({ email });
         } else {
-            // Check for farmer account
-            user = await Farmer.findOne({ phoneNumber });
-            identifier = phoneNumber;
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user type'
+            });
         }
 
         if (!user) {
             return res.status(404).json({
                 success: false,
-                message: 'No account found with the provided details'
+                message: `No ${userType} account found with this email`
             });
         }
 
         // Generate OTP
-        const otp = generateOTP();
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
         
         // Store OTP with timestamp (expires in 10 minutes)
-        otpStore.set(identifier, {
+        otpStore.set(email, {
             otp,
             timestamp: Date.now(),
             userId: user._id,
-            userType: email ? 'consumer' : 'farmer'
+            userType
         });
 
         try {
-            if (email) {
-                // Send OTP via email for consumers
-                await sendOTPEmail(email, otp);
-            } else {
-                // TODO: Implement SMS sending for farmers
-                // For now, just log the OTP
-                console.log(`[MOCK SMS] Sending OTP ${otp} to ${phoneNumber}`);
-            }
+            // Send OTP via email
+            await sendOTPEmail(email, otp);
             
             return res.json({
                 success: true,
-                message: email 
-                    ? 'OTP sent successfully to your email'
-                    : 'OTP sent successfully to your phone number'
+                message: 'OTP sent successfully to your email'
             });
         } catch (sendError) {
             console.error('Error sending OTP:', sendError);
-            otpStore.delete(identifier);
+            otpStore.delete(email);
             return res.status(500).json({
                 success: false,
                 message: 'Failed to send OTP. Please try again.'
@@ -498,18 +491,17 @@ exports.forgotPassword = async (req, res) => {
 
 exports.verifyOTP = async (req, res) => {
     try {
-        const { email, phoneNumber, otp } = req.body;
-        const identifier = email || phoneNumber;
+        const { email, otp, userType } = req.body;
 
-        if (!identifier || !otp) {
+        if (!email || !otp || !userType) {
             return res.status(400).json({
                 success: false,
-                message: 'Required fields missing'
+                message: 'Email, OTP, and user type are required'
             });
         }
 
         // Get stored OTP data
-        const storedData = otpStore.get(identifier);
+        const storedData = otpStore.get(email);
         
         if (!storedData) {
             return res.status(400).json({
@@ -518,9 +510,17 @@ exports.verifyOTP = async (req, res) => {
             });
         }
 
+        // Verify user type matches
+        if (storedData.userType !== userType) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user type'
+            });
+        }
+
         // Check if OTP is expired (10 minutes)
         if (Date.now() - storedData.timestamp > 10 * 60 * 1000) {
-            otpStore.delete(identifier);
+            otpStore.delete(email);
             return res.status(400).json({
                 success: false,
                 message: 'OTP expired'
@@ -546,7 +546,7 @@ exports.verifyOTP = async (req, res) => {
         );
 
         // Clear OTP
-        otpStore.delete(identifier);
+        otpStore.delete(email);
 
         return res.json({
             success: true,
