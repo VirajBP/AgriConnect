@@ -28,7 +28,7 @@ const ForgotPassword = () => {
 
         try {
             const response = await axios.post(
-                '/auth/forgot-password',
+                '/api/auth/forgot-password',
                 { email, userType },
                 {
                     headers: {
@@ -57,7 +57,7 @@ const ForgotPassword = () => {
 
         try {
             const response = await axios.post(
-                '/auth/verify-otp',
+                '/api/auth/verify-otp',
                 { email, otp, userType },
                 {
                     headers: {
