@@ -109,7 +109,7 @@ const ProductDetails = () => {
         const fetchProduct = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:5000/api/products/${productId}`);
+                const response = await axios.get(`/api/consumer/market/products/${productId}`);
                 setProduct(response.data.data);
             } catch (error) {
                 console.error('Error fetching product:', error);

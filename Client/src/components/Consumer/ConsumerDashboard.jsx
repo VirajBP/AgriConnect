@@ -53,7 +53,7 @@ const ConsumerDashboard = () => {
         const fetchDashboardData = async () => {
             try {
                 console.log('Fetching consumer dashboard data...');
-                const response = await axios.get('/api/consumer/dashboard');
+                const response = await axios.get('/api/consumer/consumer/dashboard');
                 console.log('Consumer dashboard response:', response.data);
 
                 if (response.data.success) {
