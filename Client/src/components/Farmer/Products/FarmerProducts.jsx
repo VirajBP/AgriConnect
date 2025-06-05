@@ -95,7 +95,7 @@ const ProductPage = () => {
   // Handle editing product
   const handleEditProduct = async (id, updatedData) => {
     try {
-      const response = await axios.put(`/farmer/products/${id}`, updatedData);
+      const response = await axios.put(`/api/farmer/products/${id}`, updatedData);
       if (response.data.success) {
         setProducts(products.map(product => 
           product._id === id ? response.data.data : product
@@ -112,7 +112,7 @@ const ProductPage = () => {
   const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const response = await axios.delete(`/farmer/products/${id}`);
+        const response = await axios.delete(`/api/farmer/products/${id}`);
         if (response.data.success) {
           setProducts(products.filter(product => product._id !== id));
         }

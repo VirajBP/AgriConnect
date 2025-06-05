@@ -65,7 +65,7 @@ useEffect(() => {
         return;
       }
 
-      const response = await axios.put(`/farmer/orders/${id}/status`, { 
+      const response = await axios.put(`/api/farmer/orders/${id}/status`, { 
         status,
         deliveryDate: null // Reset delivery date when rejecting
       });
@@ -111,7 +111,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await axios.put(`/farmer/orders/${selectedOrderId}/status`, {
+      const response = await axios.put(`/api/farmer/orders/${selectedOrderId}/status`, {
         status: 'confirmed',
         deliveryDate: deliveryDate
       });

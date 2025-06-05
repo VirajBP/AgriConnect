@@ -98,7 +98,7 @@ export default function ConsumerOrders() {
 
   const handleCancelOrder = async (orderId) => {
     try {
-      const response = await axios.put(`/consumer/orders/${orderId}/cancel`);
+      const response = await axios.put(`/api/consumer/orders/${orderId}/cancel`);
       if (response.data.success) {
         setOrders(orders.map(order => 
           order._id === orderId 
