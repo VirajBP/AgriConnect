@@ -32,6 +32,11 @@ const ProductPage = () => {
   const [isDark, setIsDark] = useState(false);
   
   const [products, setProducts] = useState([]);
+  const [catalog, setCatalog] = useState([]);
+  const [productSuggestions, setProductSuggestions] = useState([]);
+  const [varietySuggestions, setVarietySuggestions] = useState([]);
+  const [showProductSuggestions, setShowProductSuggestions] = useState(false);
+  const [showVarietySuggestions, setShowVarietySuggestions] = useState(false);
 
   const [newProduct, setNewProduct] = useState({
     productName: '',
@@ -41,26 +46,33 @@ const ProductPage = () => {
     estimatedDate: ''
   });
 
-  // Fetch products from backend
+  // Fetch products and catalog from backend
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/farmer/products');
-        if (response.data.success) {
-          setProducts(response.data.data);
-        } else {
-          setError(response.data.message || 'Failed to fetch products');
+        
+        // Fetch farmer's products
+        const productsResponse = await axios.get('/api/farmer/products');
+        if (productsResponse.data.success) {
+          setProducts(productsResponse.data.data);
         }
+        
+        // Fetch product catalog for suggestions
+        const catalogResponse = await axios.get('/api/farmer/catalog');
+        if (catalogResponse.data.success) {
+          setCatalog(catalogResponse.data.data);
+        }
+        
       } catch (err) {
-        console.error('Error fetching products:', err);
-        setError(err.response?.data?.message || 'Error fetching products');
+        console.error('Error fetching data:', err);
+        setError(err.response?.data?.message || 'Error fetching data');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -69,6 +81,42 @@ const ProductPage = () => {
     window.addEventListener('storage', checkDark); // In case theme is toggled elsewhere
     return () => window.removeEventListener('storage', checkDark);
   }, []);
+
+  // Handle product name input change with suggestions
+  const handleProductNameChange = (value) => {
+    setNewProduct({ ...newProduct, productName: value, productVariety: '' });
+    
+    if (value.length > 0) {
+      const suggestions = catalog
+        .filter(item => item.name.toLowerCase().includes(value.toLowerCase()))
+        .map(item => item.name)
+        .filter((name, index, arr) => arr.indexOf(name) === index) // Remove duplicates
+        .slice(0, 5);
+      setProductSuggestions(suggestions);
+      setShowProductSuggestions(suggestions.length > 0);
+    } else {
+      setShowProductSuggestions(false);
+    }
+  };
+
+  // Handle variety input change with suggestions
+  const handleVarietyChange = (value) => {
+    setNewProduct({ ...newProduct, productVariety: value });
+    
+    if (value.length > 0 && newProduct.productName) {
+      const suggestions = catalog
+        .filter(item => 
+          item.name.toLowerCase() === newProduct.productName.toLowerCase() &&
+          item.variety.toLowerCase().includes(value.toLowerCase())
+        )
+        .map(item => item.variety)
+        .slice(0, 5);
+      setVarietySuggestions(suggestions);
+      setShowVarietySuggestions(suggestions.length > 0);
+    } else {
+      setShowVarietySuggestions(false);
+    }
+  };
 
   // Handle adding new product
   const handleAddProduct = async (e) => {
@@ -85,6 +133,8 @@ const ProductPage = () => {
           price: '',
           estimatedDate: ''
         });
+        setShowProductSuggestions(false);
+        setShowVarietySuggestions(false);
       }
     } catch (err) {
       console.error('Error adding product:', err);
@@ -233,20 +283,61 @@ const ProductPage = () => {
           <div className="add-product-inline-form add-product-form">
             <h2>Add New Product</h2>
             <form onSubmit={handleAddProduct}>
-              <input
-                type="text"
-                placeholder="Product Name"
-                value={newProduct.productName}
-                onChange={(e) => setNewProduct({ ...newProduct, productName: e.target.value })}
-                required
-              />
-              <input
-                type="text"
-                placeholder="Product Variety"
-                value={newProduct.productVariety}
-                onChange={(e) => setNewProduct({ ...newProduct, productVariety: e.target.value })}
-                required
-              />
+              <div className="input-with-suggestions">
+                <input
+                  type="text"
+                  placeholder="Product Name (e.g., Tomato, Rice, Apple)"
+                  value={newProduct.productName}
+                  onChange={(e) => handleProductNameChange(e.target.value)}
+                  onFocus={() => newProduct.productName && setShowProductSuggestions(productSuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowProductSuggestions(false), 200)}
+                  required
+                />
+                {showProductSuggestions && (
+                  <div className="suggestions-dropdown">
+                    {productSuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="suggestion-item"
+                        onClick={() => {
+                          setNewProduct({ ...newProduct, productName: suggestion, productVariety: '' });
+                          setShowProductSuggestions(false);
+                        }}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="input-with-suggestions">
+                <input
+                  type="text"
+                  placeholder="Product Variety (e.g., Cherry, Basmati, Red Delicious)"
+                  value={newProduct.productVariety}
+                  onChange={(e) => handleVarietyChange(e.target.value)}
+                  onFocus={() => newProduct.productVariety && setShowVarietySuggestions(varietySuggestions.length > 0)}
+                  onBlur={() => setTimeout(() => setShowVarietySuggestions(false), 200)}
+                  required
+                />
+                {showVarietySuggestions && (
+                  <div className="suggestions-dropdown">
+                    {varietySuggestions.map((suggestion, index) => (
+                      <div
+                        key={index}
+                        className="suggestion-item"
+                        onClick={() => {
+                          setNewProduct({ ...newProduct, productVariety: suggestion });
+                          setShowVarietySuggestions(false);
+                        }}
+                      >
+                        {suggestion}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <input
                 type="number"
                 placeholder="Quantity (kg)"

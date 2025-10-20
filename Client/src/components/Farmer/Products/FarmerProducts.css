@@ -1158,3 +1158,54 @@ input:focus {
     opacity: 0.9;
     transform: translateY(-2px);
 }
+
+/* Autocomplete Suggestions */
+.input-with-suggestions {
+    position: relative;
+    width: 100%;
+}
+
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.suggestion-item:hover {
+    background-color: #f7fafc;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* Dark mode suggestions */
+.dark .suggestions-dropdown {
+    background: #2c2c2c;
+    border-color: #333;
+}
+
+.dark .suggestion-item {
+    color: #fff;
+    border-bottom-color: #333;
+}
+
+.dark .suggestion-item:hover {
+    background-color: #333;
+}

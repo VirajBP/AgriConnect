@@ -10,11 +10,11 @@ const updateDashboardStats = async (farmerId) => {
         // Convert farmerId to ObjectId
         const farmerObjectId = new mongoose.Types.ObjectId(farmerId);
 
-        // Get counts from database
-        const activeListings = await Product.countDocuments({ 
-            farmer: farmerObjectId,
-            quantity: { $gt: 0 }  // Only count products with available quantity
-        });
+        // Get counts from farmer's inventory
+        const farmer = await Farmer.findById(farmerObjectId);
+        const activeListings = farmer ? farmer.inventory.filter(item => 
+            item.isAvailable && item.quantity > 0
+        ).length : 0;
         
         const completedOrders = await Order.countDocuments({ 
             farmer: farmerObjectId, 
@@ -26,18 +26,14 @@ const updateDashboardStats = async (farmerId) => {
             status: { $in: ['pending', 'confirmed'] } 
         });
 
-        // Calculate total revenue and monthly revenue from completed orders
+        // Calculate total revenue from completed orders using totalPrice field
         const completedOrdersData = await Order.find({ 
             farmer: farmerObjectId, 
             status: 'completed' 
-        }).populate('product', 'price');
+        });
         
         const totalRevenue = completedOrdersData.reduce((sum, order) => {
-            // Calculate total price for this order: quantity * price per unit
-            const pricePerUnit = order.product?.price || 0;
-            const quantity = order.quantity || 0;
-            const orderTotal = pricePerUnit * quantity;
-            return sum + orderTotal;
+            return sum + (order.totalPrice || 0);
         }, 0);
 
         // Calculate monthly revenue for the last 4 months
@@ -48,7 +44,7 @@ const updateDashboardStats = async (farmerId) => {
             farmer: farmerObjectId,
             status: 'completed',
             createdAt: { $gte: fourMonthsAgo }
-        }).populate('product', 'price');
+        });
 
         // Initialize last 4 months with 0 revenue
         const monthlyRevenue = [];
@@ -62,14 +58,11 @@ const updateDashboardStats = async (farmerId) => {
             monthlyData.set(monthKey, 0);
         }
 
-        // Add revenue from orders
+        // Add revenue from orders using totalPrice
         monthlyOrders.forEach(order => {
             const date = new Date(order.createdAt);
             const monthKey = `${date.getFullYear()}-${date.getMonth() + 1}`;
-            // Calculate total price for this order: quantity * price per unit
-            const pricePerUnit = order.product?.price || 0;
-            const quantity = order.quantity || 0;
-            const orderTotal = pricePerUnit * quantity;
+            const orderTotal = order.totalPrice || 0;
 
             if (monthlyData.has(monthKey)) {
                 monthlyData.set(monthKey, monthlyData.get(monthKey) + orderTotal);
@@ -148,35 +141,20 @@ const updateDashboardStats = async (farmerId) => {
     }
 };
 
-// Helper function to sync farmer product array and dashboard stats
-const syncFarmerProducts = async (farmerId) => {
+// Helper function to sync farmer inventory and dashboard stats
+const syncFarmerInventory = async (farmerId) => {
     try {
-        // Convert farmerId to ObjectId
-        const farmerObjectId = new mongoose.Types.ObjectId(farmerId);
-
-        // Find all product IDs for the given farmer
-        const products = await Product.find({ farmer: farmerObjectId }).select('_id');
-        const productIds = products.map(product => product._id);
-
-        // Update the farmer's products array
-        await Farmer.findByIdAndUpdate(
-            farmerObjectId,
-            { products: productIds },
-            { new: true }
-        );
-        console.log(`Synced product array for farmer: ${farmerId}`);
-
-        // Update dashboard stats
+        // Update dashboard stats (inventory is already in farmer document)
         await updateDashboardStats(farmerId);
         console.log(`Synced dashboard stats for farmer: ${farmerId}`);
 
     } catch (error) {
-        console.error(`Error syncing products for farmer ${farmerId}:`, error);
-        throw error; // Re-throw the error to be handled by the caller
+        console.error(`Error syncing inventory for farmer ${farmerId}:`, error);
+        throw error;
     }
 };
 
 module.exports = {
     updateDashboardStats,
-    syncFarmerProducts
+    syncFarmerInventory
 }; 

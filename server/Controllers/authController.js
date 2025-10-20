@@ -4,7 +4,7 @@ const Farmer = require('../Model/Farmer');
 const Consumer = require('../Model/Consumer');
 const FarmerDashboard = require('../Model/FarmerDashboard');
 const ConsumerDashboard = require('../Model/ConsumerDashboard');
-const { syncFarmerProducts } = require('../Utils/farmerUtils');
+const { syncFarmerInventory } = require('../Utils/farmerUtils');
 const { sendOTPEmail } = require('../Utils/emailService');
 
 // Store OTP temporarily (in production, use Redis or similar)
@@ -394,11 +394,11 @@ exports.login = async (req, res, next) => {
         const token = generateToken(user, userType);
         console.log('Token generated for user:', user._id);
 
-        // If farmer, sync products and dashboard stats upon successful login
+        // If farmer, sync inventory and dashboard stats upon successful login
         if (userType === 'farmer') {
-            console.log('Syncing farmer products for user:', user._id);
-            await syncFarmerProducts(user._id);
-            console.log('Farmer products synced successfully for user:', user._id);
+            console.log('Syncing farmer inventory for user:', user._id);
+            await syncFarmerInventory(user._id);
+            console.log('Farmer inventory synced successfully for user:', user._id);
         }
 
         console.log(`Login successful for ${userType}:`, user._id, 'Responding with token and user data.');

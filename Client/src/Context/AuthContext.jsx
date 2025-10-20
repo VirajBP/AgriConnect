@@ -13,7 +13,15 @@ export const AuthProvider = ({ children }) => {
         // Check if user is logged in on mount
         const token = localStorage.getItem('token');
         if (token) {
-            fetchUserData(token);
+            // Add timeout to prevent hanging
+            const timeoutId = setTimeout(() => {
+                console.warn('Auth check timed out - continuing without authentication');
+                setLoading(false);
+            }, 5000); // 5 second timeout
+            
+            fetchUserData(token).finally(() => {
+                clearTimeout(timeoutId);
+            });
         } else {
             setLoading(false);
         }
@@ -25,9 +33,15 @@ export const AuthProvider = ({ children }) => {
             const tokenData = JSON.parse(atob(token.split('.')[1]));
             const { id, type } = tokenData.user;
 
-            // Fetch full user profile based on type and ID
+            // Fetch full user profile based on type and ID with timeout
             const profileEndpoint = type === 'farmer' ? '/api/farmer/profile' : '/api/consumer/profile';
-            const response = await axios.get(profileEndpoint);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+            
+            const response = await axios.get(profileEndpoint, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
             
             if (response.data.success) {
                 // Set user data including name
@@ -38,7 +52,11 @@ export const AuthProvider = ({ children }) => {
                 setUser(null);
             }
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            if (error.name === 'AbortError') {
+                console.warn('Auth request timed out - server may be down');
+            } else {
+                console.error('Error fetching user data:', error);
+            }
             localStorage.removeItem('token'); // Clear invalid token
             setUser(null);
         } finally {

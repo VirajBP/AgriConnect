@@ -15,13 +15,13 @@ const updateMonthlySpending = async (consumerId) => {
         const completedOrders = await Order.find({
             consumer: consumerId,
             status: 'completed'
-        }).populate('product');
+        });
 
         // Group orders by month and calculate total spending
         const monthlySpending = {};
         completedOrders.forEach(order => {
             const monthYear = new Date(order.createdAt).toLocaleString('en-US', { month: 'long', year: 'numeric' });
-            const amount = order.product ? (order.quantity * order.product.price) : 0;
+            const amount = order.totalPrice || 0;
             monthlySpending[monthYear] = (monthlySpending[monthYear] || 0) + amount;
         });
 
@@ -63,34 +63,28 @@ const updateDashboardStats = async (consumerId) => {
             status: { $in: ['pending', 'confirmed'] } 
         });
 
-        // Calculate total spent
+        // Calculate total spent using totalPrice field
         const completedOrdersData = await Order.find({ 
             consumer: consumerId, 
             status: 'completed' 
-        }).populate('product');
+        });
         
         const totalSpent = completedOrdersData.reduce((sum, order) => {
-            // Ensure product and price exist before calculating
-            if (order.product && order.product.price !== undefined) {
-                return sum + (order.quantity * order.product.price);
-            }
-            return sum; // Skip if product or price is missing
+            return sum + (order.totalPrice || 0);
         }, 0);
 
-        // Get favorite products
+        // Get favorite products from orders
         const productOrders = await Order.aggregate([
             { $match: { consumer: consumerId } },
             { $group: { 
-                _id: '$product', 
+                _id: '$productName', 
                 count: { $sum: 1 } 
             }},
             { $sort: { count: -1 } },
             { $limit: 5 }
         ]);
 
-        const favoriteProducts = await Product.find({
-            _id: { $in: productOrders.map(p => p._id) }
-        }).select('productName');
+        const favoriteProducts = productOrders.map(p => p._id);
 
         // Update monthly spending data
         await updateMonthlySpending(consumerId);
@@ -105,7 +99,7 @@ const updateDashboardStats = async (consumerId) => {
                     completedOrders,
                     pendingOrders
                 },
-                favoriteProducts: favoriteProducts.map(p => p.productName)
+                favoriteProducts: favoriteProducts
             },
             { new: true, upsert: true }
         );
@@ -162,7 +156,6 @@ router.get('/consumer/dashboard', auth, async (req, res) => {
             status: { $in: ['pending', 'confirmed'] }
         })
         .populate('farmer', 'name')
-        .populate('product', 'productName')
         .lean(); // Use lean() for better performance
 
         // Get upcoming orders with error handling
@@ -172,21 +165,19 @@ router.get('/consumer/dashboard', auth, async (req, res) => {
             status: { $in: ['pending', 'confirmed'] }
         })
         .populate('farmer', 'name')
-        .populate('product', 'productName')
         .lean();
 
         // Get recent orders with error handling
         const recentOrders = await Order.find({ consumer: req.user.id })
             .populate('farmer', 'name')
-            .populate('product', 'productName')
             .sort({ createdAt: -1 })
             .limit(3)
             .lean();
 
-        // Filter out orders with missing product or farmer data
-        const validTodayOrders = todayOrders.filter(order => order.product && order.farmer);
-        const validUpcomingOrders = upcomingOrders.filter(order => order.product && order.farmer);
-        const validRecentOrders = recentOrders.filter(order => order.product && order.farmer);
+        // Filter out orders with missing farmer data
+        const validTodayOrders = todayOrders.filter(order => order.farmer);
+        const validUpcomingOrders = upcomingOrders.filter(order => order.farmer);
+        const validRecentOrders = recentOrders.filter(order => order.farmer);
 
         // Auto-complete confirmed orders whose delivery date has passed
         const now = new Date();
@@ -212,20 +203,20 @@ router.get('/consumer/dashboard', auth, async (req, res) => {
                 favoriteProducts: dashboard.favoriteProducts,
                 todayOrders: validTodayOrders.map(order => ({
                     _id: order._id,
-                    productName: order.product?.productName || 'Product Removed',
+                    productName: order.productName || 'Product Removed',
                     quantity: order.quantity,
                     farmerName: order.farmer?.name || 'Farmer Unavailable'
                 })),
                 upcomingOrders: validUpcomingOrders.map(order => ({
                     _id: order._id,
-                    productName: order.product?.productName || 'Product Removed',
+                    productName: order.productName || 'Product Removed',
                     quantity: order.quantity,
                     deliveryDate: order.deliveryDate,
                     farmerName: order.farmer?.name || 'Farmer Unavailable'
                 })),
                 recentOrders: validRecentOrders.map(order => ({
                     _id: order._id,
-                    productName: order.product?.productName || 'Product Removed',
+                    productName: order.productName || 'Product Removed',
                     quantity: order.quantity,
                     status: order.status,
                     farmerName: order.farmer?.name || 'Farmer Unavailable',
@@ -255,7 +246,6 @@ router.get('/orders', auth, async (req, res) => {
         }
 
         const orders = await Order.find({ consumer: req.user.id })
-            .populate('product', 'productName variety unit price imageUrl')
             .populate('farmer', 'name location phoneNumber email')
             .sort({ createdAt: -1 });
 
@@ -357,13 +347,44 @@ router.get('/market/products', auth, async (req, res) => {
             //     farmerIds: localFarmers.map(f => f._id)
             // });
 
-        // Find all available products from local farmers
-        const availableProducts = await Product.find({ 
-            farmer: { $in: localFarmers.map(f => f._id) },
-            quantity: { $gt: 0 }  // Only get products with quantity > 0
+        // Get available products from local farmers' inventories
+        const farmersWithInventory = await Farmer.find({ 
+            _id: { $in: localFarmers.map(f => f._id) },
+            'inventory.isAvailable': true,
+            'inventory.quantity': { $gt: 0 }
         })
-        .populate('farmer', 'name location phoneNumber email')
-        .sort({ createdAt: -1 });
+        .populate('inventory.productId', 'name variety category image')
+        .select('name location phoneNumber email inventory');
+
+        // Flatten inventory items into products array
+        const availableProducts = [];
+        farmersWithInventory.forEach(farmer => {
+            farmer.inventory.forEach(item => {
+                if (item.isAvailable && item.quantity > 0) {
+                    availableProducts.push({
+                        _id: item._id,
+                        productName: item.productId.name,
+                        productVariety: item.productId.variety,
+                        category: item.productId.category,
+                        quantity: item.quantity,
+                        price: item.price,
+                        estimatedDate: item.estimatedHarvestDate,
+                        qualityGrade: item.qualityGrade,
+                        image: item.productId.image,
+                        farmer: {
+                            _id: farmer._id,
+                            name: farmer.name,
+                            location: farmer.location,
+                            phoneNumber: farmer.phoneNumber,
+                            email: farmer.email
+                        }
+                    });
+                }
+            });
+        });
+
+        // Sort by most recent
+        availableProducts.sort((a, b) => new Date(b.estimatedDate) - new Date(a.estimatedDate));
 
         // console.log('Available products:', {
         //     count: availableProducts.length,
@@ -475,47 +496,63 @@ router.post('/orders', auth, async (req, res) => {
             });
         }
 
-        // Check if product exists and has sufficient quantity
-        const product = await Product.findById(productId);
-        if (!product) {
+        // Find the farmer and inventory item
+        const farmer = await Farmer.findById(farmerId);
+        if (!farmer) {
             return res.status(404).json({
                 success: false,
-                message: 'Product not found'
+                message: 'Farmer not found'
             });
         }
 
-        if (product.quantity < quantity) {
+        const inventoryItem = farmer.inventory.id(productId);
+        if (!inventoryItem || !inventoryItem.isAvailable) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found or not available'
+            });
+        }
+
+        if (inventoryItem.quantity < quantity) {
             return res.status(400).json({
                 success: false,
                 message: 'Insufficient product quantity'
             });
         }
 
+        // Get product details for order
+        const productDetails = await Product.findById(inventoryItem.productId);
+        const productName = productDetails ? `${productDetails.name} - ${productDetails.variety}` : 'Unknown Product';
+
         // Create new order
         const order = new Order({
-            orderId: `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`, // Generate unique orderId
+            orderId: `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`,
             consumer: req.user.id,
             farmer: farmerId,
-            product: productId,
+            product: inventoryItem.productId, // Reference to product catalog
+            productName: productName, // Store product name for easy access
             quantity: quantity,
             status: 'pending',
             orderDate: new Date(),
-            totalPrice: product.price * quantity
+            totalPrice: inventoryItem.price * quantity
         });
 
         // Save the order
         await order.save();
 
-        // Update product quantity
-        product.quantity -= quantity;
-        await product.save();
+        // Update inventory quantity
+        inventoryItem.quantity -= quantity;
+        if (inventoryItem.quantity === 0) {
+            inventoryItem.isAvailable = false;
+        }
+        await farmer.save();
 
         // Update consumer dashboard stats
         await updateDashboardStats(req.user.id);
 
         // Return the created order with populated fields
         const populatedOrder = await Order.findById(order._id)
-            .populate('product', 'productName price')
+            .populate('product', 'name variety')
             .populate('farmer', 'name');
 
         res.status(201).json({

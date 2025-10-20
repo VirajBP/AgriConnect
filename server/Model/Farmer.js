@@ -22,9 +22,39 @@ const farmerSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    products: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product'
+    inventory: [{
+        productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Product',
+            required: true
+        },
+        quantity: {
+            type: Number,
+            required: true,
+            min: 0
+        },
+        price: {
+            type: Number,
+            required: true,
+            min: 0
+        },
+        estimatedHarvestDate: {
+            type: Date,
+            required: true
+        },
+        isAvailable: {
+            type: Boolean,
+            default: true
+        },
+        qualityGrade: {
+            type: String,
+            enum: ['A', 'B', 'C'],
+            default: 'A'
+        },
+        addedDate: {
+            type: Date,
+            default: Date.now
+        }
     }]
 }, { timestamps: true });
 

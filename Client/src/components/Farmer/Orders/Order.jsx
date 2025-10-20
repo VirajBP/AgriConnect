@@ -173,12 +173,13 @@ useEffect(() => {
 
 
   return (
-    <div className="orders-container">
+    <div className="dashboard-container">
       <Sidebar 
         userType="farmer" 
         onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDark ? 'dark' : ''}`}>
+      <div className={`dashboard-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDark ? 'dark' : ''}`}>
+        <div className="orders-container">
         <h1 className="orders-heading">Pending Orders</h1>
         <div className={`${isDark ? 'table-container-black' : 'table-container'}`}>
           {visibleOrders.filter(order => order.status === "pending").length === 0 ? ( 
@@ -327,6 +328,7 @@ useEffect(() => {
             </Button>
           </DialogActions>
         </Dialog>
+        </div>
       </div>
     </div>
   );
