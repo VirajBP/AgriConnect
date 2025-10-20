@@ -15,6 +15,7 @@ const ConsumerProfile = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [profileComplete, setProfileComplete] = useState(true);
     const { isDarkMode, toggleTheme } = useTheme();
 
     useEffect(() => {
@@ -24,6 +25,13 @@ const ConsumerProfile = () => {
                 console.log(response.data)
                 if (response.data.success) {
                     setProfile(response.data.data);
+                    
+                    // Check if profile is complete
+                    const requiredFields = ['name', 'email', 'phoneNumber', 'location', 'address', 'type'];
+                    const isComplete = requiredFields.every(field => 
+                        response.data.data[field] && response.data.data[field].toString().trim() !== ''
+                    );
+                    setProfileComplete(isComplete);
                 } else {
                     setError(response.data.message || 'Failed to fetch profile data');
                 }
@@ -76,6 +84,18 @@ const ConsumerProfile = () => {
             validation: value => {
                 // Password must be at least 6 characters long and contain at least one number
                 return value?.length >= 6 && /\d/.test(value);
+            }
+        },
+        type: {
+            label: 'Consumer Type',
+            type: 'select',
+            icon: <FaShoppingBag />,
+            validation: value => {
+                const validTypes = [
+                    'Restaurant', 'Supermarket', 'Food Processing', 'Healthcare',
+                    'Events', 'NGO', 'Hotel', 'Catering', 'Educational Institution', 'Corporate Cafeteria'
+                ];
+                return validTypes.includes(value);
             }
         }
     };
@@ -132,9 +152,18 @@ const ConsumerProfile = () => {
                 });
                 
                 if (response.data.success) {
-                    setProfile({ ...profile, [field]: tempData[field] });
+                    const updatedProfile = { ...profile, [field]: tempData[field] };
+                    setProfile(updatedProfile);
                     setEditMode({ ...editMode, [field]: false });
                     setTempData({ ...tempData, [field]: '' });
+                    
+                    // Check if profile is now complete
+                    const requiredFields = ['name', 'email', 'phoneNumber', 'location', 'address', 'type'];
+                    const isComplete = requiredFields.every(field => 
+                        updatedProfile[field] && updatedProfile[field].toString().trim() !== ''
+                    );
+                    setProfileComplete(isComplete);
+                    
                     alert('Profile updated successfully!');
                 } else {
                     alert(response.data.message || 'Failed to update profile');
@@ -195,6 +224,23 @@ const ConsumerProfile = () => {
                         </div>
 
                         <div className="profile-main">
+                            {/* Profile Completion Banner */}
+                            {!profileComplete && (
+                                <div className={`${isDarkMode ? 'profile-section-dark' : 'profile-section'}`} style={{
+                                    background: isDarkMode ? 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)' : 'linear-gradient(135deg, #ff9800 0%, #f57c00 100%)',
+                                    color: 'white',
+                                    marginBottom: '1.5rem'
+                                }}>
+                                    <div className="section-header" style={{ borderBottom: 'none', marginBottom: '1rem' }}>
+                                        <h2 style={{ color: 'white', margin: 0 }}>Complete Your Profile</h2>
+                                    </div>
+                                    <p style={{ margin: 0, fontSize: '1.1rem', opacity: 0.9 }}>
+                                        Please complete all required fields in your profile to access the full features of AgriConnect.
+                                        Missing information may prevent you from placing orders or accessing certain services.
+                                    </p>
+                                </div>
+                            )}
+                            
                             {/* Theme Settings Section */}
                             <div className={`${isDarkMode ? 'profile-section-dark theme-section-dark' : 'profile-section theme-section'}`}>
                                 <div className="section-header">
@@ -397,6 +443,62 @@ const ConsumerProfile = () => {
                                                     <div className={`field-value ${isDarkMode? "text-white":"text-black"}`}>
                                                         <span className={`${isDarkMode?"text-white" : "text-black"}`}>{profile.address}</span>
                                                         <button className="edit-btn" onClick={() => handleEdit('address')}>
+                                                            <FaEdit />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Consumer Type Field */}
+                                    <div className={`${isDarkMode ? 'profile-field-dark' : 'profile-field'}`}>
+                                        <div className="field-content">
+                                            <div className="field-icon">
+                                                <FaShoppingBag />
+                                            </div>
+                                            <div className="field-info">
+                                                <label>Consumer Type</label>
+                                                {editMode.type ? (
+                                                    <div className="field-edit">
+                                                        <select
+                                                            value={tempData.type || profile.type}
+                                                            onChange={(e) => handleInputChange('type', e.target.value)}
+                                                            style={{
+                                                                flex: 1,
+                                                                padding: '0.75rem',
+                                                                border: '1px solid var(--border-color)',
+                                                                borderRadius: '6px',
+                                                                fontSize: '1rem',
+                                                                color: 'var(--text-color)',
+                                                                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff'
+                                                            }}
+                                                        >
+                                                            <option value="">Select Consumer Type</option>
+                                                            <option value="Restaurant">Restaurant</option>
+                                                            <option value="Supermarket">Supermarket</option>
+                                                            <option value="Food Processing">Food Processing</option>
+                                                            <option value="Healthcare">Healthcare</option>
+                                                            <option value="Events">Events</option>
+                                                            <option value="NGO">NGO</option>
+                                                            <option value="Hotel">Hotel</option>
+                                                            <option value="Catering">Catering</option>
+                                                            <option value="Educational Institution">Educational Institution</option>
+                                                            <option value="Corporate Cafeteria">Corporate Cafeteria</option>
+                                                        </select>
+                                                        <div className="edit-actions">
+                                                            <button className="action-btn save" onClick={() => handleSave('type')}>
+                                                                <FaCheck />
+                                                            </button>
+                                                            <button className="action-btn cancel" onClick={() => handleCancel('type')}>
+                                                                <FaTimes />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className={`field-value ${isDarkMode? "text-white":"text-black"}`}>
+                                                        <span className={`${isDarkMode?"text-white" : "text-black"}`}>{profile.type}</span>
+                                                        <button className="edit-btn" onClick={() => handleEdit('type')}>
                                                             <FaEdit />
                                                         </button>
                                                     </div>

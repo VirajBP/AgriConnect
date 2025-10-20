@@ -94,8 +94,14 @@ const Login = () => {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('userType', userType);
                 
-                // Force a full page reload after setting localStorage
-                window.location.href = `/${userType}/dashboard`;
+                // Check profile completion for consumers
+                if (userType === 'consumer' && response.data.profileComplete === false) {
+                    // Redirect to profile page if profile is incomplete
+                    window.location.href = '/consumer/profile';
+                } else {
+                    // Redirect to dashboard if profile is complete or user is farmer
+                    window.location.href = `/${userType}/dashboard`;
+                }
             }
         } catch (err) {
             console.error('Login error:', err.response || err);

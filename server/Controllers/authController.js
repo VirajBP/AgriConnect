@@ -401,17 +401,25 @@ exports.login = async (req, res, next) => {
             console.log('Farmer inventory synced successfully for user:', user._id);
         }
 
+        // Check profile completion for consumer
+        let profileComplete = true;
+        if (userType === 'consumer') {
+            const requiredFields = ['name', 'email', 'phoneNumber', 'location', 'address', 'type'];
+            profileComplete = requiredFields.every(field => user[field] && user[field].toString().trim() !== '');
+        }
+
         console.log(`Login successful for ${userType}:`, user._id, 'Responding with token and user data.');
         res.json({
             success: true,
             token,
+            profileComplete,
             user: {
                 id: user._id,
                 name: user.name,
                 phoneNumber: user.phoneNumber,
                 location: user.location,
                 type: userType,
-                ...(userType === 'consumer' && { email: user.email })
+                ...(userType === 'consumer' && { email: user.email, consumerType: user.type })
             }
         });
 
