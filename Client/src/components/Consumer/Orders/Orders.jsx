@@ -100,11 +100,11 @@ export default function ConsumerOrders() {
     try {
       const response = await axios.put(`/api/consumer/orders/${orderId}/cancel`);
       if (response.data.success) {
-        setOrders(orders.map(order => 
-          order._id === orderId 
-            ? { ...order, status: 'Cancelled' }
-            : order
-        ));
+        // Refresh orders from server to get updated data
+        const ordersResponse = await axios.get('/api/consumer/orders');
+        if (ordersResponse.data.success) {
+          setOrders(ordersResponse.data.data);
+        }
       }
     } catch (error) {
       console.error('Error cancelling order:', error);
