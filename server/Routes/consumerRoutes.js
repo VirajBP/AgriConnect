@@ -247,6 +247,7 @@ router.get('/orders', auth, async (req, res) => {
 
         const orders = await Order.find({ consumer: req.user.id })
             .populate('farmer', 'name location phoneNumber email')
+            .populate('product', 'name variety')
             .sort({ createdAt: -1 });
 
         if (!orders) {
@@ -256,9 +257,56 @@ router.get('/orders', auth, async (req, res) => {
             });
         }
 
+        // Transform orders to match frontend expectations
+        const transformedOrders = orders.map(order => {
+            // Handle both old format (productName string) and new format (populated product)
+            let productInfo = {
+                productName: 'Product Removed',
+                variety: '-',
+                unit: 'kg'
+            };
+
+            if (order.product && order.product.name) {
+                // New format with populated product
+                productInfo = {
+                    productName: order.product.name,
+                    variety: order.product.variety || '-',
+                    unit: 'kg'
+                };
+            } else if (order.productName) {
+                // Old format with productName string
+                const nameParts = order.productName.split(' - ');
+                productInfo = {
+                    productName: nameParts[0] || order.productName,
+                    variety: nameParts[1] || '-',
+                    unit: 'kg'
+                };
+            }
+
+            return {
+                _id: order._id,
+                orderId: order.orderId,
+                product: productInfo,
+                quantity: order.quantity,
+                totalPrice: order.totalPrice,
+                status: order.status,
+                orderDate: order.orderDate,
+                createdAt: order.createdAt,
+                deliveryDate: order.deliveryDate,
+                expectedDelivery: order.deliveryDate,
+                farmer: order.farmer ? {
+                    _id: order.farmer._id,
+                    name: order.farmer.name,
+                    location: order.farmer.location,
+                    phoneNumber: order.farmer.phoneNumber,
+                    email: order.farmer.email
+                } : null
+            };
+        });
+
         res.json({
             success: true,
-            data: orders
+            data: transformedOrders
         });
     } catch (error) {
         console.error('Error fetching consumer orders:', error);
@@ -285,12 +333,22 @@ router.put('/orders/:orderId/cancel', auth, async (req, res) => {
             });
         }
 
+        // Update order status
         order.status = 'cancelled';
         await order.save();
 
+        // Update dashboard stats
+        await updateDashboardStats(req.user.id);
+
+        // Return updated order with populated fields
+        const updatedOrder = await Order.findById(order._id)
+            .populate('farmer', 'name location phoneNumber email')
+            .populate('product', 'name variety');
+
         res.json({
             success: true,
-            message: 'Order cancelled successfully'
+            message: 'Order cancelled successfully',
+            data: updatedOrder
         });
     } catch (error) {
         console.error('Error cancelling order:', error);

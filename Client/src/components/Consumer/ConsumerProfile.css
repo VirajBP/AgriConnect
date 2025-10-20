@@ -8,12 +8,12 @@
 .profile-content {
     flex: 1;
     padding: 0;
-    margin-left: 250px;
+    margin-left: 240px;
     transition: margin-left 0.3s ease;
 }
 
 .profile-content.sidebar-collapsed {
-    margin-left: 80px;
+    margin-left: 60px;
 }
 
 /* Profile Header */

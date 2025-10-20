@@ -364,7 +364,7 @@ router.get('/dashboard', auth, async (req, res) => {
 // Update a product in farmer's inventory
 router.put('/products/:id', auth, async (req, res) => {
     try {
-        const { quantity, price, estimatedDate, isAvailable, qualityGrade } = req.body;
+        const { productName, productVariety, quantity, price, estimatedDate, isAvailable, qualityGrade } = req.body;
         
         const farmer = await Farmer.findById(req.user.id);
         const inventoryItem = farmer.inventory.id(req.params.id);
@@ -374,6 +374,26 @@ router.put('/products/:id', auth, async (req, res) => {
                 success: false,
                 message: 'Product not found in inventory'
             });
+        }
+
+        // Handle product name/variety updates
+        if (productName || productVariety) {
+            // Find or create product in catalog
+            let catalogProduct = await Product.findOne({ 
+                name: productName || inventoryItem.productId.name, 
+                variety: productVariety || inventoryItem.productId.variety 
+            });
+            
+            if (!catalogProduct) {
+                catalogProduct = new Product({
+                    name: productName,
+                    variety: productVariety,
+                    category: 'Others'
+                });
+                await catalogProduct.save();
+            }
+            
+            inventoryItem.productId = catalogProduct._id;
         }
 
         // Update inventory item fields
@@ -388,9 +408,24 @@ router.put('/products/:id', auth, async (req, res) => {
         // Update dashboard stats
         await updateDashboardStats(req.user.id);
 
+        // Return properly formatted data
+        const updatedFarmer = await Farmer.findById(req.user.id)
+            .populate('inventory.productId', 'name variety category');
+        const updatedItem = updatedFarmer.inventory.id(req.params.id);
+
         res.json({
             success: true,
-            data: inventoryItem
+            data: {
+                _id: updatedItem._id,
+                productName: updatedItem.productId.name,
+                productVariety: updatedItem.productId.variety,
+                category: updatedItem.productId.category,
+                quantity: updatedItem.quantity,
+                price: updatedItem.price,
+                estimatedDate: updatedItem.estimatedHarvestDate,
+                isAvailable: updatedItem.isAvailable,
+                qualityGrade: updatedItem.qualityGrade
+            }
         });
     } catch (error) {
         console.error('Error updating product:', error);
