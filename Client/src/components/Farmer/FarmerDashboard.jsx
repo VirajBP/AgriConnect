@@ -16,7 +16,7 @@ import {
     LineElement,
     Title
 } from 'chart.js';
-import './FarmerDashboard.css';
+import './Dashboard/FarmerDashboard.css';
 import '../../index.css';
 import Chatbot from '../shared/Chatbot/Chatbot';
 
