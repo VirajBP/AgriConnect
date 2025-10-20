@@ -507,6 +507,12 @@ router.put('/orders/:id/status', auth, async (req, res) => {
         // Update order status and delivery date
         order.status = status;
         order.deliveryDate = status === 'confirmed' ? deliveryDate : null;
+        
+        // If productName is missing, set a default value to avoid validation error
+        if (!order.productName) {
+            order.productName = 'Product Name Not Available';
+        }
+        
         await order.save();
 
         // Try to update dashboard stats, but don't fail if it doesn't work
