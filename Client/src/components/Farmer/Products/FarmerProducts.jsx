@@ -94,8 +94,23 @@ const ProductPage = () => {
         .slice(0, 5);
       setProductSuggestions(suggestions);
       setShowProductSuggestions(suggestions.length > 0);
+      
+      // Auto-populate variety suggestions for exact matches
+      const exactMatch = catalog.find(item => item.name.toLowerCase() === value.toLowerCase());
+      if (exactMatch) {
+        const varieties = catalog
+          .filter(item => item.name.toLowerCase() === value.toLowerCase())
+          .map(item => item.variety)
+          .filter((variety, index, arr) => arr.indexOf(variety) === index) // Remove duplicates
+          .slice(0, 5);
+        setVarietySuggestions(varieties);
+        setShowVarietySuggestions(varieties.length > 0);
+      } else {
+        setShowVarietySuggestions(false);
+      }
     } else {
       setShowProductSuggestions(false);
+      setShowVarietySuggestions(false);
     }
   };
 
@@ -124,7 +139,11 @@ const ProductPage = () => {
     try {
       const response = await axios.post('/api/farmer/products', newProduct);
       if (response.data.success) {
-        setProducts([...products, response.data.data]);
+        // Refresh products from server to get updated data
+        const productsResponse = await axios.get('/api/farmer/products');
+        if (productsResponse.data.success) {
+          setProducts(productsResponse.data.data);
+        }
         setShowAddProduct(false);
         setNewProduct({
           productName: '',
@@ -147,9 +166,11 @@ const ProductPage = () => {
     try {
       const response = await axios.put(`/api/farmer/products/${id}`, updatedData);
       if (response.data.success) {
-        setProducts(products.map(product => 
-          product._id === id ? response.data.data : product
-        ));
+        // Refresh products from server to get updated data
+        const productsResponse = await axios.get('/api/farmer/products');
+        if (productsResponse.data.success) {
+          setProducts(productsResponse.data.data);
+        }
         setEditingId(null);
       }
     } catch (err) {
@@ -164,7 +185,11 @@ const ProductPage = () => {
       try {
         const response = await axios.delete(`/api/farmer/products/${id}`);
         if (response.data.success) {
-          setProducts(products.filter(product => product._id !== id));
+          // Refresh products from server to get updated data
+          const productsResponse = await axios.get('/api/farmer/products');
+          if (productsResponse.data.success) {
+            setProducts(productsResponse.data.data);
+          }
         }
       } catch (err) {
         console.error('Error deleting product:', err);
@@ -175,8 +200,8 @@ const ProductPage = () => {
 
   // Filter products based on search term and price range
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.productVariety.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (product.productName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                         (product.productVariety?.toLowerCase() || '').includes(searchTerm.toLowerCase());
     const matchesPrice = (!priceRange.min || product.price >= Number(priceRange.min)) &&
                         (!priceRange.max || product.price <= Number(priceRange.max));
     return matchesSearch && matchesPrice;
@@ -197,9 +222,9 @@ const ProductPage = () => {
 
   // Prepare chart data
   const chartData = {
-    labels: products.map(p => p.productName),
+    labels: products.map(p => p.productName || 'Unknown Product'),
     datasets: [{
-      data: products.map(p => p.quantity),
+      data: products.map(p => p.quantity || 0),
       backgroundColor: [
         '#FF6384',
         '#36A2EB',
@@ -302,6 +327,15 @@ const ProductPage = () => {
                         onClick={() => {
                           setNewProduct({ ...newProduct, productName: suggestion, productVariety: '' });
                           setShowProductSuggestions(false);
+                          
+                          // Auto-show variety suggestions for selected product
+                          const varieties = catalog
+                            .filter(item => item.name.toLowerCase() === suggestion.toLowerCase())
+                            .map(item => item.variety)
+                            .filter((variety, index, arr) => arr.indexOf(variety) === index)
+                            .slice(0, 5);
+                          setVarietySuggestions(varieties);
+                          setShowVarietySuggestions(varieties.length > 0);
                         }}
                       >
                         {suggestion}
@@ -392,7 +426,8 @@ const ProductPage = () => {
           </div>
         </div>
 
-        {showChart && (
+        {/* Show chart above products only when no search/filter is active */}
+        {showChart && !searchTerm && !priceRange.min && !priceRange.max && (
           <div className={`${isDark ? 'dark chart-section' : 'chart-section'}`}>
             <h2>Product Distribution</h2>
             <div className="chart-container">
@@ -448,7 +483,7 @@ const ProductPage = () => {
                     <input
                       type="date"
                       name="estimatedDate"
-                      defaultValue={new Date(product.estimatedDate).toISOString().split('T')[0]}
+                      defaultValue={product.estimatedDate && !isNaN(new Date(product.estimatedDate)) ? new Date(product.estimatedDate).toISOString().split('T')[0] : ''}
                       required
                     />
                     <div className="form-actions">
@@ -466,7 +501,7 @@ const ProductPage = () => {
                   <div className="product-details product-details-box">
                     <p><strong className={isDark ? 'text-white' : 'text-black'}>Quantity:</strong> {product.quantity} kg</p>
                     <p><strong className={isDark ? 'text-white' : 'text-black'}>Price:</strong> ₹{product.price}/kg</p>
-                    <p><strong className={isDark ? 'text-white' : 'text-black'}>Estimated Date:</strong> {new Date(product.estimatedDate).toLocaleDateString()}</p>
+                    <p><strong className={isDark ? 'text-white' : 'text-black'}>Estimated Date:</strong> {product.estimatedDate && !isNaN(new Date(product.estimatedDate)) ? new Date(product.estimatedDate).toLocaleDateString() : 'Not set'}</p>
                   </div>
                   <div className="product-actions">
                     <button onClick={() => setEditingId(product._id)}>
@@ -481,6 +516,16 @@ const ProductPage = () => {
             </div>
           ))}
         </div>
+
+        {/* Show chart below products when search/filter is active */}
+        {showChart && (searchTerm || priceRange.min || priceRange.max) && (
+          <div className={`${isDark ? 'dark chart-section' : 'chart-section'}`}>
+            <h2>Product Distribution</h2>
+            <div className="chart-container">
+              <Pie data={chartData} options={chartOptions} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

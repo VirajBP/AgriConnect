@@ -1094,6 +1094,13 @@ input:focus {
     }
 }
 
+.dark .edit-product-form{
+    padding: 1rem;
+    background: #2c2c2c;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
 .edit-product-form {
     padding: 1rem;
     background: #f8fafc;
