@@ -35,7 +35,7 @@ body {
 
 .orders-content {
   flex: 1;
-  margin-left: 150px;
+  margin-left: 250px;
   padding: 2rem;
   transition: all 0.3s ease;
 }
@@ -81,7 +81,7 @@ body {
 .orders-table th,
 .orders-table td {
   padding: 1rem;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid var(--border-color);
 }
 
