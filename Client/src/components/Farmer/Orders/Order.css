@@ -16,7 +16,7 @@ body {
 
 .dashboard-content {
   flex: 1;
-  margin-left: 260px;
+  margin-left: 240px;
   padding: 2rem;
   transition: margin-left 0.3s ease;
   width: calc(100% - 260px);
@@ -24,7 +24,7 @@ body {
 }
 
 .dashboard-content.sidebar-collapsed {
-  margin-left: 80px;
+  margin-left: 60px;
   width: calc(100% - 80px);
 }
 
