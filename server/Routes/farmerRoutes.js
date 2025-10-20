@@ -76,34 +76,51 @@ router.put('/profile', auth, async (req, res) => {
     }
 });
 
-// Add a new product
+// Add a new product to farmer's inventory
 router.post('/products', auth, async (req, res) => {
     try {
         const { productName, productVariety, quantity, price, estimatedDate } = req.body;
         
-        const product = new Product({
-            farmer: req.user.id,
-            productName,
-            productVariety,
+        // Find or create product in catalog
+        let catalogProduct = await Product.findOne({ 
+            name: productName, 
+            variety: productVariety 
+        });
+        
+        if (!catalogProduct) {
+            catalogProduct = new Product({
+                name: productName,
+                variety: productVariety,
+                category: 'Others' // Default category
+            });
+            await catalogProduct.save();
+        }
+
+        // Add to farmer's inventory
+        const farmer = await Farmer.findById(req.user.id);
+        farmer.inventory.push({
+            productId: catalogProduct._id,
             quantity,
             price,
-            estimatedDate: new Date(estimatedDate)
+            estimatedHarvestDate: new Date(estimatedDate),
+            isAvailable: true,
+            qualityGrade: 'A'
         });
-
-        await product.save();
-
-        // Add product to farmer's products array
-        await Farmer.findByIdAndUpdate(
-            req.user.id,
-            { $push: { products: product._id } }
-        );
+        await farmer.save();
 
         // Update dashboard stats
         await updateDashboardStats(req.user.id);
 
         res.status(201).json({
             success: true,
-            data: product
+            data: {
+                _id: farmer.inventory[farmer.inventory.length - 1]._id,
+                productName: catalogProduct.name,
+                productVariety: catalogProduct.variety,
+                quantity,
+                price,
+                estimatedDate
+            }
         });
     } catch (error) {
         console.error('Error adding product:', error);
@@ -114,10 +131,42 @@ router.post('/products', auth, async (req, res) => {
     }
 });
 
-// Get all products of a farmer
+// Get product catalog (no auth required - it's reference data)
+router.get('/catalog', async (req, res) => {
+    try {
+        const products = await Product.find({}).select('name variety category image description');
+        res.json({
+            success: true,
+            data: products
+        });
+    } catch (error) {
+        console.error('Error fetching product catalog:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching product catalog'
+        });
+    }
+});
+
+// Get all products of a farmer from inventory
 router.get('/products', auth, async (req, res) => {
     try {
-        const products = await Product.find({ farmer: req.user.id });
+        const farmer = await Farmer.findById(req.user.id)
+            .populate('inventory.productId', 'name variety category image');
+        
+        const products = farmer.inventory.map(item => ({
+            _id: item._id,
+            productName: item.productId.name,
+            productVariety: item.productId.variety,
+            category: item.productId.category,
+            quantity: item.quantity,
+            price: item.price,
+            estimatedDate: item.estimatedHarvestDate,
+            isAvailable: item.isAvailable,
+            qualityGrade: item.qualityGrade,
+            image: item.productId.image
+        }));
+        
         res.json({
             success: true,
             data: products
@@ -137,10 +186,6 @@ router.get('/orders', auth, async (req, res) => {
         console.log('Fetching orders for farmer:', req.user.id);
 
         const orders = await Order.find({ farmer: req.user.id })
-            .populate({
-                path: 'product',
-                select: 'productName price'
-            })
             .populate({
                 path: 'consumer',
                 select: 'name'
@@ -178,7 +223,7 @@ router.get('/orders', auth, async (req, res) => {
             const orderData = {
                 _id: order._id,
                 orderId: order.orderId ? `#${order.orderId}` : '',
-                product: order.product?.productName || '',
+                product: order.productName || '',
                 quantity: order.quantity ? `${order.quantity} kg` : '',
                 price: order.totalPrice ? `₹${order.totalPrice}` : '',
                 customer: order.consumer?.name || '',
@@ -259,14 +304,22 @@ router.get('/dashboard', auth, async (req, res) => {
         .populate('consumer', 'name')
         .populate('product', 'productName');
 
-        // Get inventory (products)
-        const inventory = await Product.find({ farmer: req.user.id });
+        // Get inventory from farmer document
+        const farmerWithInventory = await Farmer.findById(req.user.id)
+            .populate('inventory.productId', 'name variety category');
+        const inventory = farmerWithInventory.inventory.map(item => ({
+            _id: item._id,
+            productName: item.productId.name,
+            productVariety: item.productId.variety,
+            quantity: item.quantity,
+            price: item.price
+        }));
 
         // Transform orders to handle both old and new formats
         const transformOrder = (order) => {
             return {
                 _id: order._id,
-                productName: order.product?.productName || 'Product Removed',
+                productName: order.productName || order.product?.name || 'Product Removed',
                 quantity: order.quantity,
                 deliveryDate: order.deliveryDate,
                 customerName: order.consumer?.name || 'Customer Unavailable'
@@ -292,20 +345,10 @@ router.get('/dashboard', auth, async (req, res) => {
             data: {
                 stats: dashboard.stats,
                 monthlyRevenue: sortedMonthlyRevenue,
-                popularProducts: dashboard.popularProducts.map(product => ({
-                    _id: product._id,
-                    productName: product.productName,
-                    quantity: product.quantity,
-                    price: product.price
-                })),
+                popularProducts: dashboard.popularProducts || [],
                 todayOrders: todayOrders.map(transformOrder),
                 upcomingOrders: upcomingOrders.map(transformOrder),
-                inventory: inventory.map(product => ({
-                    _id: product._id,
-                    productName: product.productName,
-                    quantity: product.quantity,
-                    price: product.price
-                }))
+                inventory: inventory
             }
         });
     } catch (error) {
@@ -318,34 +361,36 @@ router.get('/dashboard', auth, async (req, res) => {
     }
 });
 
-// Update a product
+// Update a product in farmer's inventory
 router.put('/products/:id', auth, async (req, res) => {
     try {
-        const { productName, productVariety, quantity, price, estimatedDate } = req.body;
-        const product = await Product.findOne({ _id: req.params.id, farmer: req.user.id });
+        const { quantity, price, estimatedDate, isAvailable, qualityGrade } = req.body;
         
-        if (!product) {
+        const farmer = await Farmer.findById(req.user.id);
+        const inventoryItem = farmer.inventory.id(req.params.id);
+        
+        if (!inventoryItem) {
             return res.status(404).json({
                 success: false,
-                message: 'Product not found'
+                message: 'Product not found in inventory'
             });
         }
 
-        // Update product fields
-        product.productName = productName;
-        product.productVariety = productVariety;
-        product.quantity = quantity;
-        product.price = price;
-        product.estimatedDate = new Date(estimatedDate);
+        // Update inventory item fields
+        if (quantity !== undefined) inventoryItem.quantity = quantity;
+        if (price !== undefined) inventoryItem.price = price;
+        if (estimatedDate) inventoryItem.estimatedHarvestDate = new Date(estimatedDate);
+        if (isAvailable !== undefined) inventoryItem.isAvailable = isAvailable;
+        if (qualityGrade) inventoryItem.qualityGrade = qualityGrade;
 
-        await product.save();
+        await farmer.save();
 
         // Update dashboard stats
         await updateDashboardStats(req.user.id);
 
         res.json({
             success: true,
-            data: product
+            data: inventoryItem
         });
     } catch (error) {
         console.error('Error updating product:', error);
@@ -356,33 +401,29 @@ router.put('/products/:id', auth, async (req, res) => {
     }
 });
 
-// Delete a product
+// Delete a product from farmer's inventory
 router.delete('/products/:id', auth, async (req, res) => {
     try {
-        const product = await Product.findOne({ _id: req.params.id, farmer: req.user.id });
+        const farmer = await Farmer.findById(req.user.id);
+        const inventoryItem = farmer.inventory.id(req.params.id);
         
-        if (!product) {
+        if (!inventoryItem) {
             return res.status(404).json({
                 success: false,
-                message: 'Product not found'
+                message: 'Product not found in inventory'
             });
         }
 
-        // Remove product from farmer's products array
-        await Farmer.findByIdAndUpdate(
-            req.user.id,
-            { $pull: { products: product._id } }
-        );
-
-        // Delete the product
-        await product.deleteOne();
+        // Remove from inventory
+        inventoryItem.deleteOne();
+        await farmer.save();
 
         // Update dashboard stats
         await updateDashboardStats(req.user.id);
 
         res.json({
             success: true,
-            message: 'Product deleted successfully'
+            message: 'Product removed from inventory successfully'
         });
     } catch (error) {
         console.error('Error deleting product:', error);
@@ -478,14 +519,13 @@ router.put('/orders/:id/status', auth, async (req, res) => {
 
         // Return the updated order with populated fields
         const updatedOrder = await Order.findById(order._id)
-            .populate('product', 'productName price')
             .populate('consumer', 'name');
 
         // Transform the order to match frontend expectations
         const transformedOrder = {
             _id: updatedOrder._id,
             orderId: updatedOrder.orderId || updatedOrder._id.toString().slice(-6),
-            product: updatedOrder.product?.productName || 'Unknown Product',
+            product: updatedOrder.productName || 'Unknown Product',
             quantity: updatedOrder.quantity || 0,
             price: updatedOrder.totalPrice || 0,
             customer: updatedOrder.consumer?.name || 'Unknown Customer',

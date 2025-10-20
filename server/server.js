@@ -1,19 +1,29 @@
 const express = require("express");
 require("dotenv").config();
 const app = express();
-const connectDB = require("./Config/Database");
+
+// Load CORS immediately
 const cors = require('cors');
-const mongoose = require("mongoose");
 
-// Pre-load models in correct order
-require('./Model/Farmer');
-require('./Model/Consumer');
-require('./Model/Product');
-require('./Model/Order');
+// Lazy load dependencies
+let connectDB, mongoose;
 
-// Middleware
+const loadDependencies = () => {
+    if (!connectDB) {
+        connectDB = require("./Config/Database");
+        mongoose = require("mongoose");
+        
+        // Lazy load models only when needed
+        require('./Model/Farmer');
+        require('./Model/Consumer');
+        require('./Model/Product');
+        require('./Model/Order');
+    }
+};
+
+// Setup CORS middleware immediately
 app.use(cors({
-    origin: 'https://agri-connect-gamma.vercel.app',
+    origin: 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -35,6 +45,12 @@ app.use((req, res, next) => {
     next();
 });
 
+// Register routes immediately (before DB connection)
+app.use('/api/auth', require('./Routes/authRoutes'));
+app.use('/api/farmer', require('./Routes/farmerRoutes'));
+app.use('/api/consumer', require('./Routes/consumerRoutes'));
+app.use('/api/chatbot', require('./Routes/chatbotRoutes'));
+
 // Connect to MongoDB and initialize routes
 let isConnected = false;
 
@@ -42,15 +58,24 @@ const initializeServer = async () => {
     if (isConnected) return;
     
     try {
+        // Load dependencies only when initializing
+        loadDependencies();
+        
         await connectDB();
         isConnected = true;
         console.log('MongoDB connected successfully');
 
-        // Routes
-        app.use('/api/auth', require('./Routes/authRoutes'));
-        app.use('/api/farmer', require('./Routes/farmerRoutes'));
-        app.use('/api/consumer', require('./Routes/consumerRoutes'));
-        app.use('/api/chatbot', require('./Routes/chatbotRoutes'));
+        // Set up mongoose event listeners after mongoose is loaded
+        mongoose.connection.on('error', (err) => {
+            console.error('MongoDB connection error:', err);
+        });
+
+        mongoose.connection.on('disconnected', () => {
+            console.log('MongoDB disconnected');
+            isConnected = false;
+        });
+
+        // Routes are now loaded outside this function
 
         const PORT = process.env.PORT || 5000;
         app.listen(PORT, () => {
@@ -93,20 +118,12 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Error handling for MongoDB connection
-mongoose.connection.on('error', (err) => {
-    console.error('MongoDB connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB disconnected');
-    isConnected = false;
-});
-
 process.on('SIGINT', async () => {
     try {
-        await mongoose.connection.close();
-        console.log('MongoDB connection closed through app termination');
+        if (mongoose && mongoose.connection) {
+            await mongoose.connection.close();
+            console.log('MongoDB connection closed through app termination');
+        }
         process.exit(0);
     } catch (err) {
         console.error('Error during MongoDB connection closure:', err);

@@ -1,20 +1,31 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './Context/AuthContext';
 import { ThemeProvider } from './Context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
-import Login from './components/Auth/Login';
-import Register from './components/Auth/Signup';
-import ForgotPassword from './components/Auth/ForgotPassword';
-import FarmerDashboard from './components/Farmer/FarmerDashboard';
-import FarmerProfile from './components/Farmer/FarmerProfile';
-import FarmerOrders from './components/Farmer/Orders/Order';
-import FarmerProducts from './components/Farmer/Products/FarmerProducts';
-import ConsumerDashboard from './components/Consumer/ConsumerDashboard';
-import ConsumerProfile from './components/Consumer/ConsumerProfile';
-import ConsumerOrders from './components/Consumer/Orders/Orders';
-import ConsumerMarket from './components/Consumer/Market/Market';
 import './App.css';
+
+// Eager load only critical components
+import Login from './components/Auth/Login';
+
+// Lazy load non-critical components
+const Register = lazy(() => import('./components/Auth/Signup'));
+const ForgotPassword = lazy(() => import('./components/Auth/ForgotPassword'));
+const FarmerDashboard = lazy(() => import('./components/Farmer/FarmerDashboard'));
+const FarmerProfile = lazy(() => import('./components/Farmer/FarmerProfile'));
+const FarmerOrders = lazy(() => import('./components/Farmer/Orders/Order'));
+const FarmerProducts = lazy(() => import('./components/Farmer/Products/FarmerProducts'));
+const ConsumerDashboard = lazy(() => import('./components/Consumer/ConsumerDashboard'));
+const ConsumerProfile = lazy(() => import('./components/Consumer/ConsumerProfile'));
+const ConsumerOrders = lazy(() => import('./components/Consumer/Orders/Orders'));
+const ConsumerMarket = lazy(() => import('./components/Consumer/Market/Market'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center min-h-screen">
+    <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500"></div>
+  </div>
+);
 
 function App() {
   return (
@@ -22,7 +33,8 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <div className="app">
-            <Routes>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/signup/:userType" element={<Register />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -77,7 +89,8 @@ function App() {
 
               {/* Redirect root to login */}
               <Route path="/" element={<Login />} />
-            </Routes>
+              </Routes>
+            </Suspense>
           </div>
         </AuthProvider>
       </ThemeProvider>
