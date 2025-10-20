@@ -17,7 +17,7 @@ import {
     Title
 } from 'chart.js';
 import './Dashboard/FarmerDashboard.css';
-import '../../index.css';
+// import '../../index.css';
 import Chatbot from '../shared/Chatbot/Chatbot';
 
 ChartJS.register(

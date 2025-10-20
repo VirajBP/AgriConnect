@@ -228,6 +228,12 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08); /* Refined shadow */
 }
 
+.dark .monthly-revenue, .dark .popular-products, .dark .recent-activity, .dark .todays-orders, .dark .inventory-section {
+    background-color: #1e1e1e;
+    color: #fff;
+    border: 1px solid #333;
+}
+
 .section-header {
     display: flex;
     justify-content: space-between;
