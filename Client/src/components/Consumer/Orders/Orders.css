@@ -35,13 +35,13 @@ body {
 
 .orders-content {
   flex: 1;
-  margin-left: 250px;
+  margin-left: 240px;
   padding: 2rem;
   transition: all 0.3s ease;
 }
 
 .orders-content.sidebar-collapsed {
-  margin-left: 64px;
+  margin-left: 60px;
 }
 
 .orders-content.dark {
