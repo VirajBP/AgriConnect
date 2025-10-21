@@ -57,6 +57,7 @@ const ConsumerDashboard = () => {
                 console.log('Consumer dashboard response:', response.data);
 
                 if (response.data.success) {
+                    console.log('Dashboard data received:', response.data.data);
                     setDashboardData(response.data.data);
                 } else {
                     setError(response.data.message || 'Failed to fetch dashboard data');
@@ -71,9 +72,7 @@ const ConsumerDashboard = () => {
                 if (err.response?.status === 401) {
                     setError('Please log in again to access the dashboard');
                 } else if (err.response?.status === 404) {
-                     // This might happen if a dashboard hasn't been created yet, though our backend now creates one on registration.
-                     // We can handle it gracefully or rely on the backend to create it.
-                    setError('Dashboard data not found.');
+                    setError('Dashboard data not found. Please try refreshing the page.');
                 } else {
                     setError(err.response?.data?.message || 'Error fetching dashboard data');
                 }
@@ -87,52 +86,52 @@ const ConsumerDashboard = () => {
 
     // Function to prepare chart data based on filter
     const getChartData = (period) => {
-        if (!dashboardData || !dashboardData.monthlySpending) return { labels: [], datasets: [] };
-
-        // Get current date and create a date for filtering
-        const currentDate = new Date();
-        const filterDate = new Date(currentDate);
-
-        // Set filter date based on period
+        // Determine how many months to show based on period
+        let monthsToShow;
         switch (period) {
-            case '3M':
-                filterDate.setMonth(currentDate.getMonth() - 2); // Show last 3 months
-                break;
             case '1M':
-                filterDate.setMonth(currentDate.getMonth()); // Show current month
+                monthsToShow = 1;
                 break;
-            default: // 6M
-                filterDate.setMonth(currentDate.getMonth() - 5); // Show last 6 months
+            case '3M':
+                monthsToShow = 3;
+                break;
+            case '6M':
+                monthsToShow = 6;
+                break;
+            default:
+                monthsToShow = 6;
         }
 
-        // Reset dates to start of month for accurate comparison
-        filterDate.setDate(1);
-        filterDate.setHours(0, 0, 0, 0);
-
-        // Generate all months in the range
+        // Generate the last N months from current date
         const months = [];
-        const tempDate = new Date(filterDate);
+        const currentDate = new Date();
         
-        while (tempDate <= currentDate) {
-            months.push(tempDate.toLocaleString('default', { month: 'short', year: 'numeric' }));
-            tempDate.setMonth(tempDate.getMonth() + 1);
+        for (let i = monthsToShow - 1; i >= 0; i--) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            const monthStr = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            months.push(monthStr);
         }
 
-        // Map existing data to the months
-        const existingData = [...dashboardData.monthlySpending];
-        const mergedData = months.map(month => {
-            const existingMonth = existingData.find(data => data.month === month);
-            return {
-                month: month,
-                amount: existingMonth ? existingMonth.amount : 0
-            };
+        // Create data array with 0 as default, then fill with actual data if available
+        const chartData = months.map(month => {
+            let amount = 0;
+            if (dashboardData?.monthlySpending) {
+                const existingMonth = dashboardData.monthlySpending.find(data => data.month === month);
+                if (existingMonth) {
+                    amount = existingMonth.amount;
+                }
+            }
+            return { month, amount };
         });
 
         return {
-            labels: mergedData.map(item => item.month),
+            labels: chartData.map(item => {
+                const date = new Date(item.month);
+                return date.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            }),
             datasets: [{
                 label: 'Monthly Spending',
-                data: mergedData.map(item => item.amount),
+                data: chartData.map(item => item.amount),
                 fill: true,
                 backgroundColor: isDarkMode ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.2)',
                 borderColor: '#6366f1',
@@ -144,14 +143,14 @@ const ConsumerDashboard = () => {
         };
     };
 
-     // Update chart data when dashboardData or timeFilter changes
+    const [chartData, setChartData] = useState({ labels: [], datasets: [] });
+
+    // Update chart data when dashboardData or timeFilter changes
     useEffect(() => {
         if (dashboardData) {
             setChartData(getChartData(timeFilter));
         }
-    }, [dashboardData, timeFilter]);
-
-    const [chartData, setChartData] = useState(getChartData(timeFilter)); // Initialize with default filter
+    }, [dashboardData, timeFilter, isDarkMode]);
 
     const handleTimeFilterChange = (period) => {
         setTimeFilter(period);

@@ -38,6 +38,10 @@ const consumerSchema = new mongoose.Schema({
             'Corporate Cafeteria'
         ]
     },
+    address: {
+        type: String,
+        required: true
+    },
     joinedDate: {
         type: Date,
         default: Date.now
