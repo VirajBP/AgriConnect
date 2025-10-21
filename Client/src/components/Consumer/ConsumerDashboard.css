@@ -6,17 +6,41 @@
 
 .dashboard-content {
     flex: 1;
-    margin-left: 260px;
+    margin-left: 240px;
     padding: 30px;
     transition: margin-left 0.3s ease;
+    color: black;
+}
+
+.dark .dashboard-content {
+    background: #121212;
+    color: #fff;
+}
+
+.dark .consumer-dashboard {
+    background: #121212;
 }
 
 .dashboard-content.sidebar-collapsed {
-    margin-left: 80px;
+    margin-left: 60px;
 }
 
 .dashboard-header {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.dark .dashboard-header {
+    background: linear-gradient(135deg, #145fd8 0%, #13398a 100%);
     color: white;
     padding: 40px;
     border-radius: 12px;
@@ -107,6 +131,19 @@
     margin: 0 0 4px 0;
     font-size: 1.6rem;
     color: #1f2937;
+}
+
+.dark .stat-card .stat-info h3 {
+    color: black !important;
+}
+
+.dark .stat-card {
+    background: white;
+    color: black;
+}
+
+.dark .stat-card .stat-info .stat-label {
+    color: #4b5563 !important;
 }
 
 .stat-card .stat-info .stat-label {
@@ -221,6 +258,10 @@
 .activity-icon {
     font-size: 1.6rem;
     color: #3b82f6;
+}
+
+.dark .activity-icon{
+    color: #12469b !important;
 }
 
 .activity-details {
