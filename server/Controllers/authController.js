@@ -81,7 +81,7 @@ exports.register = async (req, res, next) => {
         console.log('User type:', userType);
 
         if (userType === 'farmer') {
-            const { name, phoneNumber, password, location } = req.body;
+            const { name, phoneNumber, password, location, state, city } = req.body;
             console.log('Farmer registration data:', { 
                 name, 
                 phoneNumber, 
@@ -90,12 +90,14 @@ exports.register = async (req, res, next) => {
             });
 
             // Validate required fields
-            if (!name || !phoneNumber || !password || !location) {
+            if (!name || !phoneNumber || !password || !location || !state || !city) {
                 const missingFields = [];
                 if (!name) missingFields.push('name');
                 if (!phoneNumber) missingFields.push('phoneNumber');
                 if (!password) missingFields.push('password');
                 if (!location) missingFields.push('location');
+                if (!state) missingFields.push('state');
+                if (!city) missingFields.push('city');
                 
                 return res.status(400).json({
                     success: false,
@@ -133,12 +135,22 @@ exports.register = async (req, res, next) => {
                 const salt = await bcrypt.genSalt(12);
                 const hashedPassword = await bcrypt.hash(password, salt);
 
+                // Validate state-city combination
+                if (!isValidStateCityPair(state, city)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Invalid state-city combination'
+                    });
+                }
+
                 // Create new farmer
                 const farmer = new Farmer({
                     name,
                     phoneNumber,
                     password: hashedPassword,
-                    location
+                    location,
+                    state,
+                    city
                 });
 
                 await farmer.save();
@@ -159,6 +171,8 @@ exports.register = async (req, res, next) => {
                         name: farmer.name,
                         phoneNumber: farmer.phoneNumber,
                         location: farmer.location,
+                        state: farmer.state,
+                        city: farmer.city,
                         type: 'farmer'
                     }
                 });
@@ -643,11 +657,19 @@ exports.resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
         // Update password without triggering validation on other fields
-        await Consumer.findByIdAndUpdate(
-            user._id,
-            { $set: { password: hashedPassword } },
-            { runValidators: false }
-        );
+        if (decoded.userType === 'consumer') {
+            await Consumer.findByIdAndUpdate(
+                user._id,
+                { $set: { password: hashedPassword } },
+                { runValidators: false }
+            );
+        } else if (decoded.userType === 'farmer') {
+            await Farmer.findByIdAndUpdate(
+                user._id,
+                { $set: { password: hashedPassword } },
+                { runValidators: false }
+            );
+        }
 
         // Generate new login token
         const loginToken = generateToken(user, decoded.userType);

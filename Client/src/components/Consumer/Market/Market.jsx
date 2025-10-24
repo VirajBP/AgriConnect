@@ -110,13 +110,16 @@ const Market = () => {
                     setProducts(productsWithCategory);
                     
                     // Get user's location from the first product's farmer location
-                    if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.location) {
-                        setUserLocation(productsWithCategory[0].farmer.location);
-                        // Filter products by default to show only those from the user's location
+                    if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.city) {
+                        setUserLocation(productsWithCategory[0].farmer.city);
+                        // Filter products by default to show only those from the user's city
                         const localProducts = productsWithCategory.filter(product => 
-                            product.farmer?.location?.toLowerCase() === productsWithCategory[0].farmer.location.toLowerCase()
+                            product.farmer?.city?.toLowerCase() === productsWithCategory[0].farmer.city.toLowerCase()
                         );
                         setFilteredProducts(localProducts);
+                    } else if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.location) {
+                        setUserLocation(productsWithCategory[0].farmer.location);
+                        setFilteredProducts(productsWithCategory);
                     } else {
                         setFilteredProducts(productsWithCategory);
                     }
@@ -166,10 +169,12 @@ const Market = () => {
                 );
             }
 
-            // Filter by location if provided
+            // Filter by location if provided (flexible matching)
             if (userLocation) {
                 currentProducts = currentProducts.filter(product => 
-                    product.farmer?.location?.toLowerCase() === userLocation.toLowerCase()
+                    product.farmer?.location?.toLowerCase().includes(userLocation.toLowerCase()) ||
+                    product.farmer?.city?.toLowerCase().includes(userLocation.toLowerCase()) ||
+                    product.farmer?.state?.toLowerCase().includes(userLocation.toLowerCase())
                 );
             }
 

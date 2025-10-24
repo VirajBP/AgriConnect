@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaTractor, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaTractor, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaGlobe, FaCity } from 'react-icons/fa';
 import Sidebar from '../Sidebar/Sidebar';
 import axios from '../../utils/axios';
 import { CircularProgress } from '@mui/material';
@@ -14,6 +14,9 @@ const FarmerProfile = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [loadingCities, setLoadingCities] = useState(false);
     const { isDarkMode, toggleTheme } = useTheme();
 
     useEffect(() => {
@@ -33,8 +36,35 @@ const FarmerProfile = () => {
             }
         };
 
+        const fetchStates = async () => {
+            try {
+                const response = await axios.get('/api/auth/states');
+                if (response.data.success) {
+                    setStates(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching states:', error);
+            }
+        };
+
         fetchProfileData();
+        fetchStates();
     }, []);
+
+    const fetchCities = async (state) => {
+        try {
+            setLoadingCities(true);
+            const response = await axios.get(`/api/auth/cities/${encodeURIComponent(state)}`);
+            if (response.data.success) {
+                setCities(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+            setCities([]);
+        } finally {
+            setLoadingCities(false);
+        }
+    };
 
     const editableFields = {
         name: {
@@ -60,12 +90,33 @@ const FarmerProfile = () => {
             type: 'text',
             icon: <FaMapMarkerAlt />,
             validation: value => value?.length >= 3
+        },
+        state: {
+            label: 'State',
+            type: 'select',
+            icon: <FaGlobe />,
+            validation: value => states.includes(value)
+        },
+        city: {
+            label: 'City',
+            type: 'select',
+            icon: <FaCity />,
+            validation: value => cities.includes(value)
         }
     };
 
     const handleEdit = (field) => {
         setEditMode({ ...editMode, [field]: true });
         setTempData({ ...tempData, [field]: profile ? profile[field] : '' });
+        
+        // Load cities when editing state or city
+        if (field === 'state' && profile?.state) {
+            fetchCities(profile.state);
+        }
+        if (field === 'city' && profile?.state) {
+            fetchCities(profile.state);
+            setTempData(prev => ({ ...prev, state: profile.state, [field]: profile[field] || '' }));
+        }
     };
 
     const handleCancel = (field) => {
@@ -178,16 +229,46 @@ const FarmerProfile = () => {
                                     </div>
                                     {editMode[field] ? (
                                         <div className="field-edit">
-                                            <input
-                                                type={field === 'password' && !showPassword ? 'password' : config.type}
-                                                value={tempData[field] || ''}
-                                                onChange={(e) => setTempData({
-                                                    ...tempData,
-                                                    [field]: e.target.value
-                                                })}
-                                                className="edit-input"
-                                                placeholder={`Enter ${config.label.toLowerCase()}`}
-                                            />
+                                            {config.type === 'select' ? (
+                                                <select
+                                                    value={tempData[field] || ''}
+                                                    onChange={(e) => {
+                                                        setTempData({
+                                                            ...tempData,
+                                                            [field]: e.target.value
+                                                        });
+                                                        if (field === 'state') {
+                                                            fetchCities(e.target.value);
+                                                            setTempData(prev => ({ ...prev, city: '' }));
+                                                        }
+                                                    }}
+                                                    className="edit-input"
+                                                    disabled={field === 'city' && (!tempData.state && !profile?.state) || loadingCities}
+                                                >
+                                                    <option value="">
+                                                        {field === 'city' && loadingCities ? 'Loading cities...' : 
+                                                         field === 'city' && (!tempData.state && !profile?.state) ? 'Select state first' : 
+                                                         `Select ${config.label}`}
+                                                    </option>
+                                                    {field === 'state' && states.map(state => (
+                                                        <option key={state} value={state}>{state}</option>
+                                                    ))}
+                                                    {field === 'city' && cities.map(city => (
+                                                        <option key={city} value={city}>{city}</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <input
+                                                    type={field === 'password' && !showPassword ? 'password' : config.type}
+                                                    value={tempData[field] || ''}
+                                                    onChange={(e) => setTempData({
+                                                        ...tempData,
+                                                        [field]: e.target.value
+                                                    })}
+                                                    className="edit-input"
+                                                    placeholder={`Enter ${config.label.toLowerCase()}`}
+                                                />
+                                            )}
                                             {field === 'password' && (
                                                 <button 
                                                     className="toggle-password"

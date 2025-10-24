@@ -398,11 +398,11 @@ router.get('/market/products', auth, async (req, res) => {
             });
         }
 
-        // Find farmers in the same state and city
+        // Find farmers in the same city and state
         const localFarmers = await Farmer.find({ 
             $or: [
-                { location: `${consumer.city}, ${consumer.state}` },
-                { location: consumer.city },
+                { city: consumer.city, state: consumer.state },
+                { city: consumer.city },
                 { location: { $regex: consumer.city, $options: 'i' } }
             ]
         });

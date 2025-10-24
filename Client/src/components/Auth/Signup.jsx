@@ -17,8 +17,8 @@ const Signup = () => {
         confirmPassword: '',
 
         type: userType === 'consumer' ? 'Restaurant' : undefined,
-        state: userType === 'consumer' ? '' : undefined,
-        city: userType === 'consumer' ? '' : undefined,
+        state: '',
+        city: '',
         address: userType === 'consumer' ? '' : undefined
     });
     const [error, setError] = useState('');
@@ -39,22 +39,20 @@ const Signup = () => {
         'Corporate Cafeteria'
     ];
 
-    // Fetch states on component mount for consumer registration
+    // Fetch states on component mount
     useEffect(() => {
-        if (userType === 'consumer') {
-            fetchStates();
-        }
-    }, [userType]);
+        fetchStates();
+    }, []);
 
     // Fetch cities when state changes
     useEffect(() => {
-        if (userType === 'consumer' && formData.state) {
+        if (formData.state) {
             fetchCities(formData.state);
         } else {
             setCities([]);
             setFormData(prev => ({ ...prev, city: '' }));
         }
-    }, [formData.state, userType]);
+    }, [formData.state]);
 
     const fetchStates = async () => {
         try {
@@ -110,6 +108,16 @@ const Signup = () => {
                 return;
             }
 
+            if (!formData.state) {
+                setError('Please select a state');
+                return;
+            }
+
+            if (!formData.city) {
+                setError('Please select a city');
+                return;
+            }
+
             if (userType === 'consumer') {
                 if (!formData.email) {
                     setError('Email is required for consumer registration');
@@ -140,7 +148,10 @@ const Signup = () => {
             const signupData = {
                 name: formData.name.trim(),
                 phoneNumber: formData.phoneNumber.trim(),
-                password: formData.password
+                password: formData.password,
+                location: `${formData.city}, ${formData.state}`,
+                state: formData.state,
+                city: formData.city
             };
 
             if (userType === 'consumer') {
@@ -264,6 +275,52 @@ const Signup = () => {
                                         required
                                         placeholder="10-digit phone number"
                                     />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-col">
+                                <div className="form-group">
+                                    <label>State</label>
+                                    <select
+                                        name="state"
+                                        value={formData.state}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        required
+                                    >
+                                        <option value="">Select your state</option>
+                                        {states.map(state => (
+                                            <option key={state} value={state}>
+                                                {state}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-col">
+                                <div className="form-group">
+                                    <label>City</label>
+                                    <select
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        required
+                                        disabled={!formData.state || loadingCities}
+                                    >
+                                        <option value="">
+                                            {loadingCities ? 'Loading cities...' : 
+                                             !formData.state ? 'Select state first' : 
+                                             'Select your city'}
+                                        </option>
+                                        {cities.map(city => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>

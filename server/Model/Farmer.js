@@ -18,6 +18,14 @@ const farmerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    state: {
+        type: String,
+        required: false
+    },
+    city: {
+        type: String,
+        required: false
+    },
     joinedDate: {
         type: Date,
         default: Date.now
