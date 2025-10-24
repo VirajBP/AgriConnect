@@ -6,6 +6,7 @@ const FarmerDashboard = require('../Model/FarmerDashboard');
 const ConsumerDashboard = require('../Model/ConsumerDashboard');
 const { syncFarmerInventory } = require('../Utils/farmerUtils');
 const { sendOTPEmail } = require('../Utils/emailService');
+const { isValidStateCityPair } = require('../Utils/statesCitiesData');
 
 // Store OTP temporarily (in production, use Redis or similar)
 const otpStore = new Map();
@@ -172,13 +173,15 @@ exports.register = async (req, res, next) => {
                 throw err;
             }
         } else {
-            const { name, email, password, location, phoneNumber, type } = req.body;
+            const { name, email, password, phoneNumber, type, state, city, address } = req.body;
             console.log('Consumer registration data:', { 
                 name, 
                 email, 
                 phoneNumber, 
                 location, 
                 type,
+                state,
+                city,
                 passwordLength: password?.length 
             });
 
@@ -187,9 +190,11 @@ exports.register = async (req, res, next) => {
                 name,
                 email,
                 password,
-                location,
                 phoneNumber,
-                type
+                type,
+                state,
+                city,
+                address
             };
 
             const missingFields = Object.entries(requiredFields)
@@ -281,6 +286,16 @@ exports.register = async (req, res, next) => {
                     });
                 }
 
+                // Validate state-city combination
+                if (!isValidStateCityPair(state, city)) {
+                    console.log('Invalid state-city combination:', { state, city });
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Validation Error',
+                        errors: ['Invalid state-city combination']
+                    });
+                }
+
                 // Hash password
                 const salt = await bcrypt.genSalt(12);
                 const hashedPassword = await bcrypt.hash(password, salt);
@@ -290,9 +305,11 @@ exports.register = async (req, res, next) => {
                     name,
                     email,
                     password: hashedPassword,
-                    location,
                     phoneNumber,
-                    type
+                    type,
+                    state,
+                    city,
+                    address
                 });
 
                 await consumer.save();
@@ -313,8 +330,9 @@ exports.register = async (req, res, next) => {
                         name: consumer.name,
                         email: consumer.email,
                         phoneNumber: consumer.phoneNumber,
-                        location: consumer.location,
-                        type: consumer.type
+                        type: consumer.type,
+                        state: consumer.state,
+                        city: consumer.city
                     }
                 });
             } catch (err) {
@@ -404,7 +422,7 @@ exports.login = async (req, res, next) => {
         // Check profile completion for consumer
         let profileComplete = true;
         if (userType === 'consumer') {
-            const requiredFields = ['name', 'email', 'phoneNumber', 'location', 'address', 'type'];
+            const requiredFields = ['name', 'email', 'phoneNumber', 'address', 'type', 'state', 'city'];
             profileComplete = requiredFields.every(field => user[field] && user[field].toString().trim() !== '');
         }
 
@@ -417,9 +435,13 @@ exports.login = async (req, res, next) => {
                 id: user._id,
                 name: user.name,
                 phoneNumber: user.phoneNumber,
-                location: user.location,
                 type: userType,
-                ...(userType === 'consumer' && { email: user.email, consumerType: user.type })
+                ...(userType === 'consumer' && { 
+                    email: user.email, 
+                    consumerType: user.type,
+                    state: user.state,
+                    city: user.city
+                })
             }
         });
 
@@ -564,6 +586,92 @@ exports.verifyOTP = async (req, res) => {
         });
     } catch (error) {
         console.error('OTP verification error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error'
+        });
+    }
+};
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const { resetToken, newPassword, email } = req.body;
+
+        if (!resetToken || !newPassword || !email) {
+            return res.status(400).json({
+                success: false,
+                message: 'Reset token, new password, and email are required'
+            });
+        }
+
+        // Verify reset token
+        let decoded;
+        try {
+            decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid or expired reset token'
+            });
+        }
+
+        // Validate password
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters long'
+            });
+        }
+
+        // Find user based on userType
+        let user = null;
+        if (decoded.userType === 'consumer') {
+            user = await Consumer.findOne({ _id: decoded.userId, email });
+        } else if (decoded.userType === 'farmer') {
+            user = await Farmer.findOne({ _id: decoded.userId, email });
+        }
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password without triggering validation on other fields
+        await Consumer.findByIdAndUpdate(
+            user._id,
+            { $set: { password: hashedPassword } },
+            { runValidators: false }
+        );
+
+        // Generate new login token
+        const loginToken = generateToken(user, decoded.userType);
+
+        return res.json({
+            success: true,
+            message: 'Password reset successfully',
+            token: loginToken,
+            userType: decoded.userType,
+            user: {
+                id: user._id,
+                name: user.name,
+                phoneNumber: user.phoneNumber,
+                type: decoded.userType,
+                ...(decoded.userType === 'consumer' && { 
+                    email: user.email, 
+                    consumerType: user.type,
+                    state: user.state,
+                    city: user.city
+                })
+            }
+        });
+    } catch (error) {
+        console.error('Reset password error:', error);
         return res.status(500).json({
             success: false,
             message: 'Internal server error'

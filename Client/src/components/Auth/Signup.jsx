@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import './Signup.css';
@@ -15,10 +15,16 @@ const Signup = () => {
         email: userType === 'consumer' ? '' : undefined,
         password: '',
         confirmPassword: '',
-        location: '',
-        type: userType === 'consumer' ? 'Restaurant' : undefined
+
+        type: userType === 'consumer' ? 'Restaurant' : undefined,
+        state: userType === 'consumer' ? '' : undefined,
+        city: userType === 'consumer' ? '' : undefined,
+        address: userType === 'consumer' ? '' : undefined
     });
     const [error, setError] = useState('');
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [loadingCities, setLoadingCities] = useState(false);
 
     const consumerTypes = [
         'Restaurant',
@@ -32,6 +38,49 @@ const Signup = () => {
         'Educational Institution',
         'Corporate Cafeteria'
     ];
+
+    // Fetch states on component mount for consumer registration
+    useEffect(() => {
+        if (userType === 'consumer') {
+            fetchStates();
+        }
+    }, [userType]);
+
+    // Fetch cities when state changes
+    useEffect(() => {
+        if (userType === 'consumer' && formData.state) {
+            fetchCities(formData.state);
+        } else {
+            setCities([]);
+            setFormData(prev => ({ ...prev, city: '' }));
+        }
+    }, [formData.state, userType]);
+
+    const fetchStates = async () => {
+        try {
+            const response = await axios.get(`${API_URL}/api/auth/states`);
+            if (response.data.success) {
+                setStates(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching states:', error);
+        }
+    };
+
+    const fetchCities = async (state) => {
+        try {
+            setLoadingCities(true);
+            const response = await axios.get(`${API_URL}/api/auth/cities/${encodeURIComponent(state)}`);
+            if (response.data.success) {
+                setCities(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+            setCities([]);
+        } finally {
+            setLoadingCities(false);
+        }
+    };
 
     const handleChange = (e) => {
         setFormData({
@@ -70,6 +119,18 @@ const Signup = () => {
                     setError('Please select a consumer type');
                     return;
                 }
+                if (!formData.state) {
+                    setError('Please select a state');
+                    return;
+                }
+                if (!formData.city) {
+                    setError('Please select a city');
+                    return;
+                }
+                if (!formData.address) {
+                    setError('Address is required');
+                    return;
+                }
                 if (!/\S+@\S+\.\S+/.test(formData.email)) {
                     setError('Please enter a valid email address');
                     return;
@@ -79,13 +140,15 @@ const Signup = () => {
             const signupData = {
                 name: formData.name.trim(),
                 phoneNumber: formData.phoneNumber.trim(),
-                password: formData.password,
-                location: formData.location.trim()
+                password: formData.password
             };
 
             if (userType === 'consumer') {
                 signupData.email = formData.email.trim();
                 signupData.type = formData.type;
+                signupData.state = formData.state;
+                signupData.city = formData.city;
+                signupData.address = formData.address.trim();
             }
 
             console.log('Attempting signup with:', signupData);
@@ -251,40 +314,90 @@ const Signup = () => {
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <label>Location</label>
-                            <input
-                                type="text"
-                                name="location"
-                                value={formData.location}
-                                onChange={handleChange}
-                                className="form-control"
-                                required
-                                placeholder="Enter your location"
-                            />
-                        </div>
+
 
                         {userType === 'consumer' && (
-                            <div className="form-group">
-                                <label>Consumer Type</label>
-                                <select
-                                    name="type"
-                                    value={formData.type}
-                                    onChange={handleChange}
-                                    className="form-control"
-                                    required
-                                >
-                                    <option value="">Select your organization type</option>
-                                    {consumerTypes.map(type => (
-                                        <option key={type} value={type}>
-                                            {type.split(/(?=[A-Z])/).join(' ')}
-                                        </option>
-                                    ))}
-                                </select>
-                                <small className="form-text">
-                                    Select the type that best describes your organization
-                                </small>
-                            </div>
+                            <>
+                                <div className="form-row">
+                                    <div className="form-col">
+                                        <div className="form-group">
+                                            <label>State</label>
+                                            <select
+                                                name="state"
+                                                value={formData.state}
+                                                onChange={handleChange}
+                                                className="form-control"
+                                                required
+                                            >
+                                                <option value="">Select your state</option>
+                                                {states.map(state => (
+                                                    <option key={state} value={state}>
+                                                        {state}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="form-col">
+                                        <div className="form-group">
+                                            <label>City</label>
+                                            <select
+                                                name="city"
+                                                value={formData.city}
+                                                onChange={handleChange}
+                                                className="form-control"
+                                                required
+                                                disabled={!formData.state || loadingCities}
+                                            >
+                                                <option value="">
+                                                    {loadingCities ? 'Loading cities...' : 
+                                                     !formData.state ? 'Select state first' : 
+                                                     'Select your city'}
+                                                </option>
+                                                {cities.map(city => (
+                                                    <option key={city} value={city}>
+                                                        {city}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Address</label>
+                                    <textarea
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        required
+                                        placeholder="Enter your complete address"
+                                        rows="3"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Consumer Type</label>
+                                    <select
+                                        name="type"
+                                        value={formData.type}
+                                        onChange={handleChange}
+                                        className="form-control"
+                                        required
+                                    >
+                                        <option value="">Select your organization type</option>
+                                        {consumerTypes.map(type => (
+                                            <option key={type} value={type}>
+                                                {type.split(/(?=[A-Z])/).join(' ')}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <small className="form-text">
+                                        Select the type that best describes your organization
+                                    </small>
+                                </div>
+                            </>
                         )}
 
                         <button type="submit" className="btn-signup">

@@ -6,12 +6,15 @@ import './ForgotPassword.css';
 const ForgotPassword = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Success
+    const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Reset Password, 4: Success
     const [email, setEmail] = useState('');
     const [otp, setOtp] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [userType, setUserType] = useState('consumer');
+    const [resetToken, setResetToken] = useState('');
 
     useEffect(() => {
         // Get user type from URL state or default to 'consumer'
@@ -67,19 +70,61 @@ const ForgotPassword = () => {
             );
             
             if (response.data.success) {
-                localStorage.setItem('resetToken', response.data.resetToken);
-                localStorage.setItem('userType', response.data.userType);
-                setStep(3);
-                // Redirect to the appropriate dashboard after 2 seconds
-                setTimeout(() => {
-                    navigate(`/${response.data.userType}/dashboard`);
-                }, 2000);
+                setResetToken(response.data.resetToken);
+                setUserType(response.data.userType);
+                setStep(3); // Go to password reset step
             } else {
                 setError(response.data.message || 'Invalid OTP');
             }
         } catch (err) {
             console.error('OTP verification error:', err.response || err);
             setError(err.response?.data?.message || 'Error verifying OTP');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        if (newPassword !== confirmPassword) {
+            setError('Passwords do not match');
+            setLoading(false);
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            setError('Password must be at least 6 characters long');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post(
+                '/api/auth/reset-password',
+                { resetToken, newPassword, email },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            
+            if (response.data.success) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userType', response.data.userType);
+                setStep(4);
+                setTimeout(() => {
+                    navigate(`/${response.data.userType}/dashboard`);
+                }, 2000);
+            } else {
+                setError(response.data.message || 'Failed to reset password');
+            }
+        } catch (err) {
+            console.error('Reset password error:', err.response || err);
+            setError(err.response?.data?.message || 'Error resetting password');
         } finally {
             setLoading(false);
         }
@@ -93,7 +138,8 @@ const ForgotPassword = () => {
                     <p>
                         {step === 1 && 'Enter your email to receive a verification code'}
                         {step === 2 && 'Enter the verification code sent to your email'}
-                        {step === 3 && `Success! Redirecting to your ${userType} dashboard...`}
+                        {step === 3 && 'Enter your new password'}
+                        {step === 4 && `Success! Redirecting to your ${userType} dashboard...`}
                     </p>
                 </div>
 
@@ -151,6 +197,42 @@ const ForgotPassword = () => {
                 )}
 
                 {step === 3 && (
+                    <form onSubmit={handleResetPassword} className="forgot-password-form">
+                        <div className="form-group">
+                            <label>New Password</label>
+                            <input
+                                type="password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="form-control"
+                                placeholder="Enter new password"
+                                required
+                                minLength="6"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Confirm Password</label>
+                            <input
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className="form-control"
+                                placeholder="Confirm new password"
+                                required
+                                minLength="6"
+                            />
+                        </div>
+                        <button 
+                            type="submit" 
+                            className="btn-submit"
+                            disabled={loading}
+                        >
+                            {loading ? 'Resetting...' : 'Reset Password'}
+                        </button>
+                    </form>
+                )}
+
+                {step === 4 && (
                     <div className="success-message">
                         <p>Password reset process completed successfully!</p>
                         <p>Redirecting to your dashboard...</p>
