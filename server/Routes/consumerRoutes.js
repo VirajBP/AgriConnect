@@ -7,6 +7,7 @@ const Order = require('../Model/Order');
 const ConsumerDashboard = require('../Model/ConsumerDashboard');
 const Farmer = require('../Model/Farmer');
 const bcrypt = require('bcryptjs');
+const { isValidStateCityPair } = require('../Utils/statesCitiesData');
 
 // Helper function to update monthly spending data
 const updateMonthlySpending = async (consumerId) => {
@@ -397,8 +398,14 @@ router.get('/market/products', auth, async (req, res) => {
             });
         }
 
-        // Find farmers in the same location
-        const localFarmers = await Farmer.find({ location: consumer.location });
+        // Find farmers in the same state and city
+        const localFarmers = await Farmer.find({ 
+            $or: [
+                { location: `${consumer.city}, ${consumer.state}` },
+                { location: consumer.city },
+                { location: { $regex: consumer.city, $options: 'i' } }
+            ]
+        });
             // console.log('Found local farmers:', {
             //     count: localFarmers.length,
             //     location: consumer.location,
@@ -478,6 +485,16 @@ router.put('/profile/update', auth, async (req, res) => {
         
         // Remove password from updates if present
         delete updates.password;
+
+        // Validate state-city combination if both are being updated
+        if (updates.state && updates.city) {
+            if (!isValidStateCityPair(updates.state, updates.city)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid state-city combination'
+                });
+            }
+        }
 
         const consumer = await Consumer.findByIdAndUpdate(
             req.user.id,

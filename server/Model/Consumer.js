@@ -18,7 +18,11 @@ const consumerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    location: {
+    state: {
+        type: String,
+        required: true
+    },
+    city: {
         type: String,
         required: true
     },
@@ -35,7 +39,8 @@ const consumerSchema = new mongoose.Schema({
             'Hotel',
             'Catering',
             'Educational Institution',
-            'Corporate Cafeteria'
+            'Corporate Cafeteria',
+            'Wholesaler'
         ]
     },
     address: {
