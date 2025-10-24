@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaEnvelope, FaCity } from 'react-icons/fa';
+import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaEnvelope, FaCity, FaGlobe } from 'react-icons/fa';
 import Sidebar from '../Sidebar/Sidebar';
 import axios from '../../utils/axios';
 import { CircularProgress } from '@mui/material';
@@ -16,6 +16,9 @@ const ConsumerProfile = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [profileComplete, setProfileComplete] = useState(true);
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [loadingCities, setLoadingCities] = useState(false);
     const { isDarkMode, toggleTheme } = useTheme();
 
     useEffect(() => {
@@ -27,7 +30,7 @@ const ConsumerProfile = () => {
                     setProfile(response.data.data);
                     
                     // Check if profile is complete
-                    const requiredFields = ['name', 'email', 'phoneNumber', 'location', 'address', 'type'];
+                    const requiredFields = ['name', 'email', 'phoneNumber', 'address', 'type', 'state', 'city'];
                     const isComplete = requiredFields.every(field => 
                         response.data.data[field] && response.data.data[field].toString().trim() !== ''
                     );
@@ -43,8 +46,46 @@ const ConsumerProfile = () => {
             }
         };
 
+        const fetchStates = async () => {
+            try {
+                const response = await axios.get('/api/auth/states');
+                if (response.data.success) {
+                    setStates(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching states:', error);
+            }
+        };
+
         fetchProfileData();
+        fetchStates();
     }, []);
+
+    // Fetch cities when state changes in edit mode
+    useEffect(() => {
+        if (editMode.state && tempData.state) {
+            fetchCities(tempData.state);
+        }
+        // Also fetch cities when editing city and we have a current state
+        if (editMode.city && !editMode.state && profile?.state) {
+            fetchCities(profile.state);
+        }
+    }, [tempData.state, editMode.state, editMode.city, profile?.state]);
+
+    const fetchCities = async (state) => {
+        try {
+            setLoadingCities(true);
+            const response = await axios.get(`/api/auth/cities/${encodeURIComponent(state)}`);
+            if (response.data.success) {
+                setCities(response.data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching cities:', error);
+            setCities([]);
+        } finally {
+            setLoadingCities(false);
+        }
+    };
 
     const editableFields = {
         name: {
@@ -65,11 +106,18 @@ const ConsumerProfile = () => {
             icon: <FaPhone />,
             validation: value => /^\+?[\d\s-]{10,}$/.test(value)
         },
-        location: {
+
+        state: {
+            label: 'State',
+            type: 'select',
+            icon: <FaGlobe />,
+            validation: value => states.includes(value)
+        },
+        city: {
             label: 'City',
-            type: 'text',
+            type: 'select',
             icon: <FaCity />,
-            validation: value => value?.length >= 2
+            validation: value => cities.includes(value)
         },
         address: {
             label: 'Delivery Address',
@@ -110,6 +158,17 @@ const ConsumerProfile = () => {
     const handleEdit = (field) => {
         setEditMode({ ...editMode, [field]: true });
         setTempData({ ...tempData, [field]: profile ? profile[field] : '' });
+        
+        // If editing state, also load cities for current state
+        if (field === 'state' && profile?.state) {
+            fetchCities(profile.state);
+        }
+        // If editing city, load cities for current state
+        if (field === 'city' && profile?.state) {
+            fetchCities(profile.state);
+            // Set tempData.state to current profile state so city dropdown works
+            setTempData(prev => ({ ...prev, state: profile.state, [field]: profile[field] || '' }));
+        }
     };
 
     const handleCancel = (field) => {
@@ -158,7 +217,7 @@ const ConsumerProfile = () => {
                     setTempData({ ...tempData, [field]: '' });
                     
                     // Check if profile is now complete
-                    const requiredFields = ['name', 'email', 'phoneNumber', 'location', 'address', 'type'];
+                    const requiredFields = ['name', 'email', 'phoneNumber', 'address', 'type', 'state', 'city'];
                     const isComplete = requiredFields.every(field => 
                         updatedProfile[field] && updatedProfile[field].toString().trim() !== ''
                     );
@@ -379,7 +438,64 @@ const ConsumerProfile = () => {
                                         </div>
                                     </div>
 
-                                    {/* City/Location Field */}
+
+
+                                    {/* State Field */}
+                                    <div className={`${isDarkMode ? 'profile-field-dark' : 'profile-field'}`}>
+                                        <div className="field-content">
+                                            <div className="field-icon">
+                                                <FaGlobe />
+                                            </div>
+                                            <div className="field-info">
+                                                <label>State</label>
+                                                {editMode.state ? (
+                                                    <div className="field-edit">
+                                                        <select
+                                                            value={tempData.state || profile.state}
+                                                            onChange={(e) => {
+                                                                handleInputChange('state', e.target.value);
+                                                                // Reset city when state changes
+                                                                handleInputChange('city', '');
+                                                            }}
+                                                            style={{
+                                                                flex: 1,
+                                                                padding: '0.75rem',
+                                                                border: '1px solid var(--border-color)',
+                                                                borderRadius: '6px',
+                                                                fontSize: '1rem',
+                                                                color: 'var(--text-color)',
+                                                                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff'
+                                                            }}
+                                                        >
+                                                            <option value="">Select State</option>
+                                                            {states.map(state => (
+                                                                <option key={state} value={state}>
+                                                                    {state}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <div className="edit-actions">
+                                                            <button className="action-btn save" onClick={() => handleSave('state')}>
+                                                                <FaCheck />
+                                                            </button>
+                                                            <button className="action-btn cancel" onClick={() => handleCancel('state')}>
+                                                                <FaTimes />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className={`field-value ${isDarkMode? "text-white":"text-black"}`}>
+                                                        <span className={`${isDarkMode?"text-white" : "text-black"}`}>{profile.state || 'Not set'}</span>
+                                                        <button className="edit-btn" onClick={() => handleEdit('state')}>
+                                                            <FaEdit />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* City Field */}
                                     <div className={`${isDarkMode ? 'profile-field-dark' : 'profile-field'}`}>
                                         <div className="field-content">
                                             <div className="field-icon">
@@ -387,26 +503,46 @@ const ConsumerProfile = () => {
                                             </div>
                                             <div className="field-info">
                                                 <label>City</label>
-                                                {editMode.location ? (
+                                                {editMode.city ? (
                                                     <div className="field-edit">
-                                                        <input
-                                                            type="text"
-                                                            value={tempData.location || profile.location}
-                                                            onChange={(e) => handleInputChange('location', e.target.value)}
-                                                        />
+                                                        <select
+                                                            value={tempData.city || profile.city}
+                                                            onChange={(e) => handleInputChange('city', e.target.value)}
+                                                            disabled={(!tempData.state && !profile?.state) || loadingCities}
+                                                            style={{
+                                                                flex: 1,
+                                                                padding: '0.75rem',
+                                                                border: '1px solid var(--border-color)',
+                                                                borderRadius: '6px',
+                                                                fontSize: '1rem',
+                                                                color: 'var(--text-color)',
+                                                                backgroundColor: isDarkMode ? '#2c2c2c' : '#fff'
+                                                            }}
+                                                        >
+                                                            <option value="">
+                                                                {loadingCities ? 'Loading cities...' : 
+                                                                 (!tempData.state && !profile?.state) ? 'Select state first' : 
+                                                                 'Select City'}
+                                                            </option>
+                                                            {cities.map(city => (
+                                                                <option key={city} value={city}>
+                                                                    {city}
+                                                                </option>
+                                                            ))}
+                                                        </select>
                                                         <div className="edit-actions">
-                                                            <button className="action-btn save" onClick={() => handleSave('location')}>
+                                                            <button className="action-btn save" onClick={() => handleSave('city')}>
                                                                 <FaCheck />
                                                             </button>
-                                                            <button className="action-btn cancel" onClick={() => handleCancel('location')}>
+                                                            <button className="action-btn cancel" onClick={() => handleCancel('city')}>
                                                                 <FaTimes />
                                                             </button>
                                                         </div>
                                                     </div>
                                                 ) : (
                                                     <div className={`field-value ${isDarkMode? "text-white":"text-black"}`}>
-                                                        <span className={`${isDarkMode?"text-white" : "text-black"}`}>{profile.location}</span>
-                                                        <button className="edit-btn" onClick={() => handleEdit('location')}>
+                                                        <span className={`${isDarkMode?"text-white" : "text-black"}`}>{profile.city || 'Not set'}</span>
+                                                        <button className="edit-btn" onClick={() => handleEdit('city')}>
                                                             <FaEdit />
                                                         </button>
                                                     </div>
