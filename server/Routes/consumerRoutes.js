@@ -379,47 +379,42 @@ router.get('/products', auth, async (req, res) => {
     }
 });
 
-// Get all available products for market
+// Get all available products for market with state/city filtering
 router.get('/market/products', auth, async (req, res) => {
     try {
-        // console.log('Fetching market products for consumer:', req.user.id);
+        const { state, city } = req.query;
         
-        // First get the consumer's location
-        const consumer = await Consumer.findById(req.user.id);
-        // console.log('Consumer data:', {
-        //     id: consumer._id,
-        //     location: consumer.location
-        // });
+        // Build farmer search query based on provided filters
+        let farmerQuery = {};
         
-        if (!consumer) {
-            return res.status(404).json({
-                success: false,
-                message: 'Consumer not found'
-            });
+        if (state && city) {
+            // Search by both state and city
+            farmerQuery = { state, city };
+        } else if (state) {
+            // Search by state only
+            farmerQuery = { state };
+        } else if (city) {
+            // Search by city only (fallback)
+            farmerQuery = { city };
+        } else {
+            // If no filters provided, get consumer's location as fallback
+            const consumer = await Consumer.findById(req.user.id);
+            if (consumer && consumer.state && consumer.city) {
+                farmerQuery = { state: consumer.state, city: consumer.city };
+            }
         }
 
-        // Find farmers in the same city and state
-        const localFarmers = await Farmer.find({ 
-            $or: [
-                { city: consumer.city, state: consumer.state },
-                { city: consumer.city },
-                { location: { $regex: consumer.city, $options: 'i' } }
-            ]
-        });
-            // console.log('Found local farmers:', {
-            //     count: localFarmers.length,
-            //     location: consumer.location,
-            //     farmerIds: localFarmers.map(f => f._id)
-            // });
+        // Find farmers based on location criteria
+        const farmers = await Farmer.find(farmerQuery);
 
-        // Get available products from local farmers' inventories
+        // Get available products from farmers' inventories
         const farmersWithInventory = await Farmer.find({ 
-            _id: { $in: localFarmers.map(f => f._id) },
+            _id: { $in: farmers.map(f => f._id) },
             'inventory.isAvailable': true,
             'inventory.quantity': { $gt: 0 }
         })
         .populate('inventory.productId', 'name variety category image')
-        .select('name location phoneNumber email inventory');
+        .select('name location state city phoneNumber email inventory');
 
         // Flatten inventory items into products array
         const availableProducts = [];
@@ -440,6 +435,8 @@ router.get('/market/products', auth, async (req, res) => {
                             _id: farmer._id,
                             name: farmer.name,
                             location: farmer.location,
+                            state: farmer.state,
+                            city: farmer.city,
                             phoneNumber: farmer.phoneNumber,
                             email: farmer.email
                         }
@@ -451,20 +448,12 @@ router.get('/market/products', auth, async (req, res) => {
         // Sort by most recent
         availableProducts.sort((a, b) => new Date(b.estimatedDate) - new Date(a.estimatedDate));
 
-        // console.log('Available products:', {
-        //     count: availableProducts.length,
-        //     products: availableProducts.map(p => ({
-        //         id: p._id,
-        //         name: p.productName,
-        //         farmer: p.farmer?.name,
-        //         location: p.farmer?.location,
-        //         quantity: p.quantity
-        //     }))
-        // });
-
         res.json({
             success: true,
-            data: availableProducts
+            data: availableProducts,
+            filters: { state, city },
+            totalFarmers: farmers.length,
+            totalProducts: availableProducts.length
         });
     } catch (error) {
         console.error('Error fetching market products:', {
@@ -474,6 +463,115 @@ router.get('/market/products', auth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error while fetching market products'
+        });
+    }
+});
+
+// Get states and cities data
+router.get('/location/states', async (req, res) => {
+    try {
+        const { getAllStates } = require('../Utils/statesCitiesData');
+        const states = getAllStates();
+        
+        res.json({
+            success: true,
+            data: states
+        });
+    } catch (error) {
+        console.error('Error fetching states:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching states'
+        });
+    }
+});
+
+// Get cities for a specific state
+router.get('/location/cities/:state', async (req, res) => {
+    try {
+        const { getCitiesForState } = require('../Utils/statesCitiesData');
+        const cities = getCitiesForState(req.params.state);
+        
+        res.json({
+            success: true,
+            data: cities
+        });
+    } catch (error) {
+        console.error('Error fetching cities:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching cities'
+        });
+    }
+});
+
+// Search farmers by location
+router.get('/farmers/search', auth, async (req, res) => {
+    try {
+        const { state, city } = req.query;
+        
+        if (!state && !city) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please provide at least state or city for search'
+            });
+        }
+
+        // Build search query
+        let searchQuery = {};
+        if (state && city) {
+            searchQuery = { state, city };
+        } else if (state) {
+            searchQuery = { state };
+        } else {
+            searchQuery = { city };
+        }
+
+        // Find farmers with available inventory
+        const farmers = await Farmer.find({
+            ...searchQuery,
+            'inventory.isAvailable': true,
+            'inventory.quantity': { $gt: 0 }
+        })
+        .populate('inventory.productId', 'name variety category')
+        .select('name location state city phoneNumber email inventory');
+
+        // Transform farmer data to include product summary
+        const farmersWithProducts = farmers.map(farmer => {
+            const availableProducts = farmer.inventory.filter(item => 
+                item.isAvailable && item.quantity > 0
+            );
+            
+            return {
+                _id: farmer._id,
+                name: farmer.name,
+                location: farmer.location,
+                state: farmer.state,
+                city: farmer.city,
+                phoneNumber: farmer.phoneNumber,
+                email: farmer.email,
+                totalProducts: availableProducts.length,
+                products: availableProducts.map(item => ({
+                    _id: item._id,
+                    name: item.productId.name,
+                    variety: item.productId.variety,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            };
+        });
+
+        res.json({
+            success: true,
+            data: farmersWithProducts,
+            searchCriteria: { state, city },
+            totalFarmers: farmersWithProducts.length
+        });
+    } catch (error) {
+        console.error('Error searching farmers:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while searching farmers'
         });
     }
 });

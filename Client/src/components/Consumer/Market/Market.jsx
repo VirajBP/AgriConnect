@@ -34,7 +34,11 @@ import {
     Paper,
     Rating,
     Snackbar,
-    Alert
+    Alert,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { Search as SearchIcon, FilterList as FilterIcon, ShoppingCart as ShoppingCartIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon, Star as StarIcon, LocationOn as LocationIcon, Phone as PhoneIcon, Email as EmailIcon, Person as PersonIcon, LocationOn as LocationOnIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -94,12 +98,59 @@ const Market = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [orderQuantity, setOrderQuantity] = useState('');
     const [orderError, setOrderError] = useState('');
+    const [states, setStates] = useState([]);
+    const [cities, setCities] = useState([]);
+    const [selectedState, setSelectedState] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
+    const [searchLoading, setSearchLoading] = useState(false);
+
+    // Fetch states on component mount
+    useEffect(() => {
+        const fetchStates = async () => {
+            try {
+                const response = await axios.get('/api/consumer/location/states');
+                if (response.data.success) {
+                    setStates(response.data.data);
+                }
+            } catch (error) {
+                console.error('Error fetching states:', error);
+            }
+        };
+        fetchStates();
+    }, []);
+
+    // Fetch cities when state changes
+    useEffect(() => {
+        const fetchCities = async () => {
+            if (selectedState) {
+                try {
+                    const response = await axios.get(`/api/consumer/location/cities/${selectedState}`);
+                    if (response.data.success) {
+                        setCities(response.data.data);
+                    }
+                } catch (error) {
+                    console.error('Error fetching cities:', error);
+                }
+            } else {
+                setCities([]);
+                setSelectedCity('');
+            }
+        };
+        fetchCities();
+    }, [selectedState]);
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
+                setSearchLoading(true);
                 console.log('Fetching products from API...');
-                const response = await axios.get('/api/consumer/market/products');
+                
+                // Build query parameters for location-based search
+                const params = new URLSearchParams();
+                if (selectedState) params.append('state', selectedState);
+                if (selectedCity) params.append('city', selectedCity);
+                
+                const response = await axios.get(`/api/consumer/market/products?${params.toString()}`);
                 console.log('API Response:', response.data);
                 
                 if (response.data.success) {
@@ -108,23 +159,14 @@ const Market = () => {
                         category: product.productType === 'agriWaste' ? 'agriWaste' : 'crops'
                     }));
                     setProducts(productsWithCategory);
-                    
-                    // Get user's location from the first product's farmer location
-                    if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.city) {
-                        setUserLocation(productsWithCategory[0].farmer.city);
-                        // Filter products by default to show only those from the user's city
-                        const localProducts = productsWithCategory.filter(product => 
-                            product.farmer?.city?.toLowerCase() === productsWithCategory[0].farmer.city.toLowerCase()
-                        );
-                        setFilteredProducts(localProducts);
-                    } else if (productsWithCategory.length > 0 && productsWithCategory[0].farmer?.location) {
-                        setUserLocation(productsWithCategory[0].farmer.location);
-                        setFilteredProducts(productsWithCategory);
-                    } else {
-                        setFilteredProducts(productsWithCategory);
-                    }
+                    setFilteredProducts(productsWithCategory);
                     
                     console.log('All products:', productsWithCategory);
+                    console.log('Search results:', {
+                        totalFarmers: response.data.totalFarmers,
+                        totalProducts: response.data.totalProducts,
+                        filters: response.data.filters
+                    });
                 } else {
                     console.error('Error fetching products:', response.data.message || 'Failed to fetch products');
                     setError(response.data.message || 'Failed to fetch products');
@@ -138,11 +180,14 @@ const Market = () => {
                 setError(err.response?.data?.message || 'Error fetching products');
             } finally {
                 setLoading(false);
+                setSearchLoading(false);
             }
         };
 
-        fetchProducts();
-    }, [marketType]);
+        if (marketType) {
+            fetchProducts();
+        }
+    }, [marketType, selectedState, selectedCity]);
 
     useEffect(() => {
         const applyFilters = () => {
@@ -266,6 +311,27 @@ const Market = () => {
             : '/images/products/crops/default-crop.jpg';
     };
 
+    const handleStateChange = (event) => {
+        setSelectedState(event.target.value);
+        setSelectedCity(''); // Reset city when state changes
+    };
+
+    const handleCityChange = (event) => {
+        setSelectedCity(event.target.value);
+    };
+
+    const handleLocationSearch = () => {
+        // Trigger search by updating the dependencies in useEffect
+        // This will automatically fetch products based on selected state/city
+        if (!selectedState && !selectedCity) {
+            setSnackbar({
+                open: true,
+                message: 'Please select at least a state or city to search',
+                severity: 'warning'
+            });
+        }
+    };
+
     const handlePlaceOrder = async () => {
         try {
             if (!orderQuantity || orderQuantity <= 0) {
@@ -297,19 +363,19 @@ const Market = () => {
                 // Close the current product dialog
                 handleCloseDialog();
                 
-                // Refresh the products list
-                const productsResponse = await axios.get('/api/consumer/market/products');
+                // Refresh the products list with current filters
+                const params = new URLSearchParams();
+                if (selectedState) params.append('state', selectedState);
+                if (selectedCity) params.append('city', selectedCity);
+                
+                const productsResponse = await axios.get(`/api/consumer/market/products?${params.toString()}`);
                 if (productsResponse.data.success) {
-                    const updatedProducts = productsResponse.data.data;
+                    const updatedProducts = productsResponse.data.data.map(product => ({
+                        ...product,
+                        category: product.productType === 'agriWaste' ? 'agriWaste' : 'crops'
+                    }));
                     setProducts(updatedProducts);
-                    
-                    // Update filtered products based on current market type
-                    if (marketType) {
-                        const filtered = updatedProducts.filter(product => product.category === marketType);
-                        setFilteredProducts(filtered);
-                    } else {
-                        setFilteredProducts(updatedProducts);
-                    }
+                    setFilteredProducts(updatedProducts);
                 }
             }
         } catch (error) {
@@ -484,10 +550,80 @@ const Market = () => {
                     </Typography>
                 </Box>
 
-                {/* Search and Filter Section */}
+                {/* Location Search Section */}
                 <Box className="search-container" sx={{ mb: 4 }}>
                     <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
+                            <FormControl fullWidth>
+                                <InputLabel sx={{ color: isDarkMode ? '#b0b0b0' : 'inherit' }}>Select State</InputLabel>
+                                <Select
+                                    value={selectedState}
+                                    onChange={handleStateChange}
+                                    label="Select State"
+                                    sx={{
+                                        bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                                        color: isDarkMode ? '#fff' : 'inherit',
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.23)'
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#90caf9' : '#1976d2'
+                                        },
+                                        '& .MuiSelect-icon': {
+                                            color: isDarkMode ? '#b0b0b0' : 'inherit'
+                                        }
+                                    }}
+                                >
+                                    <MenuItem value="">
+                                        <em>All States</em>
+                                    </MenuItem>
+                                    {states.map((state) => (
+                                        <MenuItem key={state} value={state}>
+                                            {state}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                            <FormControl fullWidth disabled={!selectedState}>
+                                <InputLabel sx={{ color: isDarkMode ? '#b0b0b0' : 'inherit' }}>Select City</InputLabel>
+                                <Select
+                                    value={selectedCity}
+                                    onChange={handleCityChange}
+                                    label="Select City"
+                                    sx={{
+                                        bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
+                                        color: isDarkMode ? '#fff' : 'inherit',
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.23)'
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: isDarkMode ? '#90caf9' : '#1976d2'
+                                        },
+                                        '& .MuiSelect-icon': {
+                                            color: isDarkMode ? '#b0b0b0' : 'inherit'
+                                        }
+                                    }}
+                                >
+                                    <MenuItem value="">
+                                        <em>All Cities</em>
+                                    </MenuItem>
+                                    {cities.map((city) => (
+                                        <MenuItem key={city} value={city}>
+                                            {city}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid item xs={12} md={4}>
                             <TextField
                                 fullWidth
                                 placeholder="Search products..."
@@ -521,51 +657,48 @@ const Market = () => {
                                 }}
                             />
                         </Grid>
-                        <Grid item xs={12} md={6}>
-                            <TextField
-                                fullWidth
-                                placeholder="Enter your location..."
-                                value={userLocation}
-                                onChange={(e) => setUserLocation(e.target.value)}
-                                InputProps={{
-                                    startAdornment: (
-                                        <InputAdornment position="start">
-                                            <LocationIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'inherit' }} />
-                                        </InputAdornment>
-                                    ),
-                                    sx: {
-                                        bgcolor: isDarkMode ? '#1e1e1e' : '#fff',
-                                        '& .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: isDarkMode ? '#333' : 'rgba(0, 0, 0, 0.23)'
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: isDarkMode ? '#666' : 'rgba(0, 0, 0, 0.87)'
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: isDarkMode ? '#90caf9' : '#1976d2'
-                                        },
-                                        '& input': {
-                                            color: isDarkMode ? '#fff' : 'inherit'
-                                        },
-                                        '& input::placeholder': {
-                                            color: isDarkMode ? '#b0b0b0' : 'inherit',
-                                            opacity: 1
-                                        }
-                                    }
-                                }}
-                            />
-                        </Grid>
                     </Grid>
+                    
+                    {/* Search Results Summary */}
+                    {(selectedState || selectedCity) && (
+                        <Box sx={{ mt: 2, p: 2, bgcolor: isDarkMode ? '#1e1e1e' : '#f5f5f5', borderRadius: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {searchLoading ? (
+                                    <Box display="flex" alignItems="center" gap={1}>
+                                        <CircularProgress size={16} />
+                                        Searching farmers...
+                                    </Box>
+                                ) : (
+                                    `Found ${filteredProducts.length} products from farmers in ${selectedCity ? `${selectedCity}, ` : ''}${selectedState || 'selected location'}`
+                                )}
+                            </Typography>
+                        </Box>
+                    )}
                 </Box>
 
                 {filteredProducts.length === 0 ? (
                     <Box sx={{ textAlign: 'center', mt: 4 }}>
                         <Typography variant="h6" color={isDarkMode ? '#b0b0b0' : 'textSecondary'} gutterBottom>
-                            No products available in your city
+                            {selectedState || selectedCity ? 
+                                `No products available in ${selectedCity ? `${selectedCity}, ` : ''}${selectedState || 'selected location'}` :
+                                'No products available'
+                            }
                         </Typography>
-                        <Typography variant="body1" color={isDarkMode ? '#b0b0b0' : 'textSecondary'}>
-                            Check back later for new products from local farmers
+                        <Typography variant="body1" color={isDarkMode ? '#b0b0b0' : 'textSecondary'} sx={{ mb: 2 }}>
+                            {selectedState || selectedCity ? 
+                                'Try selecting a different state or city to find more farmers and products' :
+                                'Please select a state and city to search for farmers and their products'
+                            }
                         </Typography>
+                        {!selectedState && !selectedCity && (
+                            <Button 
+                                variant="outlined" 
+                                onClick={() => setSelectedState('Maharashtra')} // Default suggestion
+                                sx={{ mt: 1 }}
+                            >
+                                Browse Maharashtra Farmers
+                            </Button>
+                        )}
                     </Box>
                 ) : (
                     <Grid container spacing={4} justifyContent="center">
@@ -622,7 +755,10 @@ const Market = () => {
                                         <Box mt={2}>
                                             <Typography variant="body2" color="text.secondary" display="flex" alignItems="center" gutterBottom>
                                                 <LocationIcon fontSize="small" sx={{ mr: 1 }} />
-                                                {product.farmer?.location || 'Location not specified'}
+                                                {product.farmer?.city && product.farmer?.state ? 
+                                                    `${product.farmer.city}, ${product.farmer.state}` :
+                                                    product.farmer?.location || 'Location not specified'
+                                                }
                                             </Typography>
                                             <Typography variant="body2" color="text.secondary" display="flex" alignItems="center" gutterBottom>
                                                 <FaUser fontSize="small" style={{ marginRight: '8px' }} />
@@ -733,7 +869,10 @@ const Market = () => {
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <LocationOnIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary' }} />
                                                     <Typography sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
-                                                        {selectedProduct.farmer.location}
+                                                        {selectedProduct.farmer.city && selectedProduct.farmer.state ? 
+                                                            `${selectedProduct.farmer.city}, ${selectedProduct.farmer.state}` :
+                                                            selectedProduct.farmer.location || 'Location not specified'
+                                                        }
                                                     </Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
