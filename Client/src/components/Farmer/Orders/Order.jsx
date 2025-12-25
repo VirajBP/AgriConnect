@@ -3,7 +3,8 @@ import Sidebar from '../../Sidebar/Sidebar';
 import './Order.css';
 import '../../../index.css';
 import axios from '../../../utils/axios'; // Import the configured axios instance
-import { Typography, Box, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
+import { Typography, Box, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Rating, IconButton, Tooltip } from '@mui/material';
+import { Star as StarIcon } from '@mui/icons-material';
 
 export default function FarmerOrders() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -15,6 +16,13 @@ export default function FarmerOrders() {
   const [showDeliveryDateDialog, setShowDeliveryDateDialog] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [deliveryDate, setDeliveryDate] = useState('');
+  
+  // Rating dialog state (farmer → consumer)
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [ratingOrderId, setRatingOrderId] = useState(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [submittingRating, setSubmittingRating] = useState(false);
 
 useEffect(() => {
     const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
@@ -28,14 +36,14 @@ useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axios.get('/api/farmer/orders');
-        console.log("These are the orders", response.data.data);
+        // console.log("These are the orders", response.data.data);
         if (response.data.success) {
           setOrders(response.data.data);
         } else {
           setError(response.data.message || 'Failed to fetch orders');
         }
       } catch (err) {
-        console.error('Error fetching orders:', err);
+        // console.error('Error fetching orders:', err);
         setError(err.response?.data?.message || 'Error fetching orders');
       } finally {
         setLoading(false);
@@ -95,11 +103,11 @@ useEffect(() => {
           )
         );
       } else {
-        console.error('Failed to update order status:', response.data.message);
+        // console.error('Failed to update order status:', response.data.message);
         setError(response.data.message || 'Failed to update order status');
       }
     } catch (err) {
-      console.error('Error updating order status:', err);
+      // console.error('Error updating order status:', err);
       setError(err.response?.data?.message || 'Error updating order status');
     }
   };
@@ -146,7 +154,7 @@ useEffect(() => {
         setDeliveryDate('');
       }
     } catch (err) {
-      console.error('Error confirming order:', err);
+      // console.error('Error confirming order:', err);
       setError(err.response?.data?.message || 'Error confirming order');
     }
   };
@@ -261,6 +269,7 @@ useEffect(() => {
                   <th>Order Date</th>
                   <th>Delivery Date</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -278,6 +287,23 @@ useEffect(() => {
                         {order.status}
                       </span>
                     </td>
+                    <td>
+                      {order.status?.toLowerCase() === 'completed' && !order.farmerRating && (
+                        <Tooltip title="Rate Consumer">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              setRatingOrderId(order._id);
+                              setRatingValue(0);
+                              setRatingComment('');
+                              setRatingDialogOpen(true);
+                            }}
+                          >
+                            <StarIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -293,7 +319,12 @@ useEffect(() => {
             setSelectedOrderId(null);
             setDeliveryDate('');
           }}
-          className={isDark ? 'dark-dialog' : ''}
+          PaperProps={{
+            style: {
+              backgroundColor: isDark ? '#2c2c2c' : '#ffffff',
+              color: isDark ? '#ffffff' : '#000000'
+            }
+          }}
         >
           <DialogTitle>Set Expected Delivery Date</DialogTitle>
           <DialogContent>
@@ -325,6 +356,90 @@ useEffect(() => {
               color="primary"
             >
               Confirm
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Rating dialog: farmer → consumer */}
+        <Dialog
+          open={ratingDialogOpen}
+          onClose={() => setRatingDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            style: {
+              backgroundColor: isDark ? '#2c2c2c' : '#ffffff',
+              color: isDark ? '#ffffff' : '#000000'
+            }
+          }}
+        >
+          <DialogTitle>Rate Your Experience with the Consumer</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Rating
+                name="consumer-rating"
+                value={ratingValue}
+                onChange={(_, newValue) => setRatingValue(newValue)}
+                precision={1}
+                size="large"
+              />
+              <TextField
+                label="Optional comments"
+                multiline
+                minRows={3}
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+                fullWidth
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRatingDialogOpen(false)} disabled={submittingRating}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                if (!ratingValue) {
+                  alert('Please select a rating between 1 and 5');
+                  return;
+                }
+                setSubmittingRating(true);
+                try {
+                  const res = await axios.post(
+                    `/api/farmer/orders/${ratingOrderId}/rate`,
+                    { value: ratingValue, comment: ratingComment }
+                  );
+
+                  if (res.data.success) {
+                    setOrders(prev =>
+                      prev.map(o =>
+                        o._id === ratingOrderId
+                          ? { ...o, farmerRating: res.data.data.farmerRating }
+                          : o
+                      )
+                    );
+                    setVisibleOrders(prev =>
+                      prev.map(o =>
+                        o._id === ratingOrderId
+                          ? { ...o, farmerRating: res.data.data.farmerRating }
+                          : o
+                      )
+                    );
+                    setRatingDialogOpen(false);
+                  } else {
+                    alert(res.data.message || 'Failed to submit rating');
+                  }
+                } catch (err) {
+                  // console.error('Error submitting rating:', err);
+                  alert(err.response?.data?.message || 'Error submitting rating');
+                } finally {
+                  setSubmittingRating(false);
+                }
+              }}
+              disabled={submittingRating}
+            >
+              Submit
             </Button>
           </DialogActions>
         </Dialog>

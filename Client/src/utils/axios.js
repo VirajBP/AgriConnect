@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: (process.env.REACT_APP_API_URL || 'http://localhost:5000').replace(/\/api$/, ''),
+    baseURL: (process.env.REACT_APP_API_URL || 'https://agriconnect-backend.vercel.app').replace(/\/api$/, ''),
     headers: {
         'Content-Type': 'application/json'
     },

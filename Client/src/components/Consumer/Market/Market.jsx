@@ -764,9 +764,37 @@ const Market = () => {
                                                 <FaUser fontSize="small" style={{ marginRight: '8px' }} />
                                                 {product.farmer?.name || 'Unknown Farmer'}
                                             </Typography>
+                                            {product.farmer?.rating && product.farmer.rating.count > 0 && (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                                                    <Rating
+                                                        name="farmer-rating"
+                                                        value={Number(product.farmer.rating.average) || 0}
+                                                        precision={0.5}
+                                                        size="small"
+                                                        readOnly
+                                                    />
+                                                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                                                        ({product.farmer.rating.count})
+                                                    </Typography>
+                                                </Box>
+                                            )}
                                             <Typography variant="body2" color="text.secondary" gutterBottom>
                                                 Available: {product.quantity || 0} {product.unit || 'kg'}
                                             </Typography>
+                                            {product.productRating && product.productRating.count > 0 && (
+                                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                                                    <Rating
+                                                        name="product-rating"
+                                                        value={Number(product.productRating.average) || 0}
+                                                        precision={0.5}
+                                                        size="small"
+                                                        readOnly
+                                                    />
+                                                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                                                        ({product.productRating.count})
+                                                    </Typography>
+                                                </Box>
+                                            )}
                                         </Box>
                                     </CardContent>
                                     <CardActions sx={{ p: 0, mt: 2 }}>
@@ -865,6 +893,20 @@ const Market = () => {
                                                     <Typography sx={{ color: isDarkMode ? '#fff' : 'inherit' }}>
                                                         {selectedProduct.farmer.name}
                                                     </Typography>
+                                                    {selectedProduct.farmer?.rating && selectedProduct.farmer.rating.count > 0 && (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
+                                                            <Rating
+                                                                name="farmer-rating-detail"
+                                                                value={Number(selectedProduct.farmer.rating.average) || 0}
+                                                                precision={0.5}
+                                                                size="small"
+                                                                readOnly
+                                                            />
+                                                            <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
+                                                                ({selectedProduct.farmer.rating.count})
+                                                            </Typography>
+                                                        </Box>
+                                                    )}
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                     <LocationOnIcon sx={{ color: isDarkMode ? '#b0b0b0' : 'text.secondary' }} />

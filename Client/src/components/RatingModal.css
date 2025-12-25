@@ -1,0 +1,225 @@
+.rating-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.rating-modal {
+    background: var(--bg-color, white);
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    color: var(--text-color, #333);
+}
+
+/* Dark theme support */
+.dark .rating-modal {
+    background: #1e1e1e;
+    color: #fff;
+}
+
+.rating-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color, #eee);
+}
+
+.dark .rating-modal-header {
+    border-bottom-color: #333;
+}
+
+.rating-modal-header h3 {
+    margin: 0;
+    color: var(--text-color, #333);
+}
+
+.dark .rating-modal-header h3 {
+    color: #fff;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--text-secondary, #666);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    color: var(--text-color, #333);
+}
+
+.dark .close-btn {
+    color: #b0b0b0;
+}
+
+.dark .close-btn:hover {
+    color: #fff;
+}
+
+.rating-modal-body {
+    padding: 20px;
+}
+
+.order-info {
+    background: var(--bg-secondary, #f8f9fa);
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.dark .order-info {
+    background: #2c2c2c;
+}
+
+.order-info p {
+    margin: 5px 0;
+    color: var(--text-secondary, #555);
+}
+
+.dark .order-info p {
+    color: #b0b0b0;
+}
+
+.rating-section {
+    margin-bottom: 20px;
+}
+
+.rating-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: var(--text-color, #333);
+}
+
+.dark .rating-section label {
+    color: #fff;
+}
+
+.stars {
+    display: flex;
+    gap: 5px;
+}
+
+.star {
+    font-size: 30px;
+    color: #ddd;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star:hover,
+.star.filled {
+    color: #ffc107;
+}
+
+.comment-section {
+    margin-bottom: 20px;
+}
+
+.comment-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: var(--text-color, #333);
+}
+
+.dark .comment-section label {
+    color: #fff;
+}
+
+.comment-section textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color, #ddd);
+    border-radius: 4px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    background: var(--bg-color, white);
+    color: var(--text-color, #333);
+}
+
+.dark .comment-section textarea {
+    background: #2c2c2c;
+    border-color: #444;
+    color: #fff;
+}
+
+.comment-section textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.comment-section textarea::placeholder {
+    color: var(--text-secondary, #999);
+}
+
+.dark .comment-section textarea::placeholder {
+    color: #666;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.modal-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.modal-actions button[type="button"] {
+    background: var(--bg-secondary, #f5f5f5);
+    color: var(--text-color, #333);
+}
+
+.modal-actions button[type="button"]:hover {
+    background: var(--bg-hover, #e0e0e0);
+}
+
+.dark .modal-actions button[type="button"] {
+    background: #333;
+    color: #fff;
+}
+
+.dark .modal-actions button[type="button"]:hover {
+    background: #444;
+}
+
+.modal-actions button[type="submit"] {
+    background: #4CAF50;
+    color: white;
+}
+
+.modal-actions button[type="submit"]:hover:not(:disabled) {
+    background: #45a049;
+}
+
+.modal-actions button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -18,6 +18,10 @@ const farmerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    profilePhoto: {
+        type: String,
+        default: null
+    },
     state: {
         type: String,
         required: false
@@ -29,6 +33,17 @@ const farmerSchema = new mongoose.Schema({
     joinedDate: {
         type: Date,
         default: Date.now
+    },
+    // Aggregate rating from consumers across all completed orders
+    rating: {
+        average: {
+            type: Number,
+            default: 0
+        },
+        count: {
+            type: Number,
+            default: 0
+        }
     },
     inventory: [{
         productId: {

@@ -23,16 +23,16 @@ const loadDependencies = () => {
 
 // Setup CORS middleware immediately
 app.use(cors({
-    origin: 'https://agri-connect-gamma.vercel.app',
+    origin: ['http://localhost:3000', 'https://agriconnect-frontend.vercel.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 
-// Parse JSON bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Parse JSON bodies with increased limit for image uploads
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Debug middleware to log requests
 app.use((req, res, next) => {

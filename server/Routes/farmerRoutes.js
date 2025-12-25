@@ -183,16 +183,16 @@ router.get('/products', auth, async (req, res) => {
 // Get all orders for a farmer
 router.get('/orders', auth, async (req, res) => {
     try {
-        console.log('Fetching orders for farmer:', req.user.id);
+        // console.log('Fetching orders for farmer:', req.user.id);
 
         const orders = await Order.find({ farmer: req.user.id })
             .populate({
                 path: 'consumer',
-                select: 'name'
+                select: 'name rating'
             })
             .sort({ createdAt: -1 });
 
-        console.log('Raw orders data:', JSON.stringify(orders, null, 2));
+        // console.log('Raw orders data:', JSON.stringify(orders, null, 2));
 
         // Auto-complete confirmed orders whose delivery date has passed
         const now = new Date();
@@ -229,16 +229,20 @@ router.get('/orders', auth, async (req, res) => {
                 customer: order.consumer?.name || '',
                 orderDate: formatDate(order.orderDate || order.createdAt),
                 deliveryDate: formatDate(order.deliveryDate),
-                status: order.status || 'pending'
+                status: order.status || 'pending',
+                // Ratings for transparency
+                farmerRating: order.farmerRating || null,
+                consumerRating: order.consumerRating || null,
+                consumerRatingSummary: order.consumer?.rating || { average: 0, count: 0 }
             };
 
             // Log the transformed order for debugging
-            console.log('Transformed order:', orderData);
+            // console.log('Transformed order:', orderData);
 
             return orderData;
         });
 
-        console.log('All transformed orders:', JSON.stringify(transformedOrders, null, 2));
+        // console.log('All transformed orders:', JSON.stringify(transformedOrders, null, 2));
 
         res.json({
             success: true,
@@ -261,11 +265,11 @@ router.get('/orders', auth, async (req, res) => {
 // Get farmer dashboard data
 router.get('/dashboard', auth, async (req, res) => {
     try {
-        console.log('Fetching dashboard for user:', req.user.id);
+        // console.log('Fetching dashboard for user:', req.user.id);
         
         const farmer = await Farmer.findById(req.user.id);
         if (!farmer) {
-            console.log('Farmer not found for ID:', req.user.id);
+            // console.log('Farmer not found for ID:', req.user.id);
             return res.status(404).json({ success: false, message: 'Farmer not found' });
         }
 
@@ -280,7 +284,7 @@ router.get('/dashboard', auth, async (req, res) => {
             });
 
         if (!dashboard) {
-            console.log('Dashboard data not found for farmer ID:', req.user.id);
+            // console.log('Dashboard data not found for farmer ID:', req.user.id);
             return res.status(404).json({ success: false, message: 'Dashboard data not found' });
         }
 
@@ -331,14 +335,14 @@ router.get('/dashboard', auth, async (req, res) => {
             return new Date(a.month) - new Date(b.month);
         });
 
-        console.log('Dashboard data fetched successfully:', {
-            stats: dashboard.stats,
-            monthlyRevenue: sortedMonthlyRevenue,
-            popularProducts: dashboard.popularProducts,
-            todayOrdersCount: todayOrders.length,
-            upcomingOrdersCount: upcomingOrders.length,
-            inventoryCount: inventory.length
-        });
+        // console.log('Dashboard data fetched successfully:', {
+        //     stats: dashboard.stats,
+        //     monthlyRevenue: sortedMonthlyRevenue,
+        //     popularProducts: dashboard.popularProducts,
+        //     todayOrdersCount: todayOrders.length,
+        //     upcomingOrdersCount: upcomingOrders.length,
+        //     inventoryCount: inventory.length
+        // });
 
         res.json({
             success: true,
@@ -584,6 +588,137 @@ router.put('/orders/:id/status', auth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error while updating order status'
+        });
+    }
+});
+
+// Allow farmers to rate consumers for completed orders
+router.post('/orders/:orderId/rate', auth, async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { value, comment } = req.body;
+
+        if (!value || value < 1 || value > 5) {
+            return res.status(400).json({
+                success: false,
+                message: 'Rating value must be between 1 and 5'
+            });
+        }
+
+        // Find the completed order belonging to this farmer
+        const order = await Order.findOne({
+            _id: orderId,
+            farmer: req.user.id,
+            status: 'completed'
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Completed order not found for this farmer'
+            });
+        }
+
+        // Prevent double rating
+        if (order.farmerRating && order.farmerRating.value) {
+            return res.status(400).json({
+                success: false,
+                message: 'You have already rated this order'
+            });
+        }
+
+        // Save rating on order
+        order.farmerRating = {
+            value,
+            comment: comment || '',
+            ratedAt: new Date()
+        };
+        await order.save();
+
+        // Update consumer aggregate rating
+        const Consumer = require('../Model/Consumer');
+        const consumer = await Consumer.findById(order.consumer);
+        if (consumer) {
+            const prevAvg = consumer.rating?.average || 0;
+            const prevCount = consumer.rating?.count || 0;
+
+            const newCount = prevCount + 1;
+            const newAvg = ((prevAvg * prevCount) + value) / newCount;
+
+            consumer.rating = {
+                average: newAvg,
+                count: newCount
+            };
+            await consumer.save();
+        }
+
+        return res.json({
+            success: true,
+            message: 'Rating submitted successfully',
+            data: {
+                farmerRating: order.farmerRating,
+                consumerRatingSummary: consumer ? consumer.rating : null
+            }
+        });
+    } catch (error) {
+        console.error('Error rating consumer:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while submitting rating'
+        });
+    }
+});
+
+// Get product ratings for farmer
+router.get('/product-ratings', auth, async (req, res) => {
+    try {
+        const ProductRating = require('../Model/ProductRating');
+        const productRatings = await ProductRating.find({ farmer: req.user.id })
+            .populate('product', 'name variety')
+            .sort({ 'rating.average': -1 });
+
+        res.json({
+            success: true,
+            data: productRatings
+        });
+    } catch (error) {
+        console.error('Error fetching product ratings:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while fetching product ratings'
+        });
+    }
+});
+
+// Upload profile photo
+router.post('/profile/upload-photo', auth, async (req, res) => {
+    try {
+        const { photoData } = req.body;
+        
+        if (!photoData) {
+            return res.status(400).json({
+                success: false,
+                message: 'Photo data is required'
+            });
+        }
+
+        // Update farmer profile with photo data (base64)
+        const farmer = await Farmer.findByIdAndUpdate(
+            req.user.id,
+            { profilePhoto: photoData },
+            { new: true }
+        ).select('-password');
+
+        res.json({
+            success: true,
+            message: 'Profile photo updated successfully',
+            data: farmer
+        });
+    } catch (error) {
+        console.error('Error uploading profile photo:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while uploading photo'
         });
     }
 });

@@ -155,7 +155,11 @@ const Chatbot = () => {
       };
 
       // Send message to backend
-      const response = await axios.post('/api/chatbot', requestData);
+      const response = await axios.post('/api/chatbot', requestData, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
 
       // Add bot response
       const botMessage = {

@@ -247,7 +247,7 @@ router.get('/orders', auth, async (req, res) => {
         }
 
         const orders = await Order.find({ consumer: req.user.id })
-            .populate('farmer', 'name location phoneNumber email')
+            .populate('farmer', 'name location phoneNumber email rating')
             .populate('product', 'name variety')
             .sort({ createdAt: -1 });
 
@@ -300,8 +300,12 @@ router.get('/orders', auth, async (req, res) => {
                     name: order.farmer.name,
                     location: order.farmer.location,
                     phoneNumber: order.farmer.phoneNumber,
-                    email: order.farmer.email
-                } : null
+                    email: order.farmer.email,
+                    rating: order.farmer.rating || { average: 0, count: 0 }
+                } : null,
+                // Ratings for this specific order
+                consumerRating: order.consumerRating || null,
+                farmerRating: order.farmerRating || null
             };
         });
 
@@ -414,13 +418,29 @@ router.get('/market/products', auth, async (req, res) => {
             'inventory.quantity': { $gt: 0 }
         })
         .populate('inventory.productId', 'name variety category image')
-        .select('name location state city phoneNumber email inventory');
+        .select('name location state city phoneNumber email inventory rating');
+
+        // Get product ratings for these farmers
+        const ProductRating = require('../Model/ProductRating');
+        const productRatings = await ProductRating.find({
+            farmer: { $in: farmers.map(f => f._id) }
+        });
+
+        // Create a map for quick lookup
+        const ratingMap = {};
+        productRatings.forEach(pr => {
+            const key = `${pr.farmer}_${pr.product}`;
+            ratingMap[key] = pr.rating;
+        });
 
         // Flatten inventory items into products array
         const availableProducts = [];
         farmersWithInventory.forEach(farmer => {
             farmer.inventory.forEach(item => {
                 if (item.isAvailable && item.quantity > 0) {
+                    const ratingKey = `${farmer._id}_${item.productId._id}`;
+                    const productRating = ratingMap[ratingKey] || { average: 0, count: 0 };
+                    
                     availableProducts.push({
                         _id: item._id,
                         productName: item.productId.name,
@@ -431,6 +451,7 @@ router.get('/market/products', auth, async (req, res) => {
                         estimatedDate: item.estimatedHarvestDate,
                         qualityGrade: item.qualityGrade,
                         image: item.productId.image,
+                        productRating: productRating,
                         farmer: {
                             _id: farmer._id,
                             name: farmer.name,
@@ -438,7 +459,8 @@ router.get('/market/products', auth, async (req, res) => {
                             state: farmer.state,
                             city: farmer.city,
                             phoneNumber: farmer.phoneNumber,
-                            email: farmer.email
+                            email: farmer.email,
+                            rating: farmer.rating || { average: 0, count: 0 }
                         }
                     });
                 }
@@ -534,9 +556,9 @@ router.get('/farmers/search', auth, async (req, res) => {
             'inventory.quantity': { $gt: 0 }
         })
         .populate('inventory.productId', 'name variety category')
-        .select('name location state city phoneNumber email inventory');
+        .select('name location state city phoneNumber email inventory rating');
 
-        // Transform farmer data to include product summary
+        // Transform farmer data to include product summary and rating info
         const farmersWithProducts = farmers.map(farmer => {
             const availableProducts = farmer.inventory.filter(item => 
                 item.isAvailable && item.quantity > 0
@@ -550,6 +572,7 @@ router.get('/farmers/search', auth, async (req, res) => {
                 city: farmer.city,
                 phoneNumber: farmer.phoneNumber,
                 email: farmer.email,
+                rating: farmer.rating || { average: 0, count: 0 },
                 totalProducts: availableProducts.length,
                 products: availableProducts.map(item => ({
                     _id: item._id,
@@ -726,7 +749,7 @@ router.post('/orders', auth, async (req, res) => {
         // Return the created order with populated fields
         const populatedOrder = await Order.findById(order._id)
             .populate('product', 'name variety')
-            .populate('farmer', 'name');
+            .populate('farmer', 'name rating');
 
         res.status(201).json({
             success: true,
@@ -739,6 +762,145 @@ router.post('/orders', auth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error while creating order'
+        });
+    }
+});
+
+// Allow consumers to rate farmers for completed orders
+router.post('/orders/:orderId/rate', auth, async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { value, comment } = req.body;
+
+        if (!value || value < 1 || value > 5) {
+            return res.status(400).json({
+                success: false,
+                message: 'Rating value must be between 1 and 5'
+            });
+        }
+
+        // Find the completed order belonging to this consumer
+        const order = await Order.findOne({
+            _id: orderId,
+            consumer: req.user.id,
+            status: 'completed'
+        }).populate('product', 'name');
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: 'Completed order not found for this consumer'
+            });
+        }
+
+        // Prevent double rating for now (could be changed to allow updates)
+        if (order.consumerRating && order.consumerRating.value) {
+            return res.status(400).json({
+                success: false,
+                message: 'You have already rated this order'
+            });
+        }
+
+        // Save rating on order
+        order.consumerRating = {
+            value,
+            comment: comment || '',
+            productId: order.product._id,
+            productName: order.product.name || order.productName,
+            ratedAt: new Date()
+        };
+        await order.save();
+
+        // Update farmer aggregate rating
+        const farmer = await Farmer.findById(order.farmer);
+        if (farmer) {
+            const prevAvg = farmer.rating?.average || 0;
+            const prevCount = farmer.rating?.count || 0;
+
+            const newCount = prevCount + 1;
+            const newAvg = ((prevAvg * prevCount) + value) / newCount;
+
+            farmer.rating = {
+                average: newAvg,
+                count: newCount
+            };
+            await farmer.save();
+        }
+
+        // Update product-specific rating
+        const ProductRating = require('../Model/ProductRating');
+        let productRating = await ProductRating.findOne({
+            farmer: order.farmer,
+            product: order.product._id
+        });
+
+        if (!productRating) {
+            productRating = new ProductRating({
+                farmer: order.farmer,
+                product: order.product._id,
+                productName: order.product.name || order.productName,
+                rating: { average: value, count: 1 }
+            });
+        } else {
+            const prevAvg = productRating.rating.average;
+            const prevCount = productRating.rating.count;
+            const newCount = prevCount + 1;
+            const newAvg = ((prevAvg * prevCount) + value) / newCount;
+            
+            productRating.rating = {
+                average: newAvg,
+                count: newCount
+            };
+        }
+        await productRating.save();
+
+        return res.json({
+            success: true,
+            message: 'Rating submitted successfully',
+            data: {
+                consumerRating: order.consumerRating,
+                farmerRatingSummary: farmer ? farmer.rating : null,
+                productRating: productRating.rating
+            }
+        });
+    } catch (error) {
+        console.error('Error rating farmer:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while submitting rating'
+        });
+    }
+});
+
+// Upload profile photo
+router.post('/profile/upload-photo', auth, async (req, res) => {
+    try {
+        const { photoData } = req.body;
+        
+        if (!photoData) {
+            return res.status(400).json({
+                success: false,
+                message: 'Photo data is required'
+            });
+        }
+
+        // Update consumer profile with photo data (base64)
+        const consumer = await Consumer.findByIdAndUpdate(
+            req.user.id,
+            { profilePhoto: photoData },
+            { new: true }
+        ).select('-password');
+
+        res.json({
+            success: true,
+            message: 'Profile photo updated successfully',
+            data: consumer
+        });
+    } catch (error) {
+        console.error('Error uploading profile photo:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error while uploading photo'
         });
     }
 });

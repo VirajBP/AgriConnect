@@ -18,7 +18,6 @@ import {
 } from 'chart.js';
 import './Dashboard/FarmerDashboard.css';
 // import '../../index.css';
-import Chatbot from '../shared/Chatbot/Chatbot';
 
 ChartJS.register(
     ArcElement,
@@ -59,12 +58,12 @@ useEffect(() => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                console.log('Fetching dashboard data...');
+                // console.log('Fetching dashboard data...');
                 const token = localStorage.getItem('token');
-                console.log('Token available:', !!token);
+                // console.log('Token available:', !!token);
                 
                 const response = await axios.get('/api/farmer/dashboard');
-                console.log('Dashboard response:', response.data,'New response' , response.data.data);
+                // console.log('Dashboard response:', response.data,'New response' , response.data.data);
                 
                 if (response.data.success) {
                     // Initialize dashboard data without pending orders count
@@ -87,11 +86,11 @@ useEffect(() => {
                     setError(response.data.message || 'Failed to fetch dashboard data');
                 }
             } catch (err) {
-                console.error('Error fetching dashboard data:', {
-                    message: err.message,
-                    response: err.response?.data,
-                    status: err.response?.status
-                });
+                // console.error('Error fetching dashboard data:', {
+                //     message: err.message,
+                //     response: err.response?.data,
+                //     status: err.response?.status
+                // });
                 
                 if (err.response?.status === 401) {
                     setError('Please log in again to access the dashboard');
@@ -123,10 +122,10 @@ useEffect(() => {
                         }
                     }));
                 } else {
-                    console.error('Failed to fetch pending orders:', response.data.message);
+                    // console.error('Failed to fetch pending orders:', response.data.message);
                 }
             } catch (error) {
-                console.error('Error fetching pending orders:', error);
+                // console.error('Error fetching pending orders:', error);
             }
         };
 
@@ -377,7 +376,6 @@ useEffect(() => {
                             </table>
                         </div>
                     </div>
-                <Chatbot />
             </div>
         </div>
     );

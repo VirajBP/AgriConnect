@@ -14,7 +14,8 @@ import {
   DialogActions,
   Button,
   Rating,
-  CircularProgress
+  CircularProgress,
+  TextField
 } from '@mui/material';
 import { 
   Visibility as VisibilityIcon,
@@ -66,6 +67,13 @@ export default function ConsumerOrders() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { isDarkMode } = useTheme();
+
+  // Rating dialog state (consumer → farmer)
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
+  const [ratingOrderId, setRatingOrderId] = useState(null);
+  const [ratingValue, setRatingValue] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [submittingRating, setSubmittingRating] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -228,6 +236,20 @@ export default function ConsumerOrders() {
                         <Typography variant="caption" color="textSecondary">
                           {order.farmer?.location || '-'}
                         </Typography>
+                        {order.farmer?.rating && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                            <Rating
+                              name="farmer-average-rating"
+                              value={Number(order.farmer.rating.average) || 0}
+                              precision={0.5}
+                              size="small"
+                              readOnly
+                            />
+                            <Typography variant="caption" color="textSecondary" sx={{ ml: 0.5 }}>
+                              ({order.farmer.rating.count || 0})
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
                     </td>
                     <td className={isDarkMode ? 'text-white' : ''}>{new Date(order.createdAt).toLocaleDateString()}</td>
@@ -325,6 +347,20 @@ export default function ConsumerOrders() {
                         <Typography variant="caption" color="textSecondary">
                           {order.farmer?.location || '-'}
                         </Typography>
+                        {order.farmer?.rating && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                            <Rating
+                              name="farmer-average-rating-past"
+                              value={Number(order.farmer.rating.average) || 0}
+                              precision={0.5}
+                              size="small"
+                              readOnly
+                            />
+                            <Typography variant="caption" color="textSecondary" sx={{ ml: 0.5 }}>
+                              ({order.farmer.rating.count || 0})
+                            </Typography>
+                          </Box>
+                        )}
                       </Box>
                     </td>
                     <td className={isDarkMode ? 'text-white' : ''}>{new Date(order.createdAt).toLocaleDateString()}</td>
@@ -350,6 +386,22 @@ export default function ConsumerOrders() {
                             <VisibilityIcon />
                           </IconButton>
                         </Tooltip>
+                        {order.status.toLowerCase() === 'completed' && !order.consumerRating && (
+                          <Tooltip title="Rate Farmer">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setRatingOrderId(order._id);
+                                setRatingValue(0);
+                                setRatingComment('');
+                                setRatingDialogOpen(true);
+                              }}
+                              className={isDarkMode ? 'dark-icon' : ''}
+                            >
+                              <StarIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                       </Box>
                     </td>
                   </tr>
@@ -498,6 +550,80 @@ export default function ConsumerOrders() {
               </DialogActions>
             </>
           )}
+        </Dialog>
+
+        {/* Rating dialog: consumer → farmer */}
+        <Dialog
+          open={ratingDialogOpen}
+          onClose={() => setRatingDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+          className={isDarkMode ? 'dark-dialog' : ''}
+        >
+          <DialogTitle>Rate Your Experience with the Farmer</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Rating
+                name="farmer-rating"
+                value={ratingValue}
+                onChange={(_, newValue) => setRatingValue(newValue)}
+                precision={1}
+                size="large"
+              />
+              <TextField
+                label="Optional comments"
+                multiline
+                minRows={3}
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+                fullWidth
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRatingDialogOpen(false)} disabled={submittingRating}>
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              onClick={async () => {
+                if (!ratingValue) {
+                  alert('Please select a rating between 1 and 5');
+                  return;
+                }
+                setSubmittingRating(true);
+                try {
+                  const res = await axios.post(
+                    `/api/consumer/orders/${ratingOrderId}/rate`,
+                    { value: ratingValue, comment: ratingComment }
+                  );
+
+                  if (res.data.success) {
+                    setOrders(prev =>
+                      prev.map(o =>
+                        o._id === ratingOrderId
+                          ? { ...o, consumerRating: res.data.data.consumerRating,
+                              farmer: o.farmer ? { ...o.farmer, rating: res.data.data.farmerRatingSummary || o.farmer.rating } : o.farmer
+                            }
+                          : o
+                      )
+                    );
+                    setRatingDialogOpen(false);
+                  } else {
+                    alert(res.data.message || 'Failed to submit rating');
+                  }
+                } catch (err) {
+                  console.error('Error submitting rating:', err);
+                  alert(err.response?.data?.message || 'Error submitting rating');
+                } finally {
+                  setSubmittingRating(false);
+                }
+              }}
+              disabled={submittingRating}
+            >
+              Submit
+            </Button>
+          </DialogActions>
         </Dialog>
       </div>
     </div>

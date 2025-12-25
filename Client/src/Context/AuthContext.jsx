@@ -66,9 +66,10 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials, userType) => {
         try {
-            const response = await axios.post(`/${userType}/login`, credentials);
+            const response = await axios.post(`/api/auth/${userType}/login`, credentials);
             if (response.data.success) {
                 localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userType', userType);
                 // Fetch full user data after successful login
                 await fetchUserData(response.data.token);
                 return { success: true };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaEnvelope, FaCity, FaGlobe } from 'react-icons/fa';
+import { FaUser, FaPhone, FaLock, FaMapMarkerAlt, FaShoppingBag, FaMoon, FaSun, FaEdit, FaCheck, FaTimes, FaEye, FaEyeSlash, FaEnvelope, FaCity, FaGlobe, FaCamera } from 'react-icons/fa';
 import Sidebar from '../Sidebar/Sidebar';
 import axios from '../../utils/axios';
 import { CircularProgress } from '@mui/material';
@@ -19,6 +19,7 @@ const ConsumerProfile = () => {
     const [states, setStates] = useState([]);
     const [cities, setCities] = useState([]);
     const [loadingCities, setLoadingCities] = useState(false);
+    const [photoModalOpen, setPhotoModalOpen] = useState(false);
     const { isDarkMode, toggleTheme } = useTheme();
 
     useEffect(() => {
@@ -236,6 +237,45 @@ const ConsumerProfile = () => {
         }
     };
 
+    const handlePhotoUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            return;
+        }
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+
+        try {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const photoData = e.target.result;
+                
+                const response = await axios.post('/api/consumer/profile/upload-photo', {
+                    photoData
+                });
+                
+                if (response.data.success) {
+                    setProfile(response.data.data);
+                    alert('Profile photo updated successfully!');
+                } else {
+                    alert(response.data.message || 'Failed to upload photo');
+                }
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Error uploading photo:', error);
+            alert(error.response?.data?.message || 'Failed to upload photo');
+        }
+    };
+
     if (loading) {
         return (
             <div className="profile-loading">
@@ -271,14 +311,47 @@ const ConsumerProfile = () => {
                     <>
                         <div className="profile-header">
                             <div className="profile-cover">
-                                <div className="profile-avatar">
-                                    <FaUser />
+                                <div className="profile-avatar" onClick={() => setPhotoModalOpen(true)} style={{ cursor: 'pointer' }}>
+                                    {profile.profilePhoto ? (
+                                        <img 
+                                            src={profile.profilePhoto} 
+                                            alt="Profile" 
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                borderRadius: '50%'
+                                            }}
+                                        />
+                                    ) : (
+                                        <FaUser />
+                                    )}
                                 </div>
                             </div>
                             <div className="profile-info">
-                                <h1>{profile.name}</h1>
-                                <p className="profile-role">Consumer</p>
-                                <p className="profile-join-date">Member since {new Date(profile.createdAt).toLocaleDateString()}</p>
+                                <h1 style={{ color: isDarkMode ? '#fff' : '#000' }}>{profile.name}</h1>
+                                <p className="profile-role" style={{ color: isDarkMode ? '#fff' : '#000' }}>Consumer</p>
+                                <p className="profile-join-date" style={{ color: isDarkMode ? '#fff' : '#000' }}>Member since {new Date(profile.createdAt).toLocaleDateString()}</p>
+                                {profile.rating && profile.rating.count > 0 && (
+                                    <div className="profile-rating" style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <span
+                                                    key={star}
+                                                    style={{
+                                                        color: star <= Math.round(profile.rating.average) ? '#ffc107' : '#ddd',
+                                                        fontSize: '18px'
+                                                    }}
+                                                >
+                                                    ★
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <span style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '16px', fontWeight: '500' }}>
+                                            {profile.rating.average.toFixed(1)} ({profile.rating.count} reviews)
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -690,6 +763,35 @@ const ConsumerProfile = () => {
                             </div>
                         </div>
                     </>
+                )}
+
+                {/* Photo Modal */}
+                {photoModalOpen && (
+                    <div className="photo-modal-overlay" onClick={() => setPhotoModalOpen(false)}>
+                        <div className="photo-modal" onClick={(e) => e.stopPropagation()}>
+                            <h3>Profile Photo</h3>
+                            {profile.profilePhoto && (
+                                <div className="photo-preview">
+                                    <img src={profile.profilePhoto} alt="Profile" style={{ width: '200px', height: '200px', objectFit: 'cover', borderRadius: '10px' }} />
+                                </div>
+                            )}
+                            <div className="photo-actions">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => { handlePhotoUpload(e); setPhotoModalOpen(false); }}
+                                    style={{ display: 'none' }}
+                                    id="photo-upload-modal"
+                                />
+                                <label htmlFor="photo-upload-modal" className="change-btn">
+                                    {profile.profilePhoto ? 'Change Photo' : 'Upload Photo'}
+                                </label>
+                                <button onClick={() => setPhotoModalOpen(false)} className="cancel-btn">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </div>

@@ -47,9 +47,24 @@ const consumerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    profilePhoto: {
+        type: String,
+        default: null
+    },
     joinedDate: {
         type: Date,
         default: Date.now
+    },
+    // Aggregate rating that farmers give to this consumer
+    rating: {
+        average: {
+            type: Number,
+            default: 0
+        },
+        count: {
+            type: Number,
+            default: 0
+        }
     }
 }, { timestamps: true });
 

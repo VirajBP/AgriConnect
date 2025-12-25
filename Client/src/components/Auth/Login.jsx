@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../../utils/axios';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../Context/AuthContext';
 import PasswordChangeAlert from './PasswordChangeAlert';
 import './Login.css';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [userType, setUserType] = useState('farmer');
     const [formData, setFormData] = useState({
         phoneNumber: '',
@@ -15,6 +16,7 @@ const Login = () => {
     });
     const [error, setError] = useState('');
     const [showPasswordAlert, setShowPasswordAlert] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         // Check if user just completed password reset
@@ -41,6 +43,7 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setIsLoading(true);
 
         try {
             // Basic validation
@@ -78,38 +81,19 @@ const Login = () => {
 
             console.log('Attempting login with:', { ...loginData, userType });
 
-            const response = await axios.post(
-                `/api/auth/${userType}/login`,
-                loginData,
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
+            const result = await login(loginData, userType);
 
-            console.log('Login response:', response.data);
-
-            if (response.data.success) {
-                localStorage.setItem('token', response.data.token);
-                localStorage.setItem('userType', userType);
-                
-                // Check profile completion for consumers
-                if (userType === 'consumer' && response.data.profileComplete === false) {
-                    // Redirect to profile page if profile is incomplete
-                    window.location.href = '/consumer/profile';
-                } else {
-                    // Redirect to dashboard if profile is complete or user is farmer
-                    window.location.href = `/${userType}/dashboard`;
-                }
+            if (result.success) {
+                // Navigate to appropriate dashboard
+                navigate(`/${userType}/dashboard`);
+            } else {
+                setError(result.message || 'Login failed. Please try again.');
             }
         } catch (err) {
-            console.error('Login error:', err.response || err);
-            
-            const errorMessage = err.response?.data?.message || 
-                               err.message || 
-                               'Login failed. Please try again.';
-            setError(errorMessage);
+            console.error('Login error:', err);
+            setError('Login failed. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -236,8 +220,8 @@ const Login = () => {
                                 </Link>
                             </div>
 
-                            <button type="submit" className="btn-login">
-                                Sign In
+                            <button type="submit" className="btn-login" disabled={isLoading}>
+                                {isLoading ? 'Signing In...' : 'Sign In'}
                             </button>
 
                             <div className="signup-link">
