@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 import Sidebar from '../../Sidebar/Sidebar';
 import './Orders.css';
 import '../../../index.css';
-import { 
-  Box, 
-  Typography, 
-  Chip, 
-  IconButton, 
+import {
+  Box,
+  Typography,
+  Chip,
+  IconButton,
   Tooltip,
   Dialog,
   DialogTitle,
@@ -15,20 +15,20 @@ import {
   Button,
   Rating,
   CircularProgress,
-  TextField
+  TextField,
 } from '@mui/material';
-import { 
+import {
   Visibility as VisibilityIcon,
   Cancel as CancelIcon,
-  Star as StarIcon
+  Star as StarIcon,
 } from '@mui/icons-material';
 import axios from '../../../utils/axios';
 import { useTheme } from '../../../Context/ThemeContext';
 
 // Add this function to get product image
-const getProductImage = (productName) => {
+const getProductImage = productName => {
   if (!productName) return null;
-  
+
   // Handle special cases for product names
   const nameMap = {
     'green peppers': 'green-pepper',
@@ -38,14 +38,16 @@ const getProductImage = (productName) => {
   };
 
   // Check if we have a special case for this product name
-  const formattedName = nameMap[productName.toLowerCase()] || 
-    productName.toLowerCase()
-      .replace(/\s+/g, '-')     // Replace spaces with hyphens
-      .replace(/s$/, '');       // Remove trailing 's' if present
-  
+  const formattedName =
+    nameMap[productName.toLowerCase()] ||
+    productName
+      .toLowerCase()
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/s$/, ''); // Remove trailing 's' if present
+
   // Try different image extensions
   const extensions = ['jpg', 'jpeg', 'webp', 'avif'];
-  
+
   // Find the first existing image
   for (const ext of extensions) {
     try {
@@ -55,7 +57,7 @@ const getProductImage = (productName) => {
       continue;
     }
   }
-  
+
   return null;
 };
 
@@ -95,7 +97,7 @@ export default function ConsumerOrders() {
     fetchOrders();
   }, []);
 
-  const handleViewDetails = (order) => {
+  const handleViewDetails = order => {
     setSelectedOrder(order);
     setOpenDialog(true);
   };
@@ -104,9 +106,11 @@ export default function ConsumerOrders() {
     setOpenDialog(false);
   };
 
-  const handleCancelOrder = async (orderId) => {
+  const handleCancelOrder = async orderId => {
     try {
-      const response = await axios.put(`/api/consumer/orders/${orderId}/cancel`);
+      const response = await axios.put(
+        `/api/consumer/orders/${orderId}/cancel`
+      );
       if (response.data.success) {
         // Refresh orders from server to get updated data
         const ordersResponse = await axios.get('/api/consumer/orders');
@@ -120,7 +124,7 @@ export default function ConsumerOrders() {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = status => {
     switch (status.toLowerCase()) {
       case 'completed':
         return 'success';
@@ -138,12 +142,19 @@ export default function ConsumerOrders() {
   if (loading) {
     return (
       <div className="orders-container">
-        <Sidebar 
-          userType="consumer" 
-          onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+        <Sidebar
+          userType="consumer"
+          onToggle={collapsed => setIsSidebarCollapsed(collapsed)}
         />
-        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <div
+          className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}
+        >
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight="100vh"
+          >
             <CircularProgress />
           </Box>
         </div>
@@ -154,15 +165,25 @@ export default function ConsumerOrders() {
   if (error) {
     return (
       <div className="orders-container">
-        <Sidebar 
-          userType="consumer" 
-          onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+        <Sidebar
+          userType="consumer"
+          onToggle={collapsed => setIsSidebarCollapsed(collapsed)}
         />
-        <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
-          <Typography color="error" variant="h6" sx={{ textAlign: 'center', mt: 4 }}>
+        <div
+          className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}
+        >
+          <Typography
+            color="error"
+            variant="h6"
+            sx={{ textAlign: 'center', mt: 4 }}
+          >
             {error}
           </Typography>
-          <Typography variant="body1" color="textSecondary" sx={{ textAlign: 'center', mt: 2 }}>
+          <Typography
+            variant="body1"
+            color="textSecondary"
+            sx={{ textAlign: 'center', mt: 2 }}
+          >
             Please try again later or contact support if the problem persists.
           </Typography>
         </div>
@@ -170,21 +191,23 @@ export default function ConsumerOrders() {
     );
   }
 
-  const currentOrders = orders.filter(order => 
+  const currentOrders = orders.filter(order =>
     ['pending', 'processing', 'confirmed'].includes(order.status.toLowerCase())
   );
 
-  const pastOrders = orders.filter(order => 
+  const pastOrders = orders.filter(order =>
     ['completed', 'cancelled'].includes(order.status.toLowerCase())
   );
 
   return (
     <div className="orders-container">
-      <Sidebar 
-        userType="consumer" 
-        onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+      <Sidebar
+        userType="consumer"
+        onToggle={collapsed => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}>
+      <div
+        className={`orders-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''} ${isDarkMode ? 'dark' : ''}`}
+      >
         <Typography variant="h4" className="orders-heading" gutterBottom>
           Current Orders
         </Typography>
@@ -207,18 +230,25 @@ export default function ConsumerOrders() {
               {currentOrders.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="empty-message">
-                    <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      sx={{ py: 3 }}
+                    >
                       No current orders found
                     </Typography>
                   </td>
                 </tr>
               ) : (
-                currentOrders.map((order) => (
+                currentOrders.map(order => (
                   <tr key={order._id} className="order-row">
                     <td>#{order._id.slice(-6)}</td>
                     <td>
                       <Box className="product-info">
-                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                        <Typography
+                          variant="body1"
+                          className={isDarkMode ? 'text-white' : ''}
+                        >
                           {order.product?.productName || 'Product Removed'}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
@@ -226,18 +256,31 @@ export default function ConsumerOrders() {
                         </Typography>
                       </Box>
                     </td>
-                    <td className={isDarkMode ? 'text-white' : ''}>{order.quantity} {order.product?.unit || 'units'}</td>
-                    <td className={isDarkMode ? 'text-white' : ''}>₹{order.totalPrice}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      {order.quantity} {order.product?.unit || 'units'}
+                    </td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      ₹{order.totalPrice}
+                    </td>
                     <td>
                       <Box className="farmer-info">
-                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                        <Typography
+                          variant="body1"
+                          className={isDarkMode ? 'text-white' : ''}
+                        >
                           {order.farmer?.name || 'Farmer Unavailable'}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
                           {order.farmer?.location || '-'}
                         </Typography>
                         {order.farmer?.rating && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              mt: 0.5,
+                            }}
+                          >
                             <Rating
                               name="farmer-average-rating"
                               value={Number(order.farmer.rating.average) || 0}
@@ -245,16 +288,24 @@ export default function ConsumerOrders() {
                               size="small"
                               readOnly
                             />
-                            <Typography variant="caption" color="textSecondary" sx={{ ml: 0.5 }}>
+                            <Typography
+                              variant="caption"
+                              color="textSecondary"
+                              sx={{ ml: 0.5 }}
+                            >
                               ({order.farmer.rating.count || 0})
                             </Typography>
                           </Box>
                         )}
                       </Box>
                     </td>
-                    <td className={isDarkMode ? 'text-white' : ''}>{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className={isDarkMode ? 'text-white' : ''}>
-                      {order.expectedDelivery ? new Date(order.expectedDelivery).toLocaleDateString() : '-'}
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      {order.expectedDelivery
+                        ? new Date(order.expectedDelivery).toLocaleDateString()
+                        : '-'}
                     </td>
                     <td>
                       <Chip
@@ -267,8 +318,8 @@ export default function ConsumerOrders() {
                     <td>
                       <Box className="action-buttons">
                         <Tooltip title="View Details">
-                          <IconButton 
-                            size="small" 
+                          <IconButton
+                            size="small"
                             onClick={() => handleViewDetails(order)}
                             className={isDarkMode ? 'dark-icon' : ''}
                           >
@@ -277,8 +328,8 @@ export default function ConsumerOrders() {
                         </Tooltip>
                         {order.status.toLowerCase() === 'pending' && (
                           <Tooltip title="Cancel Order">
-                            <IconButton 
-                              size="small" 
+                            <IconButton
+                              size="small"
                               onClick={() => handleCancelOrder(order._id)}
                               color="error"
                               className={isDarkMode ? 'dark-icon' : ''}
@@ -296,7 +347,12 @@ export default function ConsumerOrders() {
           </table>
         </div>
 
-        <Typography variant="h4" className="orders-heading" gutterBottom sx={{ mt: 4 }}>
+        <Typography
+          variant="h4"
+          className="orders-heading"
+          gutterBottom
+          sx={{ mt: 4 }}
+        >
           Past Orders
         </Typography>
         <div className={`table-container ${isDarkMode ? 'dark' : ''}`}>
@@ -318,18 +374,25 @@ export default function ConsumerOrders() {
               {pastOrders.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="empty-message">
-                    <Typography variant="body1" color="textSecondary" sx={{ py: 3 }}>
+                    <Typography
+                      variant="body1"
+                      color="textSecondary"
+                      sx={{ py: 3 }}
+                    >
                       No past orders found
                     </Typography>
                   </td>
                 </tr>
               ) : (
-                pastOrders.map((order) => (
+                pastOrders.map(order => (
                   <tr key={order._id} className="order-row">
                     <td>#{order._id.slice(-6)}</td>
                     <td>
                       <Box className="product-info">
-                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                        <Typography
+                          variant="body1"
+                          className={isDarkMode ? 'text-white' : ''}
+                        >
                           {order.product?.productName || 'Product Removed'}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
@@ -337,18 +400,31 @@ export default function ConsumerOrders() {
                         </Typography>
                       </Box>
                     </td>
-                    <td className={isDarkMode ? 'text-white' : ''}>{order.quantity} {order.product?.unit || 'units'}</td>
-                    <td className={isDarkMode ? 'text-white' : ''}>₹{order.totalPrice}</td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      {order.quantity} {order.product?.unit || 'units'}
+                    </td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      ₹{order.totalPrice}
+                    </td>
                     <td>
                       <Box className="farmer-info">
-                        <Typography variant="body1" className={isDarkMode ? 'text-white' : ''}>
+                        <Typography
+                          variant="body1"
+                          className={isDarkMode ? 'text-white' : ''}
+                        >
                           {order.farmer?.name || 'Farmer Unavailable'}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
                           {order.farmer?.location || '-'}
                         </Typography>
                         {order.farmer?.rating && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              mt: 0.5,
+                            }}
+                          >
                             <Rating
                               name="farmer-average-rating-past"
                               value={Number(order.farmer.rating.average) || 0}
@@ -356,16 +432,24 @@ export default function ConsumerOrders() {
                               size="small"
                               readOnly
                             />
-                            <Typography variant="caption" color="textSecondary" sx={{ ml: 0.5 }}>
+                            <Typography
+                              variant="caption"
+                              color="textSecondary"
+                              sx={{ ml: 0.5 }}
+                            >
                               ({order.farmer.rating.count || 0})
                             </Typography>
                           </Box>
                         )}
                       </Box>
                     </td>
-                    <td className={isDarkMode ? 'text-white' : ''}>{new Date(order.createdAt).toLocaleDateString()}</td>
                     <td className={isDarkMode ? 'text-white' : ''}>
-                      {order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : '-'}
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className={isDarkMode ? 'text-white' : ''}>
+                      {order.deliveryDate
+                        ? new Date(order.deliveryDate).toLocaleDateString()
+                        : '-'}
                     </td>
                     <td>
                       <Chip
@@ -378,30 +462,31 @@ export default function ConsumerOrders() {
                     <td>
                       <Box className="action-buttons">
                         <Tooltip title="View Details">
-                          <IconButton 
-                            size="small" 
+                          <IconButton
+                            size="small"
                             onClick={() => handleViewDetails(order)}
                             className={isDarkMode ? 'dark-icon' : ''}
                           >
                             <VisibilityIcon />
                           </IconButton>
                         </Tooltip>
-                        {order.status.toLowerCase() === 'completed' && !order.consumerRating && (
-                          <Tooltip title="Rate Farmer">
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setRatingOrderId(order._id);
-                                setRatingValue(0);
-                                setRatingComment('');
-                                setRatingDialogOpen(true);
-                              }}
-                              className={isDarkMode ? 'dark-icon' : ''}
-                            >
-                              <StarIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
+                        {order.status.toLowerCase() === 'completed' &&
+                          !order.consumerRating && (
+                            <Tooltip title="Rate Farmer">
+                              <IconButton
+                                size="small"
+                                onClick={() => {
+                                  setRatingOrderId(order._id);
+                                  setRatingValue(0);
+                                  setRatingComment('');
+                                  setRatingDialogOpen(true);
+                                }}
+                                className={isDarkMode ? 'dark-icon' : ''}
+                              >
+                                <StarIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                       </Box>
                     </td>
                   </tr>
@@ -411,10 +496,10 @@ export default function ConsumerOrders() {
           </table>
         </div>
 
-        <Dialog 
-          open={openDialog} 
-          onClose={handleCloseDialog} 
-          maxWidth="md" 
+        <Dialog
+          open={openDialog}
+          onClose={handleCloseDialog}
+          maxWidth="md"
           fullWidth
           className={isDarkMode ? 'dark-dialog' : ''}
         >
@@ -422,45 +507,54 @@ export default function ConsumerOrders() {
             <>
               <DialogTitle>Order Details</DialogTitle>
               <DialogContent>
-                <Box sx={{ mt: 2, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: 4,
+                  }}
+                >
                   {/* Left side - Product Image and Basic Info */}
                   <Box>
-                    <Box 
-                      sx={{ 
-                        width: '100%', 
-                        height: 300, 
-                        borderRadius: 2, 
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: 300,
+                        borderRadius: 2,
                         overflow: 'hidden',
                         mb: 2,
                         bgcolor: 'background.paper',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
                       }}
                     >
                       {selectedOrder.product?.productName ? (
-                        <img 
-                          src={getProductImage(selectedOrder.product.productName)} 
+                        <img
+                          src={getProductImage(
+                            selectedOrder.product.productName
+                          )}
                           alt={selectedOrder.product.productName}
-                          onError={(e) => {
+                          onError={e => {
                             e.target.onerror = null; // Prevent infinite loop
                             e.target.src = '/images/products/placeholder.jpg'; // Fallback image
                           }}
-                          style={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            objectFit: 'cover' 
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
                           }}
                         />
                       ) : (
-                        <Box 
-                          sx={{ 
-                            width: '100%', 
-                            height: '100%', 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                        <Box
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
                             justifyContent: 'center',
-                            bgcolor: 'grey.100'
+                            bgcolor: 'grey.100',
                           }}
                         >
                           <Typography variant="body1" color="textSecondary">
@@ -473,17 +567,30 @@ export default function ConsumerOrders() {
                     <Typography variant="h5" gutterBottom>
                       {selectedOrder.product?.productName || 'Product Removed'}
                     </Typography>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 2,
+                      }}
+                    >
                       <Typography variant="subtitle1" color="textSecondary">
                         Quantity
                       </Typography>
                       <Typography variant="subtitle1">
-                        {selectedOrder.quantity} {selectedOrder.product?.unit || 'units'}
+                        {selectedOrder.quantity}{' '}
+                        {selectedOrder.product?.unit || 'units'}
                       </Typography>
                     </Box>
 
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mb: 2,
+                      }}
+                    >
                       <Typography variant="subtitle1" color="textSecondary">
                         Total Amount
                       </Typography>
@@ -499,16 +606,46 @@ export default function ConsumerOrders() {
                       Order Information
                     </Typography>
                     <Box sx={{ mb: 3 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="textSecondary">Order ID</Typography>
-                        <Typography variant="body1">#{selectedOrder._id.slice(-6)}</Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary">
+                          Order ID
+                        </Typography>
+                        <Typography variant="body1">
+                          #{selectedOrder._id.slice(-6)}
+                        </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="textSecondary">Order Date</Typography>
-                        <Typography variant="body1">{new Date(selectedOrder.createdAt).toLocaleDateString()}</Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary">
+                          Order Date
+                        </Typography>
+                        <Typography variant="body1">
+                          {new Date(
+                            selectedOrder.createdAt
+                          ).toLocaleDateString()}
+                        </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="textSecondary">Status</Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary">
+                          Status
+                        </Typography>
                         <Chip
                           label={selectedOrder.status}
                           color={getStatusColor(selectedOrder.status)}
@@ -516,9 +653,21 @@ export default function ConsumerOrders() {
                         />
                       </Box>
                       {selectedOrder.expectedDelivery && (
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2" color="textSecondary">Expected Delivery</Typography>
-                          <Typography variant="body1">{new Date(selectedOrder.expectedDelivery).toLocaleDateString()}</Typography>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            mb: 1,
+                          }}
+                        >
+                          <Typography variant="body2" color="textSecondary">
+                            Expected Delivery
+                          </Typography>
+                          <Typography variant="body1">
+                            {new Date(
+                              selectedOrder.expectedDelivery
+                            ).toLocaleDateString()}
+                          </Typography>
                         </Box>
                       )}
                     </Box>
@@ -527,18 +676,48 @@ export default function ConsumerOrders() {
                       Farmer Information
                     </Typography>
                     <Box sx={{ mb: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="textSecondary">Name</Typography>
-                        <Typography variant="body1">{selectedOrder.farmer?.name || 'Farmer Unavailable'}</Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary">
+                          Name
+                        </Typography>
+                        <Typography variant="body1">
+                          {selectedOrder.farmer?.name || 'Farmer Unavailable'}
+                        </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography variant="body2" color="textSecondary">Location</Typography>
-                        <Typography variant="body1">{selectedOrder.farmer?.location || '-'}</Typography>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          mb: 1,
+                        }}
+                      >
+                        <Typography variant="body2" color="textSecondary">
+                          Location
+                        </Typography>
+                        <Typography variant="body1">
+                          {selectedOrder.farmer?.location || '-'}
+                        </Typography>
                       </Box>
                       {selectedOrder.farmer?.phoneNumber && (
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2" color="textSecondary">Contact</Typography>
-                          <Typography variant="body1">{selectedOrder.farmer.phoneNumber}</Typography>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            mb: 1,
+                          }}
+                        >
+                          <Typography variant="body2" color="textSecondary">
+                            Contact
+                          </Typography>
+                          <Typography variant="body1">
+                            {selectedOrder.farmer.phoneNumber}
+                          </Typography>
                         </Box>
                       )}
                     </Box>
@@ -562,7 +741,9 @@ export default function ConsumerOrders() {
         >
           <DialogTitle>Rate Your Experience with the Farmer</DialogTitle>
           <DialogContent>
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+              sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
+            >
               <Rating
                 name="farmer-rating"
                 value={ratingValue}
@@ -575,13 +756,16 @@ export default function ConsumerOrders() {
                 multiline
                 minRows={3}
                 value={ratingComment}
-                onChange={(e) => setRatingComment(e.target.value)}
+                onChange={e => setRatingComment(e.target.value)}
                 fullWidth
               />
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setRatingDialogOpen(false)} disabled={submittingRating}>
+            <Button
+              onClick={() => setRatingDialogOpen(false)}
+              disabled={submittingRating}
+            >
               Cancel
             </Button>
             <Button
@@ -602,8 +786,17 @@ export default function ConsumerOrders() {
                     setOrders(prev =>
                       prev.map(o =>
                         o._id === ratingOrderId
-                          ? { ...o, consumerRating: res.data.data.consumerRating,
-                              farmer: o.farmer ? { ...o.farmer, rating: res.data.data.farmerRatingSummary || o.farmer.rating } : o.farmer
+                          ? {
+                              ...o,
+                              consumerRating: res.data.data.consumerRating,
+                              farmer: o.farmer
+                                ? {
+                                    ...o.farmer,
+                                    rating:
+                                      res.data.data.farmerRatingSummary ||
+                                      o.farmer.rating,
+                                  }
+                                : o.farmer,
                             }
                           : o
                       )
@@ -614,7 +807,9 @@ export default function ConsumerOrders() {
                   }
                 } catch (err) {
                   console.error('Error submitting rating:', err);
-                  alert(err.response?.data?.message || 'Error submitting rating');
+                  alert(
+                    err.response?.data?.message || 'Error submitting rating'
+                  );
                 } finally {
                   setSubmittingRating(false);
                 }

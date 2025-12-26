@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaBox, FaUser, FaSignOutAlt, FaBars, FaEdit, 
-         FaSave, FaTimes, FaDownload, FaSearch, FaSort } from 'react-icons/fa';
-import { Pie } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend
-} from 'chart.js';
+  FaHome,
+  FaBox,
+  FaUser,
+  FaSignOutAlt,
+  FaBars,
+  FaEdit,
+  FaSave,
+  FaTimes,
+  FaDownload,
+  FaSearch,
+  FaSort,
+} from 'react-icons/fa';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import './ProductPage.css';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -19,12 +25,36 @@ const ProductPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
-  
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: 'ascending',
+  });
+
   const [products, setProducts] = useState([
-    { id: 1, productName: 'Tomatoes', productVariety: 'Cherry', quantity: 100, price: 40, estimatedDate: '2024-04-01' },
-    { id: 2, productName: 'Potatoes', productVariety: 'Russet', quantity: 200, price: 25, estimatedDate: '2024-04-15' },
-    { id: 3, productName: 'Carrots', productVariety: 'Baby', quantity: 150, price: 30, estimatedDate: '2024-04-10' },
+    {
+      id: 1,
+      productName: 'Tomatoes',
+      productVariety: 'Cherry',
+      quantity: 100,
+      price: 40,
+      estimatedDate: '2024-04-01',
+    },
+    {
+      id: 2,
+      productName: 'Potatoes',
+      productVariety: 'Russet',
+      quantity: 200,
+      price: 25,
+      estimatedDate: '2024-04-15',
+    },
+    {
+      id: 3,
+      productName: 'Carrots',
+      productVariety: 'Baby',
+      quantity: 150,
+      price: 30,
+      estimatedDate: '2024-04-10',
+    },
   ]);
 
   const [newProduct, setNewProduct] = useState({
@@ -32,7 +62,7 @@ const ProductPage = () => {
     productVariety: '',
     quantity: '',
     price: '',
-    estimatedDate: ''
+    estimatedDate: '',
   });
 
   const [editFormData, setEditFormData] = useState({
@@ -40,25 +70,29 @@ const ProductPage = () => {
     productVariety: '',
     quantity: '',
     price: '',
-    estimatedDate: ''
+    estimatedDate: '',
   });
 
   const chartData = {
-    labels: products.map(product => `${product.productName} (${product.productVariety})`),
-    datasets: [{
-      data: products.map(product => product.quantity),
-      backgroundColor: [
-        '#FF6384',
-        '#36A2EB',
-        '#FFCE56',
-        '#4BC0C0',
-        '#9966FF'
-      ],
-      borderWidth: 1,
-    }],
+    labels: products.map(
+      product => `${product.productName} (${product.productVariety})`
+    ),
+    datasets: [
+      {
+        data: products.map(product => product.quantity),
+        backgroundColor: [
+          '#FF6384',
+          '#36A2EB',
+          '#FFCE56',
+          '#4BC0C0',
+          '#9966FF',
+        ],
+        borderWidth: 1,
+      },
+    ],
   };
 
-  const handleAddProduct = (e) => {
+  const handleAddProduct = e => {
     e.preventDefault();
     setProducts([...products, { ...newProduct, id: Date.now() }]);
     setNewProduct({
@@ -66,32 +100,34 @@ const ProductPage = () => {
       productVariety: '',
       quantity: '',
       price: '',
-      estimatedDate: ''
+      estimatedDate: '',
     });
     setShowAddProduct(false);
   };
 
-  const handleEditClick = (product) => {
+  const handleEditClick = product => {
     setEditingId(product.id);
     setEditFormData(product);
   };
 
-  const handleEditFormChange = (e) => {
+  const handleEditFormChange = e => {
     setEditFormData({
       ...editFormData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = e => {
     e.preventDefault();
-    setProducts(products.map(product => 
-      product.id === editingId ? editFormData : product
-    ));
+    setProducts(
+      products.map(product =>
+        product.id === editingId ? editFormData : product
+      )
+    );
     setEditingId(null);
   };
 
-  const handleSort = (key) => {
+  const handleSort = key => {
     let direction = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
@@ -101,10 +137,12 @@ const ProductPage = () => {
 
   const getFilteredAndSortedProducts = () => {
     let filteredProducts = products.filter(product => {
-      const matchesSearch = product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.productVariety.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesPrice = (!priceRange.min || product.price >= Number(priceRange.min)) &&
-                          (!priceRange.max || product.price <= Number(priceRange.max));
+      const matchesSearch =
+        product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.productVariety.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesPrice =
+        (!priceRange.min || product.price >= Number(priceRange.min)) &&
+        (!priceRange.max || product.price <= Number(priceRange.max));
       return matchesSearch && matchesPrice;
     });
 
@@ -124,16 +162,24 @@ const ProductPage = () => {
   };
 
   const downloadCSV = () => {
-    const headers = ['Product Name', 'Variety', 'Quantity', 'Price', 'Available From'];
+    const headers = [
+      'Product Name',
+      'Variety',
+      'Quantity',
+      'Price',
+      'Available From',
+    ];
     const csvData = getFilteredAndSortedProducts().map(product => [
       product.productName,
       product.productVariety,
       product.quantity,
       product.price,
-      product.estimatedDate
+      product.estimatedDate,
     ]);
-    
-    const csvContent = [headers, ...csvData].map(row => row.join(',')).join('\n');
+
+    const csvContent = [headers, ...csvData]
+      .map(row => row.join(','))
+      .join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -146,7 +192,10 @@ const ProductPage = () => {
   return (
     <div className="dashboard-container">
       <div className={`sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
-        <div className="sidebar-toggle" onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}>
+        <div
+          className="sidebar-toggle"
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        >
           <FaBars />
         </div>
         <div className="sidebar-header">
@@ -182,7 +231,7 @@ const ProductPage = () => {
           {/* Add Product Section */}
           <div className="section-card add-product-section">
             <h2>Add New Product</h2>
-            <button 
+            <button
               className="add-product-button"
               onClick={() => setShowAddProduct(!showAddProduct)}
             >
@@ -196,39 +245,60 @@ const ProductPage = () => {
                     type="text"
                     placeholder="Product Name"
                     value={newProduct.productName}
-                    onChange={(e) => setNewProduct({...newProduct, productName: e.target.value})}
+                    onChange={e =>
+                      setNewProduct({
+                        ...newProduct,
+                        productName: e.target.value,
+                      })
+                    }
                     required
                   />
                   <input
                     type="text"
                     placeholder="Product Variety"
                     value={newProduct.productVariety}
-                    onChange={(e) => setNewProduct({...newProduct, productVariety: e.target.value})}
+                    onChange={e =>
+                      setNewProduct({
+                        ...newProduct,
+                        productVariety: e.target.value,
+                      })
+                    }
                     required
                   />
                   <input
                     type="number"
                     placeholder="Quantity (kg)"
                     value={newProduct.quantity}
-                    onChange={(e) => setNewProduct({...newProduct, quantity: e.target.value})}
+                    onChange={e =>
+                      setNewProduct({ ...newProduct, quantity: e.target.value })
+                    }
                     required
                   />
                   <input
                     type="number"
                     placeholder="Price per kg (₹)"
                     value={newProduct.price}
-                    onChange={(e) => setNewProduct({...newProduct, price: e.target.value})}
+                    onChange={e =>
+                      setNewProduct({ ...newProduct, price: e.target.value })
+                    }
                     required
                   />
                   <input
                     type="date"
                     placeholder="Estimated Date of Availability"
                     value={newProduct.estimatedDate}
-                    onChange={(e) => setNewProduct({...newProduct, estimatedDate: e.target.value})}
+                    onChange={e =>
+                      setNewProduct({
+                        ...newProduct,
+                        estimatedDate: e.target.value,
+                      })
+                    }
                     required
                   />
                 </div>
-                <button type="submit" className="submit-button">Add Product</button>
+                <button type="submit" className="submit-button">
+                  Add Product
+                </button>
               </form>
             )}
           </div>
@@ -237,14 +307,17 @@ const ProductPage = () => {
           <div className="section-card chart-section">
             <h2>Product Distribution</h2>
             <div className="chart-container">
-              <Pie data={chartData} options={{ 
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'right'
-                  }
-                }
-              }} />
+              <Pie
+                data={chartData}
+                options={{
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'right',
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
 
@@ -258,7 +331,7 @@ const ProductPage = () => {
                   type="text"
                   placeholder="Search products..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
                 />
               </div>
               <div className="price-filter">
@@ -266,13 +339,17 @@ const ProductPage = () => {
                   type="number"
                   placeholder="Min Price"
                   value={priceRange.min}
-                  onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+                  onChange={e =>
+                    setPriceRange({ ...priceRange, min: e.target.value })
+                  }
                 />
                 <input
                   type="number"
                   placeholder="Max Price"
                   value={priceRange.max}
-                  onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+                  onChange={e =>
+                    setPriceRange({ ...priceRange, max: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -301,7 +378,10 @@ const ProductPage = () => {
                 </thead>
                 <tbody>
                   {getFilteredAndSortedProducts().map((product, index) => (
-                    <tr key={product.id} className={index % 2 === 0 ? 'even' : 'odd'}>
+                    <tr
+                      key={product.id}
+                      className={index % 2 === 0 ? 'even' : 'odd'}
+                    >
                       {editingId === product.id ? (
                         <>
                           <td>
@@ -345,10 +425,16 @@ const ProductPage = () => {
                             />
                           </td>
                           <td>
-                            <button className="save-button" onClick={handleEditSubmit}>
+                            <button
+                              className="save-button"
+                              onClick={handleEditSubmit}
+                            >
                               <FaSave />
                             </button>
-                            <button className="cancel-button" onClick={() => setEditingId(null)}>
+                            <button
+                              className="cancel-button"
+                              onClick={() => setEditingId(null)}
+                            >
                               <FaTimes />
                             </button>
                           </td>
@@ -359,9 +445,16 @@ const ProductPage = () => {
                           <td>{product.productVariety}</td>
                           <td>{product.quantity}</td>
                           <td>₹{product.price}</td>
-                          <td>{new Date(product.estimatedDate).toLocaleDateString()}</td>
                           <td>
-                            <button className="edit-button" onClick={() => handleEditClick(product)}>
+                            {new Date(
+                              product.estimatedDate
+                            ).toLocaleDateString()}
+                          </td>
+                          <td>
+                            <button
+                              className="edit-button"
+                              onClick={() => handleEditClick(product)}
+                            >
                               <FaEdit />
                             </button>
                           </td>

@@ -7,14 +7,14 @@ import FarmerOrders from '../components/Farmer/Orders/Order';
 // ... other imports
 
 const FarmerRoutes = () => {
-    return (
-        <Routes>
-            <Route path="dashboard" element={<FarmerDashboard />} />
-            <Route path="products" element={<FarmerProducts />} />
-            <Route path="profile" element={<FarmerProfile />} />
-            <Route path="orders" element={<FarmerOrders />} />
-        </Routes>
-    );
+  return (
+    <Routes>
+      <Route path="dashboard" element={<FarmerDashboard />} />
+      <Route path="products" element={<FarmerProducts />} />
+      <Route path="profile" element={<FarmerProfile />} />
+      <Route path="orders" element={<FarmerOrders />} />
+    </Routes>
+  );
 };
 
-export default FarmerRoutes; 
+export default FarmerRoutes;
