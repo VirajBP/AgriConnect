@@ -62,7 +62,9 @@ body {
   border-radius: 12px;
   padding: 1.8rem;
   box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.3s ease;
   border-left: 6px solid #4caf50;
   position: relative;
 }
@@ -347,9 +349,15 @@ body {
 }
 
 /* Staggered delay for smooth effect */
-.order-row:nth-child(1) { animation-delay: 0.1s; }
-.order-row:nth-child(2) { animation-delay: 0.2s; }
-.order-row:nth-child(3) { animation-delay: 0.3s; }
+.order-row:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.order-row:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.order-row:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 /* Style for action buttons */
 .action-buttons {
@@ -385,71 +393,71 @@ body {
 
 /* Dark mode styles */
 .dark .orders-container {
-    background-color: #121212;
-    color: #fff;
+  background-color: #121212;
+  color: #fff;
 }
 
 .dark .orders-table {
-    background-color: #1e1e1e !important;
-    color: #fff !important;
+  background-color: #1e1e1e !important;
+  color: #fff !important;
 }
 
 .dark .orders-table th {
-    background-color: #2c2c2c !important;
-    color: #fff !important;
-    border-color: #333;
+  background-color: #2c2c2c !important;
+  color: #fff !important;
+  border-color: #333;
 }
 
 .dark .orders-table td {
-    color: #fff !important;
-    border-color: #333;
+  color: #fff !important;
+  border-color: #333;
 }
 
 .dark .status-badge {
-    background-color: #2c2c2c;
-    color: #fff !important;
+  background-color: #2c2c2c;
+  color: #fff !important;
 }
 
 .dark .status-badge.status-pending {
-    background-color: #f39c12;
-    color: #fff !important;
+  background-color: #f39c12;
+  color: #fff !important;
 }
 
 .dark .status-badge.status-confirmed {
-    background-color: #27ae60;
-    color: #fff !important;
+  background-color: #27ae60;
+  color: #fff !important;
 }
 
 .dark .status-badge.status-completed {
-    background-color: #0087ca;
-    color: #fff !important;
+  background-color: #0087ca;
+  color: #fff !important;
 }
 
 .dark .status-badge.status-rejected {
-    background-color: #e74c3c;
-    color: #fff !important;
+  background-color: #e74c3c;
+  color: #fff !important;
 }
 
 .dark .status-badge.status-cancelled {
-    background-color: #e22a16;
-    color: #fff !important;
+  background-color: #e22a16;
+  color: #fff !important;
 }
 
 .dark .section-header h2 {
-    color: #fff !important;
+  color: #fff !important;
 }
 
 .dark .search-box {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
+  background-color: #1e1e1e;
+  border: 1px solid #333;
 }
 
 .dark .search-input {
-    background-color: #2c2c2c;
-    color: #fff;
-    border: 1px solid #333;
+  background-color: #2c2c2c;
+  color: #fff;
+  border: 1px solid #333;
 }
 
 .dark .search-input::placeholder {
-    color: #666;
+  color: #666;
 }

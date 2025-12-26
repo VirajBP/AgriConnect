@@ -1,163 +1,163 @@
 {
-    "intents": [
-        {
-            "tag": "crop_recommendation",
-            "patterns": [
-                "What crops should I plant?",
-                "Which crops are suitable for this season?",
-                "Recommend crops for my farm",
-                "Best crops to grow now",
-                "What can I grow in this weather?",
-                "Suitable crops for current season",
-                "What to plant in summer?",
-                "Winter crop suggestions",
-                "Monsoon season crops"
-            ],
-            "responses": [
-                "Based on the current {season} season and {climate} climate in your region, I recommend growing {crops}. These crops are well-suited for your conditions and should give good yields.",
-                "For {season} season in {climate} conditions, the best crops would be {crops}. These are known to perform well in your area.",
-                "Given your location's {climate} climate and current {season} season, I suggest planting {crops}. These crops are optimal for your farming conditions."
-            ]
-        },
-        {
-            "tag": "pest_control",
-            "patterns": [
-                "How to control pests?",
-                "My crops have insects",
-                "Pest management tips",
-                "Natural pest control methods",
-                "Protect crops from pests",
-                "Organic pest control",
-                "Getting rid of crop insects",
-                "Best pesticides for crops"
-            ],
-            "responses": [
-                "For pest control, you can try: 1. Crop rotation 2. Natural predators 3. Organic pesticides 4. Regular monitoring. Would you like specific details about any of these methods?",
-                "Some effective pest control methods include: 1. Neem-based solutions 2. Companion planting 3. Beneficial insects 4. Proper spacing. I can provide more information about these approaches.",
-                "To manage pests organically: 1. Use companion plants 2. Maintain field hygiene 3. Apply neem oil 4. Introduce beneficial insects. Would you like to know more about any of these?"
-            ]
-        },
-        {
-            "tag": "soil_health",
-            "patterns": [
-                "How to improve soil quality?",
-                "Best fertilizers for soil",
-                "Soil maintenance tips",
-                "Organic soil improvement",
-                "Soil fertility methods",
-                "How to test soil quality",
-                "Natural soil enrichment",
-                "Soil nutrients guide"
-            ],
-            "responses": [
-                "To improve soil health: 1. Add organic matter 2. Practice crop rotation 3. Use cover crops 4. Maintain proper pH. Would you like more details about any of these methods?",
-                "For better soil quality: 1. Composting 2. Mulching 3. Green manuring 4. Balanced fertilization. I can explain more about these techniques.",
-                "Enhance soil fertility by: 1. Adding organic compost 2. Crop rotation 3. Using legumes 4. Proper irrigation. Would you like specific information about any of these?"
-            ]
-        },
-        {
-            "tag": "irrigation",
-            "patterns": [
-                "How often should I water?",
-                "Best irrigation methods",
-                "Water management tips",
-                "Drip irrigation advice",
-                "When to water crops",
-                "Efficient irrigation techniques",
-                "Water conservation farming",
-                "Irrigation schedule help"
-            ],
-            "responses": [
-                "For efficient irrigation: 1. Water early morning/evening 2. Use drip irrigation 3. Monitor soil moisture 4. Consider crop water needs. Would you like more specific advice?",
-                "Irrigation best practices: 1. Check soil moisture 2. Use mulching 3. Install drip systems 4. Schedule regular watering. I can provide more details about any of these.",
-                "Water management tips: 1. Time your irrigation 2. Use water-efficient methods 3. Consider weather patterns 4. Monitor plant needs. Would you like to know more?"
-            ]
-        },
-        {
-            "tag": "weather_impact",
-            "patterns": [
-                "How will weather affect my crops?",
-                "Protecting crops from rain",
-                "Deal with drought",
-                "Weather protection methods",
-                "Crop protection in extreme weather",
-                "Managing crops in heavy rain",
-                "Drought resistant farming",
-                "Weather resistant agriculture"
-            ],
-            "responses": [
-                "To protect crops from weather: 1. Use protective structures 2. Choose resistant varieties 3. Implement proper drainage 4. Monitor weather forecasts. Would you like specific details?",
-                "Weather protection methods: 1. Mulching 2. Shade structures 3. Wind breaks 4. Proper irrigation. I can explain more about these techniques.",
-                "For weather-resistant farming: 1. Select hardy varieties 2. Use greenhouses 3. Install drainage systems 4. Practice soil conservation. Would you like to know more?"
-            ]
-        }
-    ],
-    "qa_pairs": [
-        {
-            "keywords": ["crop", "grow", "plant", "cultivate"],
-            "answer": "I can help you determine the best crops to grow based on your soil conditions and local climate. Would you like me to analyze the conditions and make recommendations?"
-        },
-        {
-            "keywords": ["water", "irrigation", "watering"],
-            "answer": "Proper irrigation is crucial for crop success. The best watering practices depend on your crop type, soil conditions, and local climate. Generally, water deeply but less frequently to encourage deep root growth. Monitor soil moisture and adjust based on rainfall and temperature."
-        },
-        {
-            "keywords": ["soil", "quality", "fertility"],
-            "answer": "Good soil quality is essential for farming. Key factors include: 1) Proper pH levels (6.0-7.0 for most crops) 2) Adequate organic matter 3) Good drainage 4) Balanced nutrients (N-P-K). Consider getting a soil test to determine your soil's specific needs."
-        },
-        {
-            "keywords": ["pest", "insect", "disease", "control"],
-            "answer": "For pest management: 1) Regular monitoring 2) Integrated Pest Management (IPM) 3) Beneficial insects 4) Crop rotation 5) Natural pesticides when necessary. Always identify the pest before treatment and use environmentally friendly solutions when possible."
-        },
-        {
-            "keywords": ["fertilizer", "nutrient", "feed"],
-            "answer": "Fertilization needs vary by crop and soil conditions. Key nutrients are Nitrogen (N), Phosphorus (P), and Potassium (K). Consider organic options like compost and manure. Always test soil before applying fertilizers to avoid over-application."
-        },
-        {
-            "keywords": ["organic", "natural", "chemical-free"],
-            "answer": "Organic farming focuses on natural methods: 1) Composting 2) Crop rotation 3) Natural pest control 4) Cover crops 5) Beneficial insects. It may require more planning but can be more sustainable long-term."
-        },
-        {
-            "keywords": ["season", "timing", "when", "plant"],
-            "answer": "Planting timing depends on your location and climate. I'll check your local conditions to provide specific recommendations for seasonal planting."
-        },
-        {
-            "keywords": ["market", "sell", "price", "profit"],
-            "answer": "For better market success: 1) Research local demand 2) Consider direct-to-consumer sales 3) Focus on quality 4) Build relationships with buyers 5) Consider value-added products. Contact your local agricultural extension for specific market information."
-        },
-        {
-            "keywords": ["weather", "climate", "forecast"],
-            "answer": "Weather patterns significantly impact farming. I can provide recommendations based on your current local weather conditions and forecast."
-        },
-        {
-            "keywords": ["hello", "hi", "hey", "greet"],
-            "answer": "Hello! I'm your farming assistant. I can help you with crop recommendations, farming practices, and agricultural advice. How can I assist you today?"
-        },
-        {
-            "keywords": ["thank", "thanks"],
-            "answer": "You're welcome! Feel free to ask any other farming-related questions you might have."
-        },
-        {
-            "keywords": ["bye", "goodbye", "see you"],
-            "answer": "Goodbye! Good luck with your farming. Feel free to return if you need more assistance!"
-        },
-        {
-            "keywords": ["help", "assist", "support"],
-            "answer": "I can help you with: 1) Crop recommendations 2) Soil management 3) Pest control 4) Irrigation advice 5) Weather-based farming tips 6) General farming practices. What would you like to know more about?"
-        },
-        {
-            "keywords": ["cost", "expense", "budget", "money"],
-            "answer": "Farming costs vary by crop and scale. Key considerations: 1) Seeds/seedlings 2) Irrigation systems 3) Tools and equipment 4) Labor 5) Fertilizers 6) Pest control. Consider starting small and scaling up based on success."
-        },
-        {
-            "keywords": ["tool", "equipment", "machinery"],
-            "answer": "Essential farming tools include: 1) Hand tools (shovels, hoes, pruners) 2) Irrigation equipment 3) Safety gear 4) Storage containers 5) Basic machinery. Start with essential tools and expand as needed."
-        }
-    ],
-    "fallback_responses": [
-        "I apologize, but I don't have specific information about that topic. I specialize in farming-related questions about crops, soil, weather, irrigation, and general agricultural practices. Could you try asking something in those areas?",
-        "I'm not able to help with that specific query. I'm best at answering questions about farming, crops, and agricultural practices. Would you like information about any of those topics?",
-        "I'm sorry, but that's outside my area of expertise. I can help you with farming-related questions about crop selection, soil management, irrigation, pest control, and weather-based farming tips. Would you like to know more about any of these topics?",
-        "I don't have enough information to answer that question. However, I'd be happy to help you with farming-related topics like crop recommendations, soil management, or agricultural best practices."
-    ]
+  "intents": [
+    {
+      "tag": "crop_recommendation",
+      "patterns": [
+        "What crops should I plant?",
+        "Which crops are suitable for this season?",
+        "Recommend crops for my farm",
+        "Best crops to grow now",
+        "What can I grow in this weather?",
+        "Suitable crops for current season",
+        "What to plant in summer?",
+        "Winter crop suggestions",
+        "Monsoon season crops"
+      ],
+      "responses": [
+        "Based on the current {season} season and {climate} climate in your region, I recommend growing {crops}. These crops are well-suited for your conditions and should give good yields.",
+        "For {season} season in {climate} conditions, the best crops would be {crops}. These are known to perform well in your area.",
+        "Given your location's {climate} climate and current {season} season, I suggest planting {crops}. These crops are optimal for your farming conditions."
+      ]
+    },
+    {
+      "tag": "pest_control",
+      "patterns": [
+        "How to control pests?",
+        "My crops have insects",
+        "Pest management tips",
+        "Natural pest control methods",
+        "Protect crops from pests",
+        "Organic pest control",
+        "Getting rid of crop insects",
+        "Best pesticides for crops"
+      ],
+      "responses": [
+        "For pest control, you can try: 1. Crop rotation 2. Natural predators 3. Organic pesticides 4. Regular monitoring. Would you like specific details about any of these methods?",
+        "Some effective pest control methods include: 1. Neem-based solutions 2. Companion planting 3. Beneficial insects 4. Proper spacing. I can provide more information about these approaches.",
+        "To manage pests organically: 1. Use companion plants 2. Maintain field hygiene 3. Apply neem oil 4. Introduce beneficial insects. Would you like to know more about any of these?"
+      ]
+    },
+    {
+      "tag": "soil_health",
+      "patterns": [
+        "How to improve soil quality?",
+        "Best fertilizers for soil",
+        "Soil maintenance tips",
+        "Organic soil improvement",
+        "Soil fertility methods",
+        "How to test soil quality",
+        "Natural soil enrichment",
+        "Soil nutrients guide"
+      ],
+      "responses": [
+        "To improve soil health: 1. Add organic matter 2. Practice crop rotation 3. Use cover crops 4. Maintain proper pH. Would you like more details about any of these methods?",
+        "For better soil quality: 1. Composting 2. Mulching 3. Green manuring 4. Balanced fertilization. I can explain more about these techniques.",
+        "Enhance soil fertility by: 1. Adding organic compost 2. Crop rotation 3. Using legumes 4. Proper irrigation. Would you like specific information about any of these?"
+      ]
+    },
+    {
+      "tag": "irrigation",
+      "patterns": [
+        "How often should I water?",
+        "Best irrigation methods",
+        "Water management tips",
+        "Drip irrigation advice",
+        "When to water crops",
+        "Efficient irrigation techniques",
+        "Water conservation farming",
+        "Irrigation schedule help"
+      ],
+      "responses": [
+        "For efficient irrigation: 1. Water early morning/evening 2. Use drip irrigation 3. Monitor soil moisture 4. Consider crop water needs. Would you like more specific advice?",
+        "Irrigation best practices: 1. Check soil moisture 2. Use mulching 3. Install drip systems 4. Schedule regular watering. I can provide more details about any of these.",
+        "Water management tips: 1. Time your irrigation 2. Use water-efficient methods 3. Consider weather patterns 4. Monitor plant needs. Would you like to know more?"
+      ]
+    },
+    {
+      "tag": "weather_impact",
+      "patterns": [
+        "How will weather affect my crops?",
+        "Protecting crops from rain",
+        "Deal with drought",
+        "Weather protection methods",
+        "Crop protection in extreme weather",
+        "Managing crops in heavy rain",
+        "Drought resistant farming",
+        "Weather resistant agriculture"
+      ],
+      "responses": [
+        "To protect crops from weather: 1. Use protective structures 2. Choose resistant varieties 3. Implement proper drainage 4. Monitor weather forecasts. Would you like specific details?",
+        "Weather protection methods: 1. Mulching 2. Shade structures 3. Wind breaks 4. Proper irrigation. I can explain more about these techniques.",
+        "For weather-resistant farming: 1. Select hardy varieties 2. Use greenhouses 3. Install drainage systems 4. Practice soil conservation. Would you like to know more?"
+      ]
+    }
+  ],
+  "qa_pairs": [
+    {
+      "keywords": ["crop", "grow", "plant", "cultivate"],
+      "answer": "I can help you determine the best crops to grow based on your soil conditions and local climate. Would you like me to analyze the conditions and make recommendations?"
+    },
+    {
+      "keywords": ["water", "irrigation", "watering"],
+      "answer": "Proper irrigation is crucial for crop success. The best watering practices depend on your crop type, soil conditions, and local climate. Generally, water deeply but less frequently to encourage deep root growth. Monitor soil moisture and adjust based on rainfall and temperature."
+    },
+    {
+      "keywords": ["soil", "quality", "fertility"],
+      "answer": "Good soil quality is essential for farming. Key factors include: 1) Proper pH levels (6.0-7.0 for most crops) 2) Adequate organic matter 3) Good drainage 4) Balanced nutrients (N-P-K). Consider getting a soil test to determine your soil's specific needs."
+    },
+    {
+      "keywords": ["pest", "insect", "disease", "control"],
+      "answer": "For pest management: 1) Regular monitoring 2) Integrated Pest Management (IPM) 3) Beneficial insects 4) Crop rotation 5) Natural pesticides when necessary. Always identify the pest before treatment and use environmentally friendly solutions when possible."
+    },
+    {
+      "keywords": ["fertilizer", "nutrient", "feed"],
+      "answer": "Fertilization needs vary by crop and soil conditions. Key nutrients are Nitrogen (N), Phosphorus (P), and Potassium (K). Consider organic options like compost and manure. Always test soil before applying fertilizers to avoid over-application."
+    },
+    {
+      "keywords": ["organic", "natural", "chemical-free"],
+      "answer": "Organic farming focuses on natural methods: 1) Composting 2) Crop rotation 3) Natural pest control 4) Cover crops 5) Beneficial insects. It may require more planning but can be more sustainable long-term."
+    },
+    {
+      "keywords": ["season", "timing", "when", "plant"],
+      "answer": "Planting timing depends on your location and climate. I'll check your local conditions to provide specific recommendations for seasonal planting."
+    },
+    {
+      "keywords": ["market", "sell", "price", "profit"],
+      "answer": "For better market success: 1) Research local demand 2) Consider direct-to-consumer sales 3) Focus on quality 4) Build relationships with buyers 5) Consider value-added products. Contact your local agricultural extension for specific market information."
+    },
+    {
+      "keywords": ["weather", "climate", "forecast"],
+      "answer": "Weather patterns significantly impact farming. I can provide recommendations based on your current local weather conditions and forecast."
+    },
+    {
+      "keywords": ["hello", "hi", "hey", "greet"],
+      "answer": "Hello! I'm your farming assistant. I can help you with crop recommendations, farming practices, and agricultural advice. How can I assist you today?"
+    },
+    {
+      "keywords": ["thank", "thanks"],
+      "answer": "You're welcome! Feel free to ask any other farming-related questions you might have."
+    },
+    {
+      "keywords": ["bye", "goodbye", "see you"],
+      "answer": "Goodbye! Good luck with your farming. Feel free to return if you need more assistance!"
+    },
+    {
+      "keywords": ["help", "assist", "support"],
+      "answer": "I can help you with: 1) Crop recommendations 2) Soil management 3) Pest control 4) Irrigation advice 5) Weather-based farming tips 6) General farming practices. What would you like to know more about?"
+    },
+    {
+      "keywords": ["cost", "expense", "budget", "money"],
+      "answer": "Farming costs vary by crop and scale. Key considerations: 1) Seeds/seedlings 2) Irrigation systems 3) Tools and equipment 4) Labor 5) Fertilizers 6) Pest control. Consider starting small and scaling up based on success."
+    },
+    {
+      "keywords": ["tool", "equipment", "machinery"],
+      "answer": "Essential farming tools include: 1) Hand tools (shovels, hoes, pruners) 2) Irrigation equipment 3) Safety gear 4) Storage containers 5) Basic machinery. Start with essential tools and expand as needed."
+    }
+  ],
+  "fallback_responses": [
+    "I apologize, but I don't have specific information about that topic. I specialize in farming-related questions about crops, soil, weather, irrigation, and general agricultural practices. Could you try asking something in those areas?",
+    "I'm not able to help with that specific query. I'm best at answering questions about farming, crops, and agricultural practices. Would you like information about any of those topics?",
+    "I'm sorry, but that's outside my area of expertise. I can help you with farming-related questions about crop selection, soil management, irrigation, pest control, and weather-based farming tips. Would you like to know more about any of these topics?",
+    "I don't have enough information to answer that question. However, I'd be happy to help you with farming-related topics like crop recommendations, soil management, or agricultural best practices."
+  ]
 }

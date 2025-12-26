@@ -6,13 +6,13 @@
   --text-secondary: #666666;
   --border-color: #e0e0e0;
   --input-background: #ffffff;
-  --primary-color: #4CAF50;
-  --primary-color-dark: #388E3C;
+  --primary-color: #4caf50;
+  --primary-color-dark: #388e3c;
   --primary-color-light: rgba(76, 175, 80, 0.1);
-  --success-color: #4CAF50;
+  --success-color: #4caf50;
   --error-color: #f44336;
   --warning-color: #ff9800;
-  --info-color: #2196F3;
+  --info-color: #2196f3;
 }
 
 [data-theme='dark'] {
@@ -23,20 +23,22 @@
   --text-secondary: #a0a0a0;
   --border-color: #404040;
   --input-background: #3d3d3d;
-  --primary-color: #66BB6A;
-  --primary-color-dark: #43A047;
+  --primary-color: #66bb6a;
+  --primary-color-dark: #43a047;
   --primary-color-light: rgba(102, 187, 106, 0.1);
-  --success-color: #66BB6A;
-  --error-color: #EF5350;
-  --warning-color: #FFA726;
-  --info-color: #42A5F5;
+  --success-color: #66bb6a;
+  --error-color: #ef5350;
+  --warning-color: #ffa726;
+  --info-color: #42a5f5;
 }
 
 .app {
   min-height: 100vh;
   background-color: var(--background-color);
   color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Add any other global styles below */

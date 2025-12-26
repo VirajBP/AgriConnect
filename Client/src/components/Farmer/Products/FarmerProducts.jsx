@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHome, FaBox, FaUser, FaSignOutAlt, FaBars, FaEdit, 
-         FaSave, FaTimes, FaDownload, FaSearch, FaSort, FaShoppingCart,
-         FaPlus, FaFilter, FaChartPie, FaLeaf } from 'react-icons/fa';
-import { Pie } from 'react-chartjs-2';
 import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend
-} from 'chart.js';
+  FaHome,
+  FaBox,
+  FaUser,
+  FaSignOutAlt,
+  FaBars,
+  FaEdit,
+  FaSave,
+  FaTimes,
+  FaDownload,
+  FaSearch,
+  FaSort,
+  FaShoppingCart,
+  FaPlus,
+  FaFilter,
+  FaChartPie,
+  FaLeaf,
+} from 'react-icons/fa';
+import { Pie } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import './FarmerProducts.css';
 import '../../../index.css';
-import Sidebar from "../../Sidebar/Sidebar";
+import Sidebar from '../../Sidebar/Sidebar';
 import axios from '../../../utils/axios'; // Correct the import path for the configured axios instance
 import { Typography, Box, CircularProgress } from '@mui/material';
 import { ThemeProvider } from '../../../Context/ThemeContext';
@@ -25,12 +35,15 @@ const ProductPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: 'ascending',
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showChart, setShowChart] = useState(true);
   const [isDark, setIsDark] = useState(false);
-  
+
   const [products, setProducts] = useState([]);
   const [catalog, setCatalog] = useState([]);
   const [productSuggestions, setProductSuggestions] = useState([]);
@@ -43,7 +56,7 @@ const ProductPage = () => {
     productVariety: '',
     quantity: '',
     price: '',
-    estimatedDate: ''
+    estimatedDate: '',
   });
 
   // Fetch products and catalog from backend
@@ -51,19 +64,18 @@ const ProductPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch farmer's products
         const productsResponse = await axios.get('/api/farmer/products');
         if (productsResponse.data.success) {
           setProducts(productsResponse.data.data);
         }
-        
+
         // Fetch product catalog for suggestions
         const catalogResponse = await axios.get('/api/farmer/catalog');
         if (catalogResponse.data.success) {
           setCatalog(catalogResponse.data.data);
         }
-        
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err.response?.data?.message || 'Error fetching data');
@@ -76,16 +88,17 @@ const ProductPage = () => {
   }, []);
 
   useEffect(() => {
-    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    const checkDark = () =>
+      setIsDark(document.documentElement.classList.contains('dark'));
     checkDark();
     window.addEventListener('storage', checkDark); // In case theme is toggled elsewhere
     return () => window.removeEventListener('storage', checkDark);
   }, []);
 
   // Handle product name input change with suggestions
-  const handleProductNameChange = (value) => {
+  const handleProductNameChange = value => {
     setNewProduct({ ...newProduct, productName: value, productVariety: '' });
-    
+
     if (value.length > 0) {
       const suggestions = catalog
         .filter(item => item.name.toLowerCase().includes(value.toLowerCase()))
@@ -94,9 +107,11 @@ const ProductPage = () => {
         .slice(0, 5);
       setProductSuggestions(suggestions);
       setShowProductSuggestions(suggestions.length > 0);
-      
+
       // Auto-populate variety suggestions for exact matches
-      const exactMatch = catalog.find(item => item.name.toLowerCase() === value.toLowerCase());
+      const exactMatch = catalog.find(
+        item => item.name.toLowerCase() === value.toLowerCase()
+      );
       if (exactMatch) {
         const varieties = catalog
           .filter(item => item.name.toLowerCase() === value.toLowerCase())
@@ -115,14 +130,15 @@ const ProductPage = () => {
   };
 
   // Handle variety input change with suggestions
-  const handleVarietyChange = (value) => {
+  const handleVarietyChange = value => {
     setNewProduct({ ...newProduct, productVariety: value });
-    
+
     if (value.length > 0 && newProduct.productName) {
       const suggestions = catalog
-        .filter(item => 
-          item.name.toLowerCase() === newProduct.productName.toLowerCase() &&
-          item.variety.toLowerCase().includes(value.toLowerCase())
+        .filter(
+          item =>
+            item.name.toLowerCase() === newProduct.productName.toLowerCase() &&
+            item.variety.toLowerCase().includes(value.toLowerCase())
         )
         .map(item => item.variety)
         .slice(0, 5);
@@ -134,7 +150,7 @@ const ProductPage = () => {
   };
 
   // Handle adding new product
-  const handleAddProduct = async (e) => {
+  const handleAddProduct = async e => {
     e.preventDefault();
     try {
       const response = await axios.post('/api/farmer/products', newProduct);
@@ -150,7 +166,7 @@ const ProductPage = () => {
           productVariety: '',
           quantity: '',
           price: '',
-          estimatedDate: ''
+          estimatedDate: '',
         });
         setShowProductSuggestions(false);
         setShowVarietySuggestions(false);
@@ -164,7 +180,10 @@ const ProductPage = () => {
   // Handle editing product
   const handleEditProduct = async (id, updatedData) => {
     try {
-      const response = await axios.put(`/api/farmer/products/${id}`, updatedData);
+      const response = await axios.put(
+        `/api/farmer/products/${id}`,
+        updatedData
+      );
       if (response.data.success) {
         // Refresh products from server to get updated data
         const productsResponse = await axios.get('/api/farmer/products');
@@ -180,7 +199,7 @@ const ProductPage = () => {
   };
 
   // Handle deleting product
-  const handleDeleteProduct = async (id) => {
+  const handleDeleteProduct = async id => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         const response = await axios.delete(`/api/farmer/products/${id}`);
@@ -200,17 +219,23 @@ const ProductPage = () => {
 
   // Filter products based on search term and price range
   const filteredProducts = products.filter(product => {
-    const matchesSearch = (product.productName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-                         (product.productVariety?.toLowerCase() || '').includes(searchTerm.toLowerCase());
-    const matchesPrice = (!priceRange.min || product.price >= Number(priceRange.min)) &&
-                        (!priceRange.max || product.price <= Number(priceRange.max));
+    const matchesSearch =
+      (product.productName?.toLowerCase() || '').includes(
+        searchTerm.toLowerCase()
+      ) ||
+      (product.productVariety?.toLowerCase() || '').includes(
+        searchTerm.toLowerCase()
+      );
+    const matchesPrice =
+      (!priceRange.min || product.price >= Number(priceRange.min)) &&
+      (!priceRange.max || product.price <= Number(priceRange.max));
     return matchesSearch && matchesPrice;
   });
 
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (!sortConfig.key) return 0;
-    
+
     if (a[sortConfig.key] < b[sortConfig.key]) {
       return sortConfig.direction === 'ascending' ? -1 : 1;
     }
@@ -223,17 +248,19 @@ const ProductPage = () => {
   // Prepare chart data
   const chartData = {
     labels: products.map(p => p.productName || 'Unknown Product'),
-    datasets: [{
-      data: products.map(p => p.quantity || 0),
-      backgroundColor: [
-        '#FF6384',
-        '#36A2EB',
-        '#FFCE56',
-        '#4BC0C0',
-        '#9966FF',
-        '#FF9F40'
-      ]
-    }]
+    datasets: [
+      {
+        data: products.map(p => p.quantity || 0),
+        backgroundColor: [
+          '#FF6384',
+          '#36A2EB',
+          '#FFCE56',
+          '#4BC0C0',
+          '#9966FF',
+          '#FF9F40',
+        ],
+      },
+    ],
   };
 
   // Chart options with proper label colors
@@ -243,21 +270,21 @@ const ProductPage = () => {
         position: 'right',
         labels: {
           color: isDark ? '#fff' : '#333',
-          font: { 
+          font: {
             weight: 'bold',
-            size: 12
-          }
-        }
+            size: 12,
+          },
+        },
       },
       tooltip: {
         backgroundColor: isDark ? '#1e1e1e' : '#fff',
         titleColor: isDark ? '#fff' : '#333',
         bodyColor: isDark ? '#fff' : '#333',
         borderColor: isDark ? '#333' : '#e0e0e0',
-        borderWidth: 1
-      }
+        borderWidth: 1,
+      },
     },
-    maintainAspectRatio: false
+    maintainAspectRatio: false,
   };
 
   if (loading) {
@@ -265,7 +292,12 @@ const ProductPage = () => {
       <div className="farmer-products">
         <Sidebar userType="farmer" />
         <div className="products-content">
-          <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+          <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            minHeight="80vh"
+          >
             <CircularProgress />
           </Box>
         </div>
@@ -288,14 +320,18 @@ const ProductPage = () => {
 
   return (
     <div className={`farmer-products ${isDark ? 'dark' : 'light'}`}>
-      <Sidebar 
-        userType="farmer" 
-        onToggle={(collapsed) => setIsSidebarCollapsed(collapsed)}
+      <Sidebar
+        userType="farmer"
+        onToggle={collapsed => setIsSidebarCollapsed(collapsed)}
       />
-      <div className={`products-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-        <div className={`${isDark ? 'dark products-header' : 'products-header'}`}>
+      <div
+        className={`products-content ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}
+      >
+        <div
+          className={`${isDark ? 'dark products-header' : 'products-header'}`}
+        >
           <h1>My Products</h1>
-          <button 
+          <button
             className="add-product-btn"
             onClick={() => setShowAddProduct(true)}
           >
@@ -313,9 +349,14 @@ const ProductPage = () => {
                   type="text"
                   placeholder="Product Name (e.g., Tomato, Rice, Apple)"
                   value={newProduct.productName}
-                  onChange={(e) => handleProductNameChange(e.target.value)}
-                  onFocus={() => newProduct.productName && setShowProductSuggestions(productSuggestions.length > 0)}
-                  onBlur={() => setTimeout(() => setShowProductSuggestions(false), 200)}
+                  onChange={e => handleProductNameChange(e.target.value)}
+                  onFocus={() =>
+                    newProduct.productName &&
+                    setShowProductSuggestions(productSuggestions.length > 0)
+                  }
+                  onBlur={() =>
+                    setTimeout(() => setShowProductSuggestions(false), 200)
+                  }
                   required
                 />
                 {showProductSuggestions && (
@@ -325,14 +366,25 @@ const ProductPage = () => {
                         key={index}
                         className="suggestion-item"
                         onClick={() => {
-                          setNewProduct({ ...newProduct, productName: suggestion, productVariety: '' });
+                          setNewProduct({
+                            ...newProduct,
+                            productName: suggestion,
+                            productVariety: '',
+                          });
                           setShowProductSuggestions(false);
-                          
+
                           // Auto-show variety suggestions for selected product
                           const varieties = catalog
-                            .filter(item => item.name.toLowerCase() === suggestion.toLowerCase())
+                            .filter(
+                              item =>
+                                item.name.toLowerCase() ===
+                                suggestion.toLowerCase()
+                            )
                             .map(item => item.variety)
-                            .filter((variety, index, arr) => arr.indexOf(variety) === index)
+                            .filter(
+                              (variety, index, arr) =>
+                                arr.indexOf(variety) === index
+                            )
                             .slice(0, 5);
                           setVarietySuggestions(varieties);
                           setShowVarietySuggestions(varieties.length > 0);
@@ -344,15 +396,20 @@ const ProductPage = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="input-with-suggestions">
                 <input
                   type="text"
                   placeholder="Product Variety (e.g., Cherry, Basmati, Red Delicious)"
                   value={newProduct.productVariety}
-                  onChange={(e) => handleVarietyChange(e.target.value)}
-                  onFocus={() => newProduct.productVariety && setShowVarietySuggestions(varietySuggestions.length > 0)}
-                  onBlur={() => setTimeout(() => setShowVarietySuggestions(false), 200)}
+                  onChange={e => handleVarietyChange(e.target.value)}
+                  onFocus={() =>
+                    newProduct.productVariety &&
+                    setShowVarietySuggestions(varietySuggestions.length > 0)
+                  }
+                  onBlur={() =>
+                    setTimeout(() => setShowVarietySuggestions(false), 200)
+                  }
                   required
                 />
                 {showVarietySuggestions && (
@@ -362,7 +419,10 @@ const ProductPage = () => {
                         key={index}
                         className="suggestion-item"
                         onClick={() => {
-                          setNewProduct({ ...newProduct, productVariety: suggestion });
+                          setNewProduct({
+                            ...newProduct,
+                            productVariety: suggestion,
+                          });
                           setShowVarietySuggestions(false);
                         }}
                       >
@@ -376,25 +436,36 @@ const ProductPage = () => {
                 type="number"
                 placeholder="Quantity (kg)"
                 value={newProduct.quantity}
-                onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
+                onChange={e =>
+                  setNewProduct({ ...newProduct, quantity: e.target.value })
+                }
                 required
               />
               <input
                 type="number"
                 placeholder="Price per kg"
                 value={newProduct.price}
-                onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
+                onChange={e =>
+                  setNewProduct({ ...newProduct, price: e.target.value })
+                }
                 required
               />
               <input
                 type="date"
                 value={newProduct.estimatedDate}
-                onChange={(e) => setNewProduct({ ...newProduct, estimatedDate: e.target.value })}
+                onChange={e =>
+                  setNewProduct({
+                    ...newProduct,
+                    estimatedDate: e.target.value,
+                  })
+                }
                 required
               />
               <div className="form-actions">
                 <button type="submit">Add Product</button>
-                <button type="button" onClick={() => setShowAddProduct(false)}>Cancel</button>
+                <button type="button" onClick={() => setShowAddProduct(false)}>
+                  Cancel
+                </button>
               </div>
             </form>
           </div>
@@ -407,7 +478,7 @@ const ProductPage = () => {
               type="text"
               placeholder="Search products..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
           <div className={`${isDark ? 'dark price-filter' : 'price-filter'}`}>
@@ -415,13 +486,17 @@ const ProductPage = () => {
               type="number"
               placeholder="Min price"
               value={priceRange.min}
-              onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
+              onChange={e =>
+                setPriceRange({ ...priceRange, min: e.target.value })
+              }
             />
             <input
               type="number"
               placeholder="Max price"
               value={priceRange.max}
-              onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
+              onChange={e =>
+                setPriceRange({ ...priceRange, max: e.target.value })
+              }
             />
           </div>
         </div>
@@ -442,16 +517,18 @@ const ProductPage = () => {
               {editingId === product._id ? (
                 <div className="edit-product-form product-details-box">
                   <h3>Edit Product</h3>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    handleEditProduct(product._id, {
-                      productName: e.target.productName.value,
-                      productVariety: e.target.productVariety.value,
-                      quantity: e.target.quantity.value,
-                      price: e.target.price.value,
-                      estimatedDate: e.target.estimatedDate.value
-                    });
-                  }}>
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      handleEditProduct(product._id, {
+                        productName: e.target.productName.value,
+                        productVariety: e.target.productVariety.value,
+                        quantity: e.target.quantity.value,
+                        price: e.target.price.value,
+                        estimatedDate: e.target.estimatedDate.value,
+                      });
+                    }}
+                  >
                     <input
                       type="text"
                       name="productName"
@@ -483,12 +560,21 @@ const ProductPage = () => {
                     <input
                       type="date"
                       name="estimatedDate"
-                      defaultValue={product.estimatedDate && !isNaN(new Date(product.estimatedDate)) ? new Date(product.estimatedDate).toISOString().split('T')[0] : ''}
+                      defaultValue={
+                        product.estimatedDate &&
+                        !isNaN(new Date(product.estimatedDate))
+                          ? new Date(product.estimatedDate)
+                              .toISOString()
+                              .split('T')[0]
+                          : ''
+                      }
                       required
                     />
                     <div className="form-actions">
                       <button type="submit">Save</button>
-                      <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
+                      <button type="button" onClick={() => setEditingId(null)}>
+                        Cancel
+                      </button>
                     </div>
                   </form>
                 </div>
@@ -496,12 +582,32 @@ const ProductPage = () => {
                 <>
                   <div className="product-header">
                     <h3>{product.productName}</h3>
-                    <span className="product-variety">{product.productVariety}</span>
+                    <span className="product-variety">
+                      {product.productVariety}
+                    </span>
                   </div>
                   <div className="product-details product-details-box">
-                    <p><strong className={isDark ? 'text-white' : 'text-black'}>Quantity:</strong> {product.quantity} kg</p>
-                    <p><strong className={isDark ? 'text-white' : 'text-black'}>Price:</strong> ₹{product.price}/kg</p>
-                    <p><strong className={isDark ? 'text-white' : 'text-black'}>Estimated Date:</strong> {product.estimatedDate && !isNaN(new Date(product.estimatedDate)) ? new Date(product.estimatedDate).toLocaleDateString() : 'Not set'}</p>
+                    <p>
+                      <strong className={isDark ? 'text-white' : 'text-black'}>
+                        Quantity:
+                      </strong>{' '}
+                      {product.quantity} kg
+                    </p>
+                    <p>
+                      <strong className={isDark ? 'text-white' : 'text-black'}>
+                        Price:
+                      </strong>{' '}
+                      ₹{product.price}/kg
+                    </p>
+                    <p>
+                      <strong className={isDark ? 'text-white' : 'text-black'}>
+                        Estimated Date:
+                      </strong>{' '}
+                      {product.estimatedDate &&
+                      !isNaN(new Date(product.estimatedDate))
+                        ? new Date(product.estimatedDate).toLocaleDateString()
+                        : 'Not set'}
+                    </p>
                   </div>
                   <div className="product-actions">
                     <button onClick={() => setEditingId(product._id)}>

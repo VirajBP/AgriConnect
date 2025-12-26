@@ -5,8 +5,8 @@
 /* (You can keep your custom styles below this line) */
 
 :root {
-  --primary-color: #4CAF50;
-  --secondary-color: #2196F3;
+  --primary-color: #4caf50;
+  --secondary-color: #2196f3;
   --background-light: #ffffff;
   --text-light: #333333;
   --background-dark: #121212;
@@ -19,7 +19,9 @@
 html {
   background-color: var(--background-light);
   color: var(--text-light);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .dark html {
@@ -29,15 +31,17 @@ html {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   background-color: var(--background-light);
   color: var(--text-light);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .dark body {
@@ -64,11 +68,18 @@ body {
 }
 
 /* Text colors */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
   color: var(--text-dark);
 }
 
-.dark p, .dark span, .dark div {
+.dark p,
+.dark span,
+.dark div {
   color: var(--text-dark);
 }
 
@@ -77,13 +88,17 @@ body {
 }
 
 /* Form elements */
-.dark input, .dark select, .dark textarea {
+.dark input,
+.dark select,
+.dark textarea {
   background-color: var(--surface-dark);
   color: var(--text-dark);
   border: 1px solid #333;
 }
 
-.dark input:focus, .dark select:focus, .dark textarea:focus {
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
   border-color: #4a90e2;
   outline: none;
 }
@@ -276,7 +291,8 @@ body {
 }
 
 /* Lists */
-.dark ul, .dark ol {
+.dark ul,
+.dark ol {
   color: var(--text-dark);
 }
 
@@ -285,7 +301,8 @@ body {
 }
 
 /* Code blocks */
-.dark pre, .dark code {
+.dark pre,
+.dark code {
   background-color: #2c2c2c;
   color: var(--text-dark);
 }
@@ -429,29 +446,51 @@ body {
 
 /* Transitions */
 .dark * {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* --- DARK MODE IMPROVEMENTS --- */
 
 /* Make all text in dark mode closer to white */
-.dark, .dark body, .dark .app, .dark .card, .dark .panel, .dark .modal-content, .dark .product-card, .dark .order-card, .dark .profile-card {
+.dark,
+.dark body,
+.dark .app,
+.dark .card,
+.dark .panel,
+.dark .modal-content,
+.dark .product-card,
+.dark .order-card,
+.dark .profile-card {
   color: #fff !important;
 }
 
 /* Headings and card titles */
-.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6, .dark .card-title, .dark .product-title {
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark .card-title,
+.dark .product-title {
   color: #fff !important;
   font-weight: 600;
 }
 
 /* Product variety/subtitle */
-.dark .product-variety, .dark .card-subtitle, .dark .subtitle {
+.dark .product-variety,
+.dark .card-subtitle,
+.dark .subtitle {
   color: #e0e0e0 !important;
 }
 
 /* Card content (labels and values) */
-.dark .card-content, .dark .product-details, .dark .order-details {
+.dark .card-content,
+.dark .product-details,
+.dark .order-details {
   color: #fff !important;
 }
 
@@ -466,19 +505,30 @@ body {
 }
 
 /* Status badges */
-.dark .status-badge, .dark .status-badge.pending, .dark .status-badge.confirmed, .dark .status-badge.rejected, .dark .status-badge.completed {
+.dark .status-badge,
+.dark .status-badge.pending,
+.dark .status-badge.confirmed,
+.dark .status-badge.rejected,
+.dark .status-badge.completed {
   color: #fff !important;
   font-weight: 600;
 }
 
 /* Buttons */
-.dark .btn, .dark .btn-primary, .dark .btn-danger, .dark .btn-success {
+.dark .btn,
+.dark .btn-primary,
+.dark .btn-danger,
+.dark .btn-success {
   color: #fff !important;
   font-weight: 600;
 }
 
 /* Sidebar selected item highlight */
-.dark .sidebar .active, .dark .sidebar .selected, .dark .sidebar .nav-link.active, .dark .sidebar .nav-link.selected, .dark .sidebar .nav-link[aria-current="page"] {
+.dark .sidebar .active,
+.dark .sidebar .selected,
+.dark .sidebar .nav-link.active,
+.dark .sidebar .nav-link.selected,
+.dark .sidebar .nav-link[aria-current='page'] {
   background-color: #222e50 !important;
   color: #fff !important;
   border-left: 4px solid #4a90e2;
@@ -490,7 +540,10 @@ body {
 }
 
 /* Card backgrounds for extra contrast */
-.dark .card, .dark .product-card, .dark .order-card, .dark .profile-card {
+.dark .card,
+.dark .product-card,
+.dark .order-card,
+.dark .profile-card {
   background-color: #181818 !important;
   border: 1px solid #333 !important;
 }
@@ -516,14 +569,22 @@ body {
 }
 
 /* Add product box (assuming .add-product-box or similar) */
-.dark .add-product-box, .dark .add-product-form, .dark .add-product-container {
+.dark .add-product-box,
+.dark .add-product-form,
+.dark .add-product-container {
   background-color: #181818 !important;
   color: #fff !important;
   border: 1px solid #333 !important;
 }
 
 /* Search bar and filter boxes */
-.dark .search-bar, .dark .search-input, .dark .search-container, .dark .filter-box, .dark .min-max-box, .dark .min-price, .dark .max-price {
+.dark .search-bar,
+.dark .search-input,
+.dark .search-container,
+.dark .filter-box,
+.dark .min-max-box,
+.dark .min-price,
+.dark .max-price {
   background-color: #121212 !important;
   color: #fff !important;
   /* border: 1px solid #333 !important; */
@@ -538,19 +599,23 @@ body {
 }
 
 /* Product details box */
-.dark .product-details, .dark .product-details-box .info-box {
+.dark .product-details,
+.dark .product-details-box .info-box {
   background-color: #181818 !important;
   color: #fff !important;
   border: 1px solid #333 !important;
 }
 
 /* Ensure input text in dark mode is white */
-.dark input, .dark select, .dark textarea {
+.dark input,
+.dark select,
+.dark textarea {
   color: #fff !important;
 }
 
 /* If the chart is inside a card or container, make sure its parent is also dark */
-.dark .chart-container, .dark .chart-card {
+.dark .chart-container,
+.dark .chart-card {
   background-color: #181818 !important;
   color: #fff !important;
   border: 1px solid #333 !important;
@@ -564,7 +629,7 @@ body {
   color: #000 !important;
 }
 
-.dark .info-card{
+.dark .info-card {
   background-color: #181818 !important;
   color: #fff !important;
   border: 1px solid #333 !important;

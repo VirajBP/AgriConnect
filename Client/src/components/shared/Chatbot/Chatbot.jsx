@@ -4,25 +4,25 @@ import axios from 'axios';
 
 const commonQuestions = [
   {
-    text: "What crops should I grow this season?",
-    category: "crop"
+    text: 'What crops should I grow this season?',
+    category: 'crop',
   },
   {
-    text: "How can I improve my soil quality?",
-    category: "soil"
+    text: 'How can I improve my soil quality?',
+    category: 'soil',
   },
   {
-    text: "What are the best practices for irrigation?",
-    category: "irrigation"
+    text: 'What are the best practices for irrigation?',
+    category: 'irrigation',
   },
   {
-    text: "How to protect crops from pests?",
-    category: "pest"
+    text: 'How to protect crops from pests?',
+    category: 'pest',
   },
   {
-    text: "What fertilizers should I use?",
-    category: "fertilizer"
-  }
+    text: 'What fertilizers should I use?',
+    category: 'fertilizer',
+  },
 ];
 
 const Chatbot = () => {
@@ -35,7 +35,7 @@ const Chatbot = () => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -44,57 +44,62 @@ const Chatbot = () => {
 
   useEffect(() => {
     // Get user's location when component mounts
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(async (position) => {
-        const { latitude, longitude } = position.coords;
-        setLocation({ latitude, longitude });
-        
-        try {
-          // Get weather data using OpenWeatherMap API
-          const weatherResponse = await axios.get(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${process.env.REACT_APP_OPENWEATHER_API_KEY}&units=metric`
-          );
-          setWeatherData(weatherResponse.data);
-          
-          // Add welcome message with location context
-          setMessages([
-            {
-              type: 'bot',
-              content: `Hello! I'm your farming assistant. I see you're located near ${weatherResponse.data.name}. I'll provide recommendations based on your local conditions. Here are some questions you might want to ask:`
-            },
-            {
-              type: 'suggestions',
-              content: commonQuestions
-            }
-          ]);
-        } catch (error) {
-          console.error('Error fetching weather:', error);
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async position => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ latitude, longitude });
+
+          try {
+            // Get weather data using OpenWeatherMap API
+            const weatherResponse = await axios.get(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${process.env.REACT_APP_OPENWEATHER_API_KEY}&units=metric`
+            );
+            setWeatherData(weatherResponse.data);
+
+            // Add welcome message with location context
+            setMessages([
+              {
+                type: 'bot',
+                content: `Hello! I'm your farming assistant. I see you're located near ${weatherResponse.data.name}. I'll provide recommendations based on your local conditions. Here are some questions you might want to ask:`,
+              },
+              {
+                type: 'suggestions',
+                content: commonQuestions,
+              },
+            ]);
+          } catch (error) {
+            console.error('Error fetching weather:', error);
+            // Fallback welcome message
+            setMessages([
+              {
+                type: 'bot',
+                content:
+                  "Hello! I'm your farming assistant. I can help you with crop recommendations and farming advice. Here are some questions you might want to ask:",
+              },
+              {
+                type: 'suggestions',
+                content: commonQuestions,
+              },
+            ]);
+          }
+        },
+        error => {
+          console.error('Error getting location:', error);
           // Fallback welcome message
           setMessages([
             {
               type: 'bot',
-              content: 'Hello! I\'m your farming assistant. I can help you with crop recommendations and farming advice. Here are some questions you might want to ask:'
+              content:
+                "Hello! I'm your farming assistant. I can help you with crop recommendations and farming advice. Here are some questions you might want to ask:",
             },
             {
               type: 'suggestions',
-              content: commonQuestions
-            }
+              content: commonQuestions,
+            },
           ]);
         }
-      }, (error) => {
-        console.error('Error getting location:', error);
-        // Fallback welcome message
-        setMessages([
-          {
-            type: 'bot',
-            content: 'Hello! I\'m your farming assistant. I can help you with crop recommendations and farming advice. Here are some questions you might want to ask:'
-          },
-          {
-            type: 'suggestions',
-            content: commonQuestions
-          }
-        ]);
-      });
+      );
     }
   }, []);
 
@@ -102,12 +107,12 @@ const Chatbot = () => {
     setIsOpen(!isOpen);
   };
 
-  const formatRecommendations = (recommendations) => {
+  const formatRecommendations = recommendations => {
     if (!recommendations || recommendations.length === 0) return '';
-    
+
     const mainRec = recommendations[0];
     const alternatives = recommendations.slice(1);
-    
+
     let text = `I recommend growing ${mainRec.crop} (${(mainRec.confidence * 100).toFixed(1)}% confidence).\n\n`;
     if (alternatives.length > 0) {
       text += 'Alternative options:\n';
@@ -118,20 +123,20 @@ const Chatbot = () => {
     return text;
   };
 
-  const handleSuggestedQuestion = (question) => {
+  const handleSuggestedQuestion = question => {
     handleSendMessage(null, question);
   };
 
   const handleSendMessage = async (e, suggestedQuestion = null) => {
     if (e) e.preventDefault();
-    
+
     const messageToSend = suggestedQuestion || inputMessage;
     if (!messageToSend.trim()) return;
 
     // Add user message
     const userMessage = {
       type: 'user',
-      content: messageToSend
+      content: messageToSend,
     };
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
@@ -141,37 +146,41 @@ const Chatbot = () => {
       // Prepare request with location and weather data
       const requestData = {
         message: messageToSend,
-        location: location ? {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          name: weatherData?.name || 'Unknown'
-        } : null,
-        weather: weatherData ? {
-          temperature: weatherData.main.temp,
-          humidity: weatherData.main.humidity,
-          description: weatherData.weather[0].description,
-          rainfall: weatherData.rain ? weatherData.rain['1h'] || 0 : 0
-        } : null
+        location: location
+          ? {
+              latitude: location.latitude,
+              longitude: location.longitude,
+              name: weatherData?.name || 'Unknown',
+            }
+          : null,
+        weather: weatherData
+          ? {
+              temperature: weatherData.main.temp,
+              humidity: weatherData.main.humidity,
+              description: weatherData.weather[0].description,
+              rainfall: weatherData.rain ? weatherData.rain['1h'] || 0 : 0,
+            }
+          : null,
       };
 
       // Send message to backend
       const response = await axios.post('/api/chatbot', requestData, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
 
       // Add bot response
       const botMessage = {
         type: 'bot',
-        content: response.data.message
+        content: response.data.message,
       };
 
       // If we have recommendations, add them as a separate message
       if (response.data.recommendations) {
         const recommendationsMessage = {
           type: 'bot',
-          content: formatRecommendations(response.data.recommendations)
+          content: formatRecommendations(response.data.recommendations),
         };
         setMessages(prev => [...prev, botMessage, recommendationsMessage]);
       } else {
@@ -181,14 +190,15 @@ const Chatbot = () => {
       // Add follow-up suggestions after bot response
       const followUpSuggestions = {
         type: 'suggestions',
-        content: commonQuestions.filter(q => q.category !== 'crop')
+        content: commonQuestions.filter(q => q.category !== 'crop'),
       };
       setMessages(prev => [...prev, followUpSuggestions]);
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = {
         type: 'bot',
-        content: 'Sorry, I encountered an error while processing your request. Please try again.'
+        content:
+          'Sorry, I encountered an error while processing your request. Please try again.',
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -198,7 +208,7 @@ const Chatbot = () => {
 
   return (
     <div className="chatbot-container">
-      <button 
+      <button
         className={`chat-button ${isOpen ? 'open' : ''}`}
         onClick={toggleChat}
       >
@@ -233,15 +243,17 @@ const Chatbot = () => {
                     ))}
                   </div>
                 ) : (
-                  msg.content.split('\n').map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))
+                  msg.content
+                    .split('\n')
+                    .map((line, i) => <p key={i}>{line}</p>)
                 )}
               </div>
             ))}
             {isTyping && (
               <div className="message bot typing">
-                <span>.</span><span>.</span><span>.</span>
+                <span>.</span>
+                <span>.</span>
+                <span>.</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -250,7 +262,7 @@ const Chatbot = () => {
             <input
               type="text"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={e => setInputMessage(e.target.value)}
               placeholder="Ask about crop recommendations..."
               className="message-input"
             />
