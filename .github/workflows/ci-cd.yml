@@ -68,6 +68,8 @@ jobs:
         file: ./Client/Dockerfile
         push: false
         tags: agriconnect-frontend:test
+        build-args: |
+          REACT_APP_API_URL=https://agriconnect-3ijp.onrender.com
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -108,3 +110,5 @@ jobs:
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/agriconnect-frontend:latest
           ${{ secrets.DOCKER_USERNAME }}/agriconnect-frontend:${{ github.sha }}
+        build-args: |
+          REACT_APP_API_URL=https://agriconnect-3ijp.onrender.com
