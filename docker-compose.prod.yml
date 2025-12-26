@@ -1,0 +1,41 @@
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: agriconnect-backend:latest
+    container_name: agriconnect-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    networks:
+      - agriconnect-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/auth/states"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    image: agriconnect-frontend:latest
+    container_name: agriconnect-frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./Client/.env
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - agriconnect-network
+
+networks:
+  agriconnect-network:
+    driver: bridge

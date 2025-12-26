@@ -1,0 +1,64 @@
+name: Code Quality Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-backend:
+    runs-on: ubuntu-latest
+    name: Lint Backend
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: server/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./server
+    
+    - name: Run ESLint
+      run: npx eslint . --ext .js,.jsx --max-warnings 0
+      working-directory: ./server
+    
+    - name: Check Prettier formatting
+      run: npx prettier --check "**/*.{js,jsx,json}"
+      working-directory: ./server
+
+  lint-frontend:
+    runs-on: ubuntu-latest
+    name: Lint Frontend
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: Client/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./Client
+    
+    - name: Run ESLint
+      run: npx eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
+      working-directory: ./Client
+    
+    - name: Check Prettier formatting
+      run: npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css}"
+      working-directory: ./Client
+    
+    - name: Build check
+      run: npm run build
+      working-directory: ./Client

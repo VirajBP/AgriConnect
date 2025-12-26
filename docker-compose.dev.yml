@@ -1,0 +1,47 @@
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: agriconnect-backend:dev
+    container_name: agriconnect-backend-dev
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    command: npm run dev
+    restart: unless-stopped
+    networks:
+      - agriconnect-network
+
+  frontend:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    image: agriconnect-frontend:dev
+    container_name: agriconnect-frontend-dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./Client/.env
+    volumes:
+      - ./Client:/app
+      - /app/node_modules
+    command: npm start
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - agriconnect-network
+
+networks:
+  agriconnect-network:
+    driver: bridge
+
+volumes:
+  node_modules:
