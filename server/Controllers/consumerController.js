@@ -20,9 +20,9 @@ exports.getAllProducts = async (req, res) => {
       timeUntilHarvest:
         product.status === 'upcoming'
           ? Math.ceil(
-              (new Date(product.expectedHarvestDate) - currentDate) /
+            (new Date(product.expectedHarvestDate) - currentDate) /
                 (1000 * 60 * 60 * 24)
-            ) // Days until harvest
+          ) // Days until harvest
           : null,
       harvestStatus: getHarvestStatus(
         product.status,

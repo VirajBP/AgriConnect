@@ -341,7 +341,7 @@ router.post('/', auth, async (req, res) => {
 
       if (
         chatResponse.data.message &&
-        !chatResponse.data.message.includes("I'm sorry") &&
+        !chatResponse.data.message.includes('I\'m sorry') &&
         !chatResponse.data.message.includes(
           'Would you like to know about crop recommendations'
         )
@@ -400,7 +400,7 @@ router.post('/', auth, async (req, res) => {
       // Final fallback
       res.json({
         message:
-          "I'm here to help with your farming questions! You can ask me about crop recommendations, soil management, irrigation, pest control, fertilizers, and weather-related farming advice.",
+          'I\'m here to help with your farming questions! You can ask me about crop recommendations, soil management, irrigation, pest control, fertilizers, and weather-related farming advice.',
       });
     }
   }

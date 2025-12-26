@@ -314,13 +314,13 @@ router.get('/orders', auth, async (req, res) => {
         expectedDelivery: order.deliveryDate,
         farmer: order.farmer
           ? {
-              _id: order.farmer._id,
-              name: order.farmer.name,
-              location: order.farmer.location,
-              phoneNumber: order.farmer.phoneNumber,
-              email: order.farmer.email,
-              rating: order.farmer.rating || { average: 0, count: 0 },
-            }
+            _id: order.farmer._id,
+            name: order.farmer.name,
+            location: order.farmer.location,
+            phoneNumber: order.farmer.phoneNumber,
+            email: order.farmer.email,
+            rating: order.farmer.rating || { average: 0, count: 0 },
+          }
           : null,
         // Ratings for this specific order
         consumerRating: order.consumerRating || null,
