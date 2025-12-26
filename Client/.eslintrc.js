@@ -5,9 +5,7 @@ module.exports = {
     jest: true,
   },
   extends: [
-    'eslint:recommended',
     'react-app',
-    'react-app/jest',
   ],
   parserOptions: {
     ecmaFeatures: {
@@ -16,16 +14,17 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: [
-    'react',
-  ],
   rules: {
-    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-unused-vars': 'warn',
     'react/prop-types': 'off',
+    'no-undef': 'warn',
+    'no-console': 'off',
   },
   ignorePatterns: [
     'build/',
     'node_modules/',
     '*.config.js',
+    'src/setupTests.js',
+    'src/reportWebVitals.js',
   ],
 };

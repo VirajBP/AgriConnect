@@ -1,0 +1,12 @@
+{
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "build",
+  "installCommand": "npm ci",
+  "framework": "create-react-app",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
