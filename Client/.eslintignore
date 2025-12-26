@@ -1,0 +1,6 @@
+build/
+node_modules/
+public/
+*.config.js
+src/setupTests.js
+src/reportWebVitals.js

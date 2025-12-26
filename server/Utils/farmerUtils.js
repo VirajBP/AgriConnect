@@ -14,7 +14,7 @@ const updateDashboardStats = async farmerId => {
     const farmer = await Farmer.findById(farmerObjectId);
     const activeListings = farmer
       ? farmer.inventory.filter(item => item.isAvailable && item.quantity > 0)
-          .length
+        .length
       : 0;
 
     const completedOrders = await Order.countDocuments({
