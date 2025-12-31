@@ -1,9 +1,21 @@
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 require('dotenv').config();
 const app = express();
+const server = http.createServer(app);
 
 // Load CORS immediately
 const cors = require('cors');
+
+// Socket.IO setup
+const io = socketIo(server, {
+  cors: {
+    // origin: 'https://agri-connect-gamma.vercel.app',
+    origin: 'http://localhost:3000',
+    credentials: true,
+  },
+});
 
 // Lazy load dependencies
 let connectDB, mongoose;
@@ -14,17 +26,18 @@ const loadDependencies = () => {
     mongoose = require('mongoose');
 
     // Lazy load models only when needed
-    require('./Model/Farmer');
-    require('./Model/Consumer');
-    require('./Model/Product');
-    require('./Model/Order');
+    require('./Model/Farmer.js');
+    require('./Model/Consumer.js');
+    require('./Model/Product.js');
+    require('./Model/Order.js');
   }
 };
 
 // Setup CORS middleware immediately
 app.use(
   cors({
-    origin: 'https://agri-connect-gamma.vercel.app',
+    // origin: 'https://agri-connect-gamma.vercel.app',
+    origin: 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
@@ -52,6 +65,7 @@ app.use('/api/auth', require('./Routes/authRoutes'));
 app.use('/api/farmer', require('./Routes/farmerRoutes'));
 app.use('/api/consumer', require('./Routes/consumerRoutes'));
 app.use('/api/chatbot', require('./Routes/chatbotRoutes'));
+app.use('/api/chat', require('./Routes/chatRoutes'));
 
 // Connect to MongoDB and initialize routes
 let isConnected = false;
@@ -62,10 +76,18 @@ const initializeServer = async () => {
   try {
     // Load dependencies only when initializing
     loadDependencies();
+    
+    // Load chat models
+    require('./Model/Chat');
+    require('./Model/Message');
 
     await connectDB();
     isConnected = true;
     console.log('MongoDB connected successfully');
+    
+    // Initialize Socket.IO after DB connection
+    const { handleConnection } = require('./Utils/socketHandler');
+    handleConnection(io);
 
     // Set up mongoose event listeners after mongoose is loaded
     mongoose.connection.on('error', err => {
@@ -80,7 +102,7 @@ const initializeServer = async () => {
     // Routes are now loaded outside this function
 
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (err) {
