@@ -11,8 +11,8 @@ const cors = require('cors');
 // Socket.IO setup
 const io = socketIo(server, {
   cors: {
-    // origin: 'https://agri-connect-gamma.vercel.app',
-    origin: 'http://localhost:3000',
+    origin: 'https://agri-connect-gamma.vercel.app',
+    // origin: 'http://localhost:3000',
     credentials: true,
   },
 });
@@ -36,8 +36,8 @@ const loadDependencies = () => {
 // Setup CORS middleware immediately
 app.use(
   cors({
-    // origin: 'https://agri-connect-gamma.vercel.app',
-    origin: 'http://localhost:3000',
+    origin: 'https://agri-connect-gamma.vercel.app',
+    // origin: 'http://localhost:3000',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
