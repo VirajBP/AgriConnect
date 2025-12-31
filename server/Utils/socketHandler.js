@@ -6,8 +6,8 @@ const socketAuth = (socket, next) => {
   try {
     const token = socket.handshake.auth.token;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    socket.userId = decoded.userId;
-    socket.role = decoded.role;
+    socket.userId = decoded.user.id;
+    socket.role = decoded.user.type;
     next();
   } catch (err) {
     next(new Error('Authentication error'));
@@ -60,7 +60,7 @@ const handleConnection = (io) => {
 
         // Get sender info from participants
         const sender = chat.participants.find(
-          p => p.userId.toString() === socket.userId
+          p => p.userId.toString() === socket.userId.toString()
         );
 
         // Create message
@@ -96,13 +96,15 @@ const handleConnection = (io) => {
           seenBy: message.seenBy,
         });
 
-        // Emit chat update to all participants
+        // Emit chat update only to other participants (not sender)
         chat.participants.forEach(participant => {
-          io.to(`user_${participant.userId}`).emit('chat_updated', {
-            chatId,
-            lastMessage: chat.lastMessage,
-            updatedAt: chat.updatedAt,
-          });
+          if (participant.userId.toString() !== socket.userId.toString()) {
+            io.to(`user_${participant.userId}`).emit('chat_updated', {
+              chatId,
+              lastMessage: chat.lastMessage,
+              updatedAt: chat.updatedAt,
+            });
+          }
         });
 
       } catch (error) {

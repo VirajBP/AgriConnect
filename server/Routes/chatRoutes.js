@@ -5,6 +5,7 @@ const {
   createChat,
   getChatMessages,
   markMessagesAsSeen,
+  getParticipantProfile,
 } = require('../Controllers/chatController');
 const auth = require('../Middleware/auth');
 
@@ -22,5 +23,8 @@ router.get('/:chatId/messages', getChatMessages);
 
 // Mark messages as seen
 router.put('/:chatId/seen', markMessagesAsSeen);
+
+// Get participant profile
+router.get('/profile/:participantId/:role', getParticipantProfile);
 
 module.exports = router;

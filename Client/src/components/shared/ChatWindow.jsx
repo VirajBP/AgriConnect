@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaUser, FaPaperPlane } from 'react-icons/fa';
 import { chatAPI } from '../../utils/chatAPI';
+import { useAuth } from '../../Context/AuthContext';
+import ProfileInfoModal from './ProfileInfoModal';
+import {useTheme} from '../../Context/ThemeContext';
 
 const ChatWindow = ({ chat, socket, isConnected }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [typing, setTyping] = useState(false);
+  const { isDarkMode } = useTheme();
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-  const currentUserId = localStorage.getItem('userId');
+  const { user } = useAuth();
+  const currentUserId = user?._id;
 
   useEffect(() => {
     if (chat) {
@@ -64,8 +70,8 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
     if (message.chatId === chat._id) {
       setMessages(prev => [...prev, message]);
       
-      // Mark as seen if not from current user
-      if (message.sender.userId !== currentUserId) {
+      // Automatically mark as seen since chat is open
+      if (message.sender.userId !== currentUserId && socket) {
         socket.emit('mark_seen', chat._id);
       }
     }
@@ -132,6 +138,7 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
   };
 
   const getOtherParticipant = () => {
+    if (!currentUserId || !chat?.participants) return null;
     return chat.participants.find(p => p.userId !== currentUserId);
   };
 
@@ -145,15 +152,38 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
     );
   }
 
+  if (!currentUserId) {
+    return (
+      <div className="chat-window">
+        <div className="loading">Please log in to use chat...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="chat-window">
-      <div className="chat-header">
+      <div className={`${isDarkMode ? 'chat-header-dark' : 'chat-header'}`}>
         <div className="participant-info">
           <div className="participant-avatar">
-            <FaUser />
+            {otherParticipant?.profilePhoto ? (
+              <img 
+                src={otherParticipant.profilePhoto} 
+                alt={otherParticipant.name}
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <FaUser style={{ display: otherParticipant?.profilePhoto ? 'none' : 'flex' }} />
           </div>
           <div className="participant-details">
-            <h3>{otherParticipant?.name}</h3>
+            <h3 
+              onClick={() => setShowProfileModal(true)}
+              style={{ cursor: 'pointer' }}
+            >
+              {otherParticipant?.name}
+            </h3>
             <span className="participant-role">{otherParticipant?.role}</span>
           </div>
         </div>
@@ -166,8 +196,8 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
         </div>
       </div>
 
-      <div className="messages-container">
-        <div className="messages-list">
+      <div className={`${isDarkMode ? "messages-container-dark" : "messages-container"}`}>
+        <div className={`${isDarkMode ? "messages-list-dark" : "messages-list"}`}>
           {messages.map(message => (
             <div
               key={message._id}
@@ -175,7 +205,7 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
                 message.sender.userId === currentUserId ? 'sent' : 'received'
               }`}
             >
-              <div className="message-content">
+              <div className={`${isDarkMode ? "message-content-dark" : "message-content"}`}>
                 <p>{message.content}</p>
                 <span className="message-time">
                   {formatMessageTime(message.createdAt)}
@@ -199,7 +229,7 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
         </div>
       </div>
 
-      <form className="message-input-form" onSubmit={handleSendMessage}>
+      <form className={`${isDarkMode ? "message-input-form-dark" : "message-input-form"}`} onSubmit={handleSendMessage}>
         <div className="input-container">
           <input
             type="text"
@@ -217,6 +247,13 @@ const ChatWindow = ({ chat, socket, isConnected }) => {
           </button>
         </div>
       </form>
+      
+      {showProfileModal && (
+        <ProfileInfoModal 
+          participant={otherParticipant}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
     </div>
   );
 };
