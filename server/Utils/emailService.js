@@ -1,47 +1,65 @@
 const nodemailer = require('nodemailer');
 
-// Create a transporter using Gmail SMTP
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER, // Your Gmail email
-    pass: process.env.EMAIL_PASS, // Your Gmail app password
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
-// Function to send OTP email
-const sendOTPEmail = async (email, otp) => {
-  try {
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Password Reset OTP - AgriConnect',
-      html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2 style="color: #1a73e8; text-align: center;">AgriConnect Password Reset</h2>
-                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px;">
-                        <p>Hello,</p>
-                        <p>You have requested to reset your password. Please use the following OTP to verify your identity:</p>
-                        <h1 style="text-align: center; color: #1a73e8; font-size: 36px; letter-spacing: 5px;">${otp}</h1>
-                        <p>This OTP will expire in 10 minutes.</p>
-                        <p style="color: #666;">If you didn't request this password reset, please ignore this email.</p>
-                    </div>
-                    <p style="text-align: center; color: #666; font-size: 12px; margin-top: 20px;">
-                        This is an automated email. Please do not reply.
-                    </p>
-                </div>
-            `,
-    };
+const sendOrderNotification = async (userEmail, userName, orderDetails, type) => {
+  const subject = type === 'confirmed' ? 'Order Confirmed' : 'Order Completed';
+  const message = type === 'confirmed' 
+    ? `Your order for ${orderDetails.productName} has been confirmed.`
+    : `Your order for ${orderDetails.productName} has been completed.`;
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', info.messageId);
-    return true;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: userEmail,
+    subject: `AgriConnect - ${subject}`,
+    html: `
+      <h2>Hello ${userName},</h2>
+      <p>${message}</p>
+      <p><strong>Order Details:</strong></p>
+      <ul>
+        <li>Product: ${orderDetails.productName}</li>
+        <li>Quantity: ${orderDetails.quantity}</li>
+        <li>Total: ₹${orderDetails.total}</li>
+      </ul>
+      <p>Thank you for using AgriConnect!</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`${type} notification sent to ${userEmail}`);
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Email sending failed:', error);
+  }
+};
+
+const sendOTPEmail = async (email, otp) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'AgriConnect - Password Reset OTP',
+    html: `
+      <h2>Password Reset OTP</h2>
+      <p>Your OTP for password reset is: <strong>${otp}</strong></p>
+      <p>This OTP will expire in 10 minutes.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+      <p>Thank you for using AgriConnect!</p>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`OTP sent to ${email}`);
+  } catch (error) {
+    console.error('OTP email sending failed:', error);
     throw error;
   }
 };
 
-module.exports = {
-  sendOTPEmail,
-};
+module.exports = { sendOrderNotification, sendOTPEmail };

@@ -5,8 +5,6 @@ import {
   FaLock,
   FaMapMarkerAlt,
   FaTractor,
-  FaMoon,
-  FaSun,
   FaEdit,
   FaCheck,
   FaTimes,
@@ -143,7 +141,7 @@ const FarmerProfile = () => {
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [photoModalOpen, setPhotoModalOpen] = useState(false);
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { isDarkMode } = useTheme();
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -437,30 +435,6 @@ const FarmerProfile = () => {
         </div>
 
         <div className="profile-main">
-          <div
-            className={`${isDarkMode ? 'profile-section-dark theme-section-dark' : 'profile-section theme-section'}`}
-          >
-            <div className="section-header">
-              <h2>Theme Settings</h2>
-            </div>
-            <div
-              className={`${isDarkMode ? 'theme-toggle-dark' : 'theme-toggle'}`}
-            >
-              <div className="theme-info">
-                <div className="theme-icon">
-                  {isDarkMode ? <FaMoon /> : <FaSun />}
-                </div>
-                <div className="theme-text">
-                  <h3>Current Theme</h3>
-                  <p>{isDarkMode ? 'Dark Mode' : 'Light Mode'}</p>
-                </div>
-              </div>
-              <button className="theme-switch-btn" onClick={toggleTheme}>
-                Switch to {isDarkMode ? 'Light' : 'Dark'} Mode
-              </button>
-            </div>
-          </div>
-
           <div
             className={`${isDarkMode ? 'profile-section-dark' : 'profile-section'}`}
           >

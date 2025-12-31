@@ -33,6 +33,7 @@ const ConsumerMarket = lazy(
   () => import('./components/Consumer/Market/Market')
 );
 const Messages = lazy(() => import('./components/shared/Messages'));
+const Settings = lazy(() => import('./components/shared/Settings'));
 
 // Loading component
 const LoadingSpinner = () => (
@@ -99,6 +100,15 @@ function App() {
                   }
                 />
 
+                <Route
+                  path="/farmer/settings"
+                  element={
+                    <ProtectedRoute userType="farmer">
+                      <Settings />
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Protected Consumer Routes */}
                 <Route
                   path="/consumer/dashboard"
@@ -140,6 +150,15 @@ function App() {
                   element={
                     <ProtectedRoute userType="consumer">
                       <Messages />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/consumer/settings"
+                  element={
+                    <ProtectedRoute userType="consumer">
+                      <Settings />
                     </ProtectedRoute>
                   }
                 />

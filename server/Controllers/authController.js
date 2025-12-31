@@ -191,7 +191,6 @@ exports.register = async (req, res, next) => {
         name,
         email,
         phoneNumber,
-        location,
         type,
         state,
         city,

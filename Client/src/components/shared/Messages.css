@@ -842,3 +842,46 @@
 .profile-info-item span {
   font-size: 0.9rem;
 }
+
+/* Bookmark Section */
+.bookmark-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+}
+
+.bookmark-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #2196f3;
+  background: transparent;
+  color: #2196f3;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  width: 100%;
+  justify-content: center;
+}
+
+.bookmark-btn:hover {
+  background: #2196f3;
+  color: white;
+}
+
+.bookmark-btn.bookmarked {
+  background: #2196f3;
+  color: white;
+}
+
+.bookmark-btn.bookmarked:hover {
+  background: #1976d2;
+}
+
+.bookmark-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
