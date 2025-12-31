@@ -106,6 +106,35 @@
   /* Remove any margin/padding that might affect alignment */
   margin: 0;
   padding: 0;
+  flex: 1;
+}
+
+.badge {
+  background: #dc3545;
+  color: white;
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  min-width: 16px;
+  text-align: center;
+  margin-left: auto;
+}
+
+.badge-collapsed {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 0.6rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .logout-btn {

@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './Context/AuthContext';
+import { SocketProvider } from './Context/SocketContext';
 import { ThemeProvider } from './Context/ThemeContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -31,6 +32,7 @@ const ConsumerOrders = lazy(
 const ConsumerMarket = lazy(
   () => import('./components/Consumer/Market/Market')
 );
+const Messages = lazy(() => import('./components/shared/Messages'));
 
 // Loading component
 const LoadingSpinner = () => (
@@ -44,9 +46,10 @@ function App() {
     <Router>
       <ThemeProvider>
         <AuthProvider>
-          <div className="app">
-            <Suspense fallback={<LoadingSpinner />}>
-              <Routes>
+          <SocketProvider>
+            <div className="app">
+              <Suspense fallback={<LoadingSpinner />}>
+                <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup/:userType" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -87,6 +90,15 @@ function App() {
                   }
                 />
 
+                <Route
+                  path="/farmer/messages"
+                  element={
+                    <ProtectedRoute userType="farmer">
+                      <Messages />
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Protected Consumer Routes */}
                 <Route
                   path="/consumer/dashboard"
@@ -123,15 +135,25 @@ function App() {
                   }
                 />
 
+                <Route
+                  path="/consumer/messages"
+                  element={
+                    <ProtectedRoute userType="consumer">
+                      <Messages />
+                    </ProtectedRoute>
+                  }
+                />
+
                 {/* Redirect root to login */}
                 <Route path="/" element={<Login />} />
               </Routes>
             </Suspense>
           </div>
-        </AuthProvider>
-      </ThemeProvider>
-    </Router>
-  );
+        </SocketProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  </Router>
+);
 }
 
 export default App;

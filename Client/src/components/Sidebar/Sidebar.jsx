@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, NavLink } from 'react-router-dom';
 import './Sidebar.css';
 import {
@@ -13,10 +13,13 @@ import {
   FaStore,
   FaAngleRight,
   FaAngleLeft,
+  FaComments,
 } from 'react-icons/fa';
+import { chatAPI } from '../../utils/chatAPI';
 
 const Sidebar = ({ userType, onToggle }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,6 +28,12 @@ const Sidebar = ({ userType, onToggle }) => {
     { path: '/farmer/profile', name: 'Profile', icon: <FaUser /> },
     { path: '/farmer/orders', name: 'Orders', icon: <FaShoppingCart /> },
     { path: '/farmer/products', name: 'Products', icon: <FaBox /> },
+    { 
+      path: '/farmer/messages', 
+      name: 'Messages', 
+      icon: <FaComments />,
+      badge: unreadCount > 0 ? unreadCount : null
+    },
   ];
 
   const consumerMenuItems = [
@@ -36,7 +45,33 @@ const Sidebar = ({ userType, onToggle }) => {
     { path: '/consumer/market', name: 'Market', icon: <FaStore /> },
     { path: '/consumer/orders', name: 'Orders', icon: <FaShoppingCart /> },
     { path: '/consumer/profile', name: 'Profile', icon: <FaUser /> },
+    { 
+      path: '/consumer/messages', 
+      name: 'Messages', 
+      icon: <FaComments />,
+      badge: unreadCount > 0 ? unreadCount : null
+    },
   ];
+
+  // Fetch unread count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await chatAPI.getChats();
+        const totalUnread = response.data.chats.reduce(
+          (sum, chat) => sum + chat.unreadCount,
+          0
+        );
+        setUnreadCount(totalUnread);
+      } catch (error) {
+        console.error('Failed to fetch unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000); // Update every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   const menuItems = userType === 'farmer' ? farmerMenuItems : consumerMenuItems;
 
@@ -70,7 +105,17 @@ const Sidebar = ({ userType, onToggle }) => {
             }
           >
             <span className="icon">{item.icon}</span>
-            {!isCollapsed && <span className="text">{item.name}</span>}
+            {!isCollapsed && (
+              <>
+                <span className="text">{item.name}</span>
+                {item.badge && (
+                  <span className="badge">{item.badge}</span>
+                )}
+              </>
+            )}
+            {isCollapsed && item.badge && (
+              <span className="badge-collapsed">{item.badge}</span>
+            )}
           </NavLink>
         ))}
       </div>
