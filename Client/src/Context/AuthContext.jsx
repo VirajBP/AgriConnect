@@ -48,7 +48,10 @@ export const AuthProvider = ({ children }) => {
 
       if (response.data.success) {
         // Set user data including name
-        setUser({ ...response.data.data, type });
+        const userData = { ...response.data.data, type };
+        setUser(userData);
+        // Store user ID in localStorage for chat functionality
+        localStorage.setItem('userId', userData._id);
       } else {
         console.error('Failed to fetch user profile:', response.data.message);
         localStorage.removeItem('token'); // Clear invalid token
@@ -116,6 +119,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userType');
     resetTheme(); // Reset theme when logging out
     setUser(null);
   };
@@ -126,6 +131,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    token: localStorage.getItem('token'),
+    isAuthenticated: !!user,
   };
 
   return (

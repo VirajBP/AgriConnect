@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useSocket } from '../../Context/SocketContext';
+import { useAuth } from '../../Context/AuthContext';
+import { useTheme } from '../../Context/ThemeContext';
 import { chatAPI } from '../../utils/chatAPI';
+import Sidebar from '../Sidebar/Sidebar';
 import ChatList from './ChatList';
 import ChatWindow from './ChatWindow';
 import './Messages.css';
@@ -10,9 +13,13 @@ const Messages = () => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { socket, isConnected } = useSocket();
+  const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const location = useLocation();
   const selectedChatId = location.state?.selectedChatId;
+  const userType = localStorage.getItem('userType');
 
   useEffect(() => {
     fetchChats();
@@ -63,10 +70,17 @@ const Messages = () => {
   };
 
   const handleNewMessage = (message) => {
-    if (selectedChat && message.chatId === selectedChat._id) {
+    // Don't update unread count if it's from current user or chat is selected
+    if (message.sender.userId === user?._id) {
       return;
     }
     
+    if (selectedChat && message.chatId === selectedChat._id) {
+      // Message will be handled by ChatWindow and auto-marked as seen
+      return;
+    }
+    
+    // Update unread count for other chats only
     setChats(prevChats => 
       prevChats.map(chat => 
         chat._id === message.chatId 
@@ -98,28 +112,36 @@ const Messages = () => {
   }
 
   return (
-    <div className="messages-container">
-      <div className="messages-layout">
-        <div className="chat-list-panel">
-          <ChatList 
-            chats={chats}
-            selectedChat={selectedChat}
-            onChatSelect={handleChatSelect}
-          />
-        </div>
-        <div className="chat-window-panel">
-          {selectedChat ? (
-            <ChatWindow 
-              chat={selectedChat}
-              socket={socket}
-              isConnected={isConnected}
-            />
-          ) : (
-            <div className="no-chat-selected">
-              <h3>Select a conversation to start messaging</h3>
-              <p>Choose from your existing conversations or start a new one from a product or order page.</p>
+    <div className={`messages-page ${isDarkMode ? 'dark' : ''}`}>
+      <Sidebar 
+        userType={userType} 
+        onToggle={setSidebarCollapsed}
+      />
+      <div className={`messages-main-content ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <div className={`${isDarkMode ? "messages-container-dark" : "messages-container"}`}>
+          <div className="messages-layout">
+            <div className={`${isDarkMode ? 'chat-list-panel-dark' : 'chat-list-panel'}`}>
+              <ChatList 
+                chats={chats}
+                selectedChat={selectedChat}
+                onChatSelect={handleChatSelect}
+              />
             </div>
-          )}
+            <div className="chat-window-panel">
+              {selectedChat ? (
+                <ChatWindow 
+                  chat={selectedChat}
+                  socket={socket}
+                  isConnected={isConnected}
+                />
+              ) : (
+                <div className={isDarkMode ? 'no-chat-selected-dark' : 'no-chat-selected'}>
+                  <h3>Select a conversation to start messaging</h3>
+                  <p>Choose from your existing conversations or start a new one from a product or order page.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

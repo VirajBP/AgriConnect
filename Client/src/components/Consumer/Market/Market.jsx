@@ -58,6 +58,7 @@ import Sidebar from '../../Sidebar/Sidebar';
 import './Market.css';
 import noImage from '../../../assets/images/no-image.svg';
 import { FaUser } from 'react-icons/fa';
+import { initiateChatFromProduct } from '../../../utils/chatHelpers';
 
 // Define product images mapping
 const productImages = {
@@ -372,6 +373,15 @@ const Market = () => {
         severity: 'warning',
       });
     }
+  };
+
+  const handleChatWithFarmer = () => {
+    initiateChatFromProduct(
+      selectedProduct._id,
+      selectedProduct.farmer._id,
+      selectedProduct.farmer.name,
+      navigate
+    );
   };
 
   const handlePlaceOrder = async () => {
@@ -1241,6 +1251,7 @@ const Market = () => {
                   borderColor: isDarkMode ? '#333' : 'divider',
                   p: 2,
                   zIndex: 2,
+                  gap: 1,
                 }}
               >
                 <Button
@@ -1249,6 +1260,14 @@ const Market = () => {
                   color="secondary"
                 >
                   Cancel
+                </Button>
+                <Button
+                  onClick={handleChatWithFarmer}
+                  variant="outlined"
+                  color="primary"
+                  sx={{ minWidth: 120 }}
+                >
+                  Chat with Farmer
                 </Button>
                 <Button
                   onClick={handlePlaceOrder}

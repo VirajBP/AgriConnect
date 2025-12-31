@@ -17,6 +17,10 @@ const chatSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        profilePhoto: {
+          type: String,
+          default: null,
+        },
       },
     ],
     lastMessage: {
