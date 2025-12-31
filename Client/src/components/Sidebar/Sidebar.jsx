@@ -14,6 +14,7 @@ import {
   FaAngleRight,
   FaAngleLeft,
   FaComments,
+  FaCog,
 } from 'react-icons/fa';
 import { chatAPI } from '../../utils/chatAPI';
 
@@ -34,6 +35,7 @@ const Sidebar = ({ userType, onToggle }) => {
       icon: <FaComments />,
       badge: unreadCount > 0 ? unreadCount : null
     },
+    { path: '/farmer/settings', name: 'Settings', icon: <FaCog /> },
   ];
 
   const consumerMenuItems = [
@@ -51,6 +53,7 @@ const Sidebar = ({ userType, onToggle }) => {
       icon: <FaComments />,
       badge: unreadCount > 0 ? unreadCount : null
     },
+    { path: '/consumer/settings', name: 'Settings', icon: <FaCog /> },
   ];
 
   // Fetch unread count

@@ -46,6 +46,34 @@ const farmerSchema = new mongoose.Schema(
         default: 0,
       },
     },
+    settings: {
+      theme: {
+        type: String,
+        enum: ['light', 'dark', 'system'],
+        default: 'system',
+      },
+      emailNotifications: {
+        orderConfirmed: {
+          type: Boolean,
+          default: true,
+        },
+        orderCompleted: {
+          type: Boolean,
+          default: true,
+        },
+      },
+      privacy: {
+        whoCanMessage: {
+          type: String,
+          enum: ['anyone', 'orders-only'],
+          default: 'anyone',
+        },
+        blockedUsers: [{
+          type: mongoose.Schema.Types.ObjectId,
+          refPath: 'blockedUsers.role',
+        }],
+      },
+    },
     inventory: [
       {
         productId: {

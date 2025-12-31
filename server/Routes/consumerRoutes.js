@@ -705,6 +705,57 @@ router.put('/profile/update-password', auth, async (req, res) => {
   }
 });
 
+// Update consumer email
+router.put('/profile/update-email', auth, async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required',
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid email format',
+      });
+    }
+
+    // Check if email already exists
+    const existingConsumer = await Consumer.findOne({ email });
+    if (existingConsumer && existingConsumer._id.toString() !== req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already in use',
+      });
+    }
+
+    // Update email
+    const consumer = await Consumer.findByIdAndUpdate(
+      req.user.id,
+      { $set: { email } },
+      { new: true }
+    ).select('-password');
+
+    res.json({
+      success: true,
+      message: 'Email updated successfully',
+      data: consumer,
+    });
+  } catch (error) {
+    console.error('Error updating email:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating email',
+    });
+  }
+});
+
 // Create a new order
 router.post('/orders', auth, async (req, res) => {
   try {

@@ -54,6 +54,7 @@
   flex: 1;
   padding: 1rem 0;
   overflow-y: auto;
+  
 }
 
 .menu-item {
@@ -67,6 +68,8 @@
   background: none;
   width: relative;
   cursor: pointer;
+  padding-bottom: 1rem;
+  padding-top: 1rem;
 }
 
 /* Update for expanded state */
