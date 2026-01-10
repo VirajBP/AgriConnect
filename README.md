@@ -255,8 +255,8 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 ## Contact
 
 **Your Name**
-Email: [your.email@example.com](mailto:your.email@example.com)
-GitHub: [https://github.com/yourusername/agriconnect](https://github.com/yourusername/agriconnect)
+Email: [viraj.pradhan04@gmail.com](mailto:viraj.pradhan04@gmail.com)
+GitHub: [https://github.com/VirajBP/AgriConnect](https://github.com/VirajBPP/AgriConnect)
 
 ---
 
